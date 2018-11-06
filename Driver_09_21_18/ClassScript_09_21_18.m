@@ -1,4 +1,10 @@
-a = ExperimentClass_09_21_18('COM5');
+system = computer();
+if strcmp(system, "MACI64")
+    serialPort = '/dev/tty.usbmodem14201';
+else
+    serialPort = 'COM5';
+end
+a = ExperimentClass_09_21_18(serialPort);
 
 % a.linearOscillate(10,10,60,25,30,2,100);
 % 
@@ -8,8 +14,8 @@ a = ExperimentClass_09_21_18('COM5');
 % 
 % a.smoothPursuit(54000,60,-60,20,1000);
 % 
-% a.calibrate();
+a.calibrate();
 
-a.moveTo(50,50,100);
+a.moveTo(25,25,100);
 
 a.endSerial();
