@@ -14,8 +14,8 @@ a = ExperimentClass_09_21_18(serialPort);
 % 
 % a.smoothPursuit(54000,60,-60,20,1000);
 % 
-a.calibrate();
+%a.calibrate();
 
-a.moveTo(25,25,100);
+a.moveTo(14,7,100);
 
 a.endSerial();
