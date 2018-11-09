@@ -16,6 +16,6 @@ a = ExperimentClass_09_21_18(serialPort);
 % 
 %a.calibrate();
 
-a.moveTo(14,7,100);
+a.moveTo(13.5,6.76,100);
 
 a.endSerial();
