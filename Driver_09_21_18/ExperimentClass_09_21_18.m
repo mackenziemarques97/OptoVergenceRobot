@@ -86,7 +86,7 @@ classdef ExperimentClass_09_21_18 < handle
         function moveTo(obj,x,y,hold)
             %count = 0; %to count number of times display while loop runs
             % Moves target to (x,y) and holds for designated milliseconds
-            fprintf(obj.connection,('moveTo:%d:%d:%d'),[x,y,hold]);
+            fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]);
             checkForMovementEnd(obj, 'Linear Move Trial');
 %             while(strcmp(check(obj),'Done')~=1)
 %                 disp('Linear Move Trial')
