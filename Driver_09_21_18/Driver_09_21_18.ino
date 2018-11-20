@@ -19,7 +19,7 @@
 #define GREEN 50
 
 /* Defining the measurement of the stepmotor */
-float motor_radius = 0.65 /* cm */
+float motor_radius = 0.65; /* cm */
 
 /* Defining initial variables and arrays */
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
@@ -499,14 +499,17 @@ void loop()
       //BLUE
         /* Simple move to designated location and holds for a certain time
         */
-
+        
         /* scale the input location from centimeter to microsteps */
+        
+        long locx;
+        long locy;
+
         locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
         locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
-        
         /* safty check, if the desired location beyond the dimensions, constrain it to the far point  */
-        if (locx > dimensions[0]) { dispx = dimensions[0] };
-        if (locy > dimensions[1]) { dispy = dimensions[1] };
+        if (locx > dimensions[0]) { dispx = dimensions[0]; };
+        if (locy > dimensions[1]) { dispy = dimensions[1]; };
     
         /* displacement in scale of microsteps*/
         dispx = locx - location[0]; /* Converting input virtual dimensions to microsteps*/
