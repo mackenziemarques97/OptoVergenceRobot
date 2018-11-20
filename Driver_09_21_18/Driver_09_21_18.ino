@@ -18,6 +18,9 @@
 #define BLUE 49
 #define GREEN 50
 
+/* Defining the measurement of the stepmotor */
+float motor_radius = 0.65 /* cm */
+
 /* Defining initial variables and arrays */
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
 unsigned long microsteps = 16; /*divides the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
@@ -496,9 +499,19 @@ void loop()
       //BLUE
         /* Simple move to designated location and holds for a certain time
         */
-        /*x/y displacement = desired x/y-cooridnate divided by the product of virtual dimension and total x/y-dimension, minus current x/y-coordinate location*/
-        dispx = (long) (*(command + 1) / virtDimX * dimensions[0]) - location[0]; /* Converting input virtual dimensions to microsteps*/
-        dispy = (long) (*(command + 2) / virtDimY * dimensions[1]) - location[1];
+
+        /* scale the input location from centimeter to microsteps */
+        locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
+        locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
+        
+        /* safty check, if the desired location beyond the dimensions, constrain it to the far point  */
+        if (locx > dimensions[0]) { dispx = dimensions[0] };
+        if (locy > dimensions[1]) { dispy = dimensions[1] };
+    
+        /* displacement in scale of microsteps*/
+        dispx = locx - location[0]; /* Converting input virtual dimensions to microsteps*/
+        dispy = locy - location[1];
+        
         /*move by designated vector displacement*/
         digitalWrite(BLUE, LOW);/*turn on blue*/
         line(dispx, dispy, Delay);
