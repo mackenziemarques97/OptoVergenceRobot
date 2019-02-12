@@ -40,9 +40,13 @@ float reverse_coeffs[16]; /*used in speedToDelay function*/
 
 /*Blink an LED twice
  * input: specific LED pin
- * that pin must be set to HIGH before calling this function 
+ * that pin must be set to HIGH first
  */
 void Blink(int LED) {
+  int LEDstate = digitalRead(LED);
+  if (LEDstate == LOW){
+    LEDstate = HIGH;
+  }
   digitalWrite(LED, LOW);
   delay(700);
   digitalWrite(LED, HIGH);
@@ -443,9 +447,9 @@ void setup()
   /*initially, red & blue off, green on*/
   /*since using common anode RGB LEDs
      HIGH corresponds to off, LOW corresponds to on*/
-  digitalWrite(RED, HIGH); /*red off*/
-  digitalWrite(BLUE, HIGH); /*blue off*/
-  digitalWrite(GREEN, HIGH); /*green on*/
+  digitalWrite(RED, LOW); /*red off*/
+  digitalWrite(BLUE, LOW); /*blue off*/
+  digitalWrite(GREEN, LOW); /*green on*/
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate*/
@@ -460,7 +464,7 @@ void setup()
   dimensions[0] = *i * microsteps; //106528; /*x-dimension*/
   dimensions[1] = *(i + 1) * microsteps; //54624; /*y-dimension*/
 
-  loadInfo();
+  //loadInfo();
   Serial.println("Ready");
   //digitalWrite(GREEN, HIGH);
 }
