@@ -44,11 +44,11 @@ classdef ExperimentClass_09_21_18 < handle
             forward_coeffs = obj.forward_coeffs;
             reverse_coeffs = obj.reverse_coeffs;
             
-%             waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
-%             sendCoeffs(obj, forward_coeffs);
-%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-%             sendCoeffs(obj, reverse_coeffs);
-%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+            waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
+            sendCoeffs(obj, forward_coeffs);
+            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+            sendCoeffs(obj, reverse_coeffs);
+            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
             
             waitSignal = check(obj) %fscanf(obj.connection,'%s') %read from Arduino; should receive "Ready"
         end

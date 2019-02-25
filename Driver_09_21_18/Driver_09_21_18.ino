@@ -464,7 +464,7 @@ void setup()
   dimensions[0] = *i * microsteps; //106528; /*x-dimension*/
   dimensions[1] = *(i + 1) * microsteps; //54624; /*y-dimension*/
 
-  //loadInfo();
+  loadInfo();
   Serial.println("Ready");
   //digitalWrite(GREEN, HIGH);
 }
