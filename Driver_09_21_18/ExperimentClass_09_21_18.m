@@ -14,7 +14,7 @@ classdef ExperimentClass_09_21_18 < handle
             obj.connection = serial(comPort);
             set(obj.connection,'DataBits',8);
             set(obj.connection,'StopBits',1);
-            set(obj.connection,'BaudRate',14400);
+            set(obj.connection,'BaudRate',9600);
             set(obj.connection,'Parity','none');
             
             fopen(obj.connection);
@@ -44,11 +44,11 @@ classdef ExperimentClass_09_21_18 < handle
             forward_coeffs = obj.forward_coeffs;
             reverse_coeffs = obj.reverse_coeffs;
             
-            waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
-            sendCoeffs(obj, forward_coeffs);
-            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-            sendCoeffs(obj, reverse_coeffs);
-            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+%             waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
+%             sendCoeffs(obj, forward_coeffs);
+%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+%             sendCoeffs(obj, reverse_coeffs);
+%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
             
             waitSignal = check(obj) %fscanf(obj.connection,'%s') %read from Arduino; should receive "Ready"
         end

@@ -12,10 +12,11 @@ a = ExperimentClass_09_21_18(serialPort);
 % 
 % a.calibrate();
 % 
-a.smoothPursuit(8000,90,-90,20,500);
+%a.smoothPursuit(8000,90,-90,20,500);
 % 
 %a.calibrate();
 
 %a.moveTo(10,5,100); % x cm, y cm, hold ms
+a.speedModelFit(20,80,5,12); %speedModelFit:20:80:5:12
 
 a.endSerial();

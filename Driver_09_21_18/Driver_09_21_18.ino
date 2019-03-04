@@ -140,11 +140,11 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
     }
     return inputs;
 
-  } else if (strcmp(fstr, "SpeedModelFit") == 0) {
+  } else if (strcmp(fstr, "speedModelFit") == 0) {
     /*switch case
-       SpeedModeling:delayi:delayf:ddelay:angleTrials
+       speedModelFit:delayi:delayf:ddelay:angleTrials
     */
-    static double inputs[7];
+    static double inputs[5];
     inputs[0] = 5;
     int i = 1;
     while (fstr != NULL) {
@@ -453,7 +453,7 @@ void setup()
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate*/
-  Serial.begin(14400);
+  Serial.begin(9600);
 
   /* Communicates with Serial connection to verify */
   initialize();
@@ -464,7 +464,7 @@ void setup()
   dimensions[0] = *i * microsteps; //106528; /*x-dimension*/
   dimensions[1] = *(i + 1) * microsteps; //54624; /*y-dimension*/
 
-  loadInfo();
+  //loadInfo();
   Serial.println("Ready");
   //digitalWrite(GREEN, HIGH);
 }
@@ -642,9 +642,9 @@ void loop()
             int maxDelay = j;
             Serial.println("Delay");
             /* Angle Loop */
-            for (int i = 0; i <= -maxDistance; i -= ddistance) {
+            for (int i = 0; i <= maxDistance; i += ddistance) {
               recalibrate(xMin);
-              recalibrate(yMax);
+              recalibrate(yMin);
               delay(300);
               int x = maxDistance; // Steps
               int y = i;
