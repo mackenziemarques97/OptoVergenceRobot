@@ -1,4 +1,4 @@
-classdef ExperimentClass_09_21_18 < handle
+classdef ExperimentClass_cm < handle
 
     properties
         connection
@@ -9,7 +9,7 @@ classdef ExperimentClass_09_21_18 < handle
     
     methods
         %% Experiment Constructor
-        function obj = ExperimentClass_09_21_18(comPort)
+        function obj = ExperimentClass_cm(comPort)
             % Intializes Experiment class and opens connection
             obj.connection = serial(comPort);
             set(obj.connection,'DataBits',8);
@@ -33,7 +33,7 @@ classdef ExperimentClass_09_21_18 < handle
             fprintf(obj.connection,'%c','A'); %MATLAB sending 'A'
       
             %equivalent of typing 'A' into Serial monitor
-%             mbox = msgbox('Serial Communication setup'); uiwait(mbox);
+            mbox = msgbox('Serial Communication setup'); uiwait(mbox);
             flushinput(obj.connection);
             
             % Save parameters (forward_coeffs, reverse_coeffs) that will be sent from MATLAB
@@ -129,9 +129,9 @@ classdef ExperimentClass_09_21_18 < handle
             fprintf(obj.connection,('speedModelFit:%d:%d:%d:%d'),...
                 [delayi,delayf,ddelay,angleTrials]);
             % while Beginning is being sent from Arduino, print given message
-            while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
-                disp('Speed Experiment Trials');
-            end
+%             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
+%                 disp('Speed Experiment Trials');
+%             end
             
             % 1st read from Arduino: ddistance
             ddistance = fscanf(obj.connection,'%d')

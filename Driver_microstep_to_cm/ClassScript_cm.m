@@ -4,7 +4,7 @@ if strcmp(system, "MACI64")
 else
     serialPort = 'COM5';
 end
-a = ExperimentClass_09_21_18(serialPort);
+a = ExperimentClass_cm(serialPort);
 
 % a.linearOscillate(10,10,60,25,30,2,100);
 % 

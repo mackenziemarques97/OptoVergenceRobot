@@ -4,8 +4,9 @@ if strcmp(system, "MACI64")
 else
     serialPort = 'COM5';
 end
-a = ExperimentClass_09_21_18(serialPort);
+a = ExperimentClass_cm(serialPort);
 
+a.speedModelFit(10,50,10,10);
 % a.linearOscillate(10,10,60,25,30,2,100);
 % 
 % a.moveTo(90,45,500);
