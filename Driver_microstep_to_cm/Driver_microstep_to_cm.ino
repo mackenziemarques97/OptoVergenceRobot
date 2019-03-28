@@ -453,7 +453,7 @@ void setup()
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate*/
-  Serial.begin(14400);
+  Serial.begin(9600);
 
   /* Communicates with Serial connection to verify */
   initialize();
@@ -511,7 +511,7 @@ void loop()
 
         locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
         locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
-        /* safty check, if the desired location beyond the dimensions, constrain it to the far point  */
+        /* safety check, if the desired location beyond the dimensions, constrain it to the far point  */
         if (locx > dimensions[0]) { dispx = dimensions[0]; };
         if (locy > dimensions[1]) { dispy = dimensions[1]; };
     
@@ -533,11 +533,14 @@ void loop()
              Moves to first coordinate and oscillates between that and second coordinate
           */
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
-          long dx = (long) ((*(command + 3) - * (command + 1)) / virtDimX * dimensions[0]); /* Converting input virtual dimensions to microsteps*/
-          long dy = (long) ((*(command + 4) - * (command + 2)) / virtDimY * dimensions[1]);
+          long dx = (long) ((*(command + 3) - * (command + 1)) / (2*pi*motor_radius) * 200 * microsteps); /* Converting input virtual dimensions to microsteps*/
+          long dy = (long) ((*(command + 4) - * (command + 2)) / (2*pi*motor_radius) * 200 * microsteps);
           /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-          dispx = (long) (*(command + 1) / virtDimX * dimensions[0]) - location[0];
-          dispy = (long) (*(command + 2) / virtDimY * dimensions[1]) - location[1];
+          locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
+          locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
+          
+          dispx = (long) locx - location[0];
+          dispy = (long) locy - location[1];
           /*move along calculated displacement vector from current location to desired starting point*/
           digitalWrite(RED, LOW);/*turn on red*/
           line(dispx, dispy, Delay);
@@ -644,7 +647,7 @@ void loop()
             /* Angle Loop */
             for (int i = 0; i <= -maxDistance; i -= ddistance) {
               recalibrate(xMin);
-              recalibrate(yMax);
+              recalibrate(yMin);
               delay(300);
               int x = maxDistance; // Steps
               int y = i;

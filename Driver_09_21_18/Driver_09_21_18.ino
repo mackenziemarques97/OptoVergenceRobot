@@ -1,3 +1,15 @@
+/*Current troubleshooting: small bot --> big bot
+ * findDimensions not moving LED in intended direction
+ * want rod to rotate counterclockwise when findDimensions starts
+ * not the power supply
+ * Changed directions of movement in recalibrate-->didn't work
+ * Switch to moving y Motor first instead of x in fD--> moves in expected direction? yes!
+ * Switch xMax & xMin pins? not really, doesn't completely overrun, but doesn't do what I want, moves toward correct pin initially but doesn't stop 
+ * Switch stepper motors --> rod still rotating in wrong direction, problem not particular to the motor
+ * Swapped 5V and ground for xDir from microstep driver --> issue persists
+ * Put power supply directly into xDir microstep driver --> not solved
+ */
+
 #include <stdio.h>
 #include <math.h>
 
@@ -447,9 +459,9 @@ void setup()
   /*initially, red & blue off, green on*/
   /*since using common anode RGB LEDs
      HIGH corresponds to off, LOW corresponds to on*/
-  digitalWrite(RED, LOW); /*red off*/
-  digitalWrite(BLUE, LOW); /*blue off*/
-  digitalWrite(GREEN, LOW); /*green off*/
+  digitalWrite(RED, HIGH); /*BIG BOT: digitalWrite(HIGH) = LED off & digitalWrite(LOW) = LED on*/
+  digitalWrite(BLUE, HIGH); /*SMALL BOT: digitalWrite(HIGH) = on & digitalWrite(LOW) = LED off*/
+  digitalWrite(GREEN, HIGH);
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate*/
@@ -459,10 +471,10 @@ void setup()
   initialize();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps*/
-  dimensions[0] = *i * microsteps; //106528; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microsteps; //54624; /*y-dimension*/
+  dimensions[0] = 106528;//*i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
+  dimensions[1] = 54624;//*(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
 
   //loadInfo();
   Serial.println("Ready");
