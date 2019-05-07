@@ -1,3 +1,16 @@
+/*Current troubleshooting: small bot --> big bot
+ * findDimensions not moving LED in intended direction
+ * want rod to rotate counterclockwise when findDimensions starts
+ * not the power supply
+ * Changed directions of movement in recalibrate-->didn't work
+ * Switch to moving y Motor first instead of x in fD--> moves in expected direction? yes!
+ * Switch xMax & xMin pins? not really, doesn't completely overrun, but doesn't do what I want, moves toward correct pin initially but doesn't stop 
+ * Switch stepper motors --> rod still rotating in wrong direction, problem not particular to the motor
+ * Swapped 5V and ground for xDir from microstep driver --> issue persists
+ * Put power supply directly into xDir microstep driver --> not solved
+ * Fixed, but don't know why
+ */
+
 #include <stdio.h>
 #include <math.h>
 
@@ -140,11 +153,11 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
     }
     return inputs;
 
-  } else if (strcmp(fstr, "SpeedModelFit") == 0) {
+  } else if (strcmp(fstr, "speedModelFit") == 0) {
     /*switch case
-       SpeedModeling:delayi:delayf:ddelay:angleTrials
+       speedModelFit:delayi:delayf:ddelay:angleTrials
     */
-    static double inputs[7];
+    static double inputs[5];
     inputs[0] = 5;
     int i = 1;
     while (fstr != NULL) {
@@ -447,9 +460,9 @@ void setup()
   /*initially, red & blue off, green on*/
   /*since using common anode RGB LEDs
      HIGH corresponds to off, LOW corresponds to on*/
-  digitalWrite(RED, LOW); /*red off*/
-  digitalWrite(BLUE, LOW); /*blue off*/
-  digitalWrite(GREEN, LOW); /*green off*/
+  digitalWrite(RED, HIGH); /*BIG BOT: digitalWrite(HIGH) = LED off & digitalWrite(LOW) = LED on*/
+  digitalWrite(BLUE, HIGH); /*SMALL BOT: digitalWrite(HIGH) = on & digitalWrite(LOW) = LED off*/
+  digitalWrite(GREEN, HIGH);
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate*/
@@ -461,10 +474,10 @@ void setup()
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps*/
-  dimensions[0] = *i * microsteps; //106528; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microsteps; //54624; /*y-dimension*/
+  dimensions[0] = *i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
+  dimensions[1] = *(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
 
-  loadInfo();
+  //loadInfo();
   Serial.println("Ready");
   //digitalWrite(GREEN, HIGH);
 }
@@ -511,7 +524,7 @@ void loop()
 
         locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
         locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
-        /* safety check, if the desired location beyond the dimensions, constrain it to the far point  */
+        /* safty check, if the desired location beyond the dimensions, constrain it to the far point  */
         if (locx > dimensions[0]) { dispx = dimensions[0]; };
         if (locy > dimensions[1]) { dispy = dimensions[1]; };
     
@@ -533,14 +546,11 @@ void loop()
              Moves to first coordinate and oscillates between that and second coordinate
           */
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
-          long dx = (long) ((*(command + 3) - * (command + 1)) / (2*pi*motor_radius) * 200 * microsteps); /* Converting input virtual dimensions to microsteps*/
-          long dy = (long) ((*(command + 4) - * (command + 2)) / (2*pi*motor_radius) * 200 * microsteps);
+          long dx = (long) ((*(command + 3) - * (command + 1)) / virtDimX * dimensions[0]); /* Converting input virtual dimensions to microsteps*/
+          long dy = (long) ((*(command + 4) - * (command + 2)) / virtDimY * dimensions[1]);
           /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-          locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
-          locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
-          
-          dispx = (long) locx - location[0];
-          dispy = (long) locy - location[1];
+          dispx = (long) (*(command + 1) / virtDimX * dimensions[0]) - location[0];
+          dispy = (long) (*(command + 2) / virtDimY * dimensions[1]) - location[1];
           /*move along calculated displacement vector from current location to desired starting point*/
           digitalWrite(RED, LOW);/*turn on red*/
           line(dispx, dispy, Delay);
@@ -600,12 +610,20 @@ void loop()
           float angFinal_res = (pi / 180) * (-(*(command + 3)) + 90) * (*(command + 5)); /*convert final angle from degrees to radians then adjust by input resolution*/
           long dispInitx = dimensions[0] * 0.5 + ((float) * (command + 1)) * cos(angInit_rad) - location[0];
           long dispInity = ((float) * (command + 1)) * sin(angInit_rad) - location[1];
+          Serial.println(angInit_res);
+          Serial.println(angFinal_res);
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
+            Serial.print("i:");
+            Serial.println(i);
             int dx = round(-(*(command + 1)) / (*(command + 5)) * sin((float)i / (*(command + 5)))); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+            Serial.print("dx:");
+            Serial.println(dx);
             int dy = round((*(command + 1)) / (*(command + 5)) * cos((float)i / (*(command + 5)))); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            Serial.print("dy");
+            Serial.println(dy);
             line(dx, dy, *(command + 4)); /*draw small line, which represents part of circle/arc*/
           }
           digitalWrite(RED, HIGH);
@@ -645,7 +663,7 @@ void loop()
             int maxDelay = j;
             Serial.println("Delay");
             /* Angle Loop */
-            for (int i = 0; i <= -maxDistance; i -= ddistance) {
+            for (int i = 0; i <= maxDistance; i += ddistance) {
               recalibrate(xMin);
               recalibrate(yMin);
               delay(300);

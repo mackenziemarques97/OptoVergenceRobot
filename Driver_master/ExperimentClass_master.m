@@ -1,4 +1,4 @@
-classdef ExperimentClass_09_21_18 < handle
+classdef ExperimentClass_master < handle
 
     properties
         connection
@@ -9,7 +9,7 @@ classdef ExperimentClass_09_21_18 < handle
     
     methods
         %% Experiment Constructor
-        function obj = ExperimentClass_09_21_18(comPort)
+        function obj = ExperimentClass_master(comPort)
             % Intializes Experiment class and opens connection
             obj.connection = serial(comPort);
             set(obj.connection,'DataBits',8);
@@ -33,7 +33,7 @@ classdef ExperimentClass_09_21_18 < handle
             fprintf(obj.connection,'%c','A'); %MATLAB sending 'A'
       
             %equivalent of typing 'A' into Serial monitor
-%             mbox = msgbox('Serial Communication setup'); uiwait(mbox);
+            mbox = msgbox('Serial Communication setup'); uiwait(mbox);
             flushinput(obj.connection);
             
             % Save parameters (forward_coeffs, reverse_coeffs) that will be sent from MATLAB
@@ -44,11 +44,11 @@ classdef ExperimentClass_09_21_18 < handle
             forward_coeffs = obj.forward_coeffs;
             reverse_coeffs = obj.reverse_coeffs;
             
-%             waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
-%             sendCoeffs(obj, forward_coeffs);
-%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-%             sendCoeffs(obj, reverse_coeffs);
-%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+            waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
+            sendCoeffs(obj, forward_coeffs);
+            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+            sendCoeffs(obj, reverse_coeffs);
+            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
             
             waitSignal = check(obj) %fscanf(obj.connection,'%s') %read from Arduino; should receive "Ready"
         end

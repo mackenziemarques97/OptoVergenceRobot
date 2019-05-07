@@ -11,8 +11,12 @@ a = ExperimentClass_09_21_18(serialPort);
 % a.moveTo(90,45,500);
 % 
 %a.moveTo(10,10,100);
+
 a.calibrate();
-a.moveTo(10,10,100);
+
+a.smoothPursuit(20000,90,-90,20,3);
+
+%a.moveTo(10,10,100);
 %while k == 1
     %a.smoothPursuit(8000,90,-90,20,3);
 %end

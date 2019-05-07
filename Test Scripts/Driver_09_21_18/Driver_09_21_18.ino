@@ -8,6 +8,7 @@
  * Switch stepper motors --> rod still rotating in wrong direction, problem not particular to the motor
  * Swapped 5V and ground for xDir from microstep driver --> issue persists
  * Put power supply directly into xDir microstep driver --> not solved
+ * Fixed, but don't know why
  */
 
 #include <stdio.h>
@@ -471,10 +472,10 @@ void setup()
   initialize();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps*/
-  dimensions[0] = 106528;//*i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
-  dimensions[1] = 54624;//*(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
+  dimensions[0] = *i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
+  dimensions[1] = *(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
 
   //loadInfo();
   Serial.println("Ready");
@@ -604,18 +605,30 @@ void loop()
       case 4: // smoothPursuit:radius:angInit:angFinal:delayArc:arcRes
       //RED & BLUE
         {
+          float arcRes = (*(command + 5) - 1) / 3;
           float angInit_rad = (pi / 180) * (-(*(command + 2)) + 90); /*convert initial angle from degrees to radians*/
-          float angInit_res = angInit_rad * (*(command + 5)); /*adjust initial angle in radians by input resolution*/
-          float angFinal_res = (pi / 180) * (-(*(command + 3)) + 90) * (*(command + 5)); /*convert final angle from degrees to radians then adjust by input resolution*/
+          float angInit_res = angInit_rad * (arcRes); /*adjust initial angle in radians by input resolution*/
+          float angFinal_res = (pi / 180) * (-(*(command + 3)) + 90) * (arcRes); /*convert final angle from degrees to radians then adjust by input resolution*/
           long dispInitx = dimensions[0] * 0.5 + ((float) * (command + 1)) * cos(angInit_rad) - location[0];
           long dispInity = ((float) * (command + 1)) * sin(angInit_rad) - location[1];
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
+          Serial.print("angInit: ");
+          Serial.println(angInit_res);
+          Serial.print("angFinal: ");
+          Serial.println(angFinal_res);
+
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
-            int dx = round(-(*(command + 1)) / (*(command + 5)) * sin((float)i / (*(command + 5)))); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
-            int dy = round((*(command + 1)) / (*(command + 5)) * cos((float)i / (*(command + 5)))); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            Serial.print("i: ");
+            Serial.println(i);
+            int dx = round(-(*(command + 1)) / (arcRes) * sin((float)i / (arcRes))); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+            int dy = round((*(command + 1)) / (arcRes) * cos((float)i / (arcRes))); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
             line(dx, dy, *(command + 4)); /*draw small line, which represents part of circle/arc*/
+            Serial.print("dx: ");
+            Serial.println(dx);
+            Serial.print("dy: ");
+            Serial.println(dy);
           }
           digitalWrite(RED, HIGH);
           digitalWrite(BLUE, HIGH);
