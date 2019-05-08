@@ -58,14 +58,14 @@ classdef ExperimentClass_master < handle
         end
         
         %% LINEAR OSCILLATION
-        function linearOscillate(obj,x0,y0,x1,y1,speed,repetitions,resolution)
+        function linearOscillate(obj,x0,y0,x1,y1,speed,repetitions)
             % Moves from point (x0,y0) to (x1,y1). Speed is characterized by the
             % pulse-width modulation of the signals set to the stepper motor. Movement
             % will oscillate the number of times as repetitions. Resolution represents
             % the step size for drawing of a pathway. Movement at the 10% edges are
             % slowed down.
-            fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d:%d'),...
-                [x0,y0,x1,y1,speed,repetitions,resolution]);
+            fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d'),...
+                [x0,y0,x1,y1,speed,repetitions]);
             checkForMovementEnd(obj, 'Linear Oscillate Trial');
 %             while(strcmp(fscanf(obj.connection,'%s'),'Done')~=1)
 %                 disp('Linear Oscillate Trial')
@@ -100,10 +100,10 @@ classdef ExperimentClass_master < handle
         end
         
         %% Arc
-        function smoothPursuit(obj,radius,angInit,angFinal,speed,res)
+        function arcMove(obj,radius,angInit,angFinal,speed,res)
             % Moves target in an arc specified by radius and initial and final
             % angles
-            fprintf(obj.connection,('smoothPursuit:%d:%d:%d:%d:%d'),...
+            fprintf(obj.connection,('arcMove:%d:%d:%d:%d:%d'),...
                 [radius,angInit,angFinal,speed,res]);
             checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
 %             while(strcmp(fscanf(obj.connection,'%s'),'Done')~=1)

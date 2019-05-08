@@ -18,7 +18,9 @@
 #define BLUE 49
 #define GREEN 50
 
-/* Defining the measurement of the stepmotor */
+/* Defining the measurement of the stepmotor
+    diameter of pulley
+*/
 float motor_radius = 0.65; /* cm */
 
 /* Defining initial variables and arrays */
@@ -26,9 +28,6 @@ int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = cloc
 unsigned long microsteps = 16; /*divides the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2] = {30000 * microsteps, 30000 * microsteps}; /*preallocating dimensions to previously measured values*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
-/*arbitrary upper limit for location input, with lower limit of 0*/
-int virtDimX = 50; /* max x dimension that can be inputted*/
-int virtDimY = 50; /*max y dimension that can be inputted*/
 
 int Delay = 30; /*default Delay for calibration and basic movement actions in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical value used for pi*/
@@ -39,12 +38,12 @@ float forward_coeffs[16]; /*used in delayToSpeed function*/
 float reverse_coeffs[16]; /*used in speedToDelay function*/
 
 /*Blink an LED twice
- * input: specific LED pin
- * that pin must be set to HIGH first
- */
+   input: specific LED pin
+   that pin must be set to HIGH first
+*/
 void Blink(int LED) {
   int LEDstate = digitalRead(LED);
-  if (LEDstate == LOW){
+  if (LEDstate == LOW) {
     LEDstate = HIGH;
   }
   digitalWrite(LED, LOW);
@@ -57,15 +56,15 @@ void Blink(int LED) {
 }
 
 /*confirm serial connection function
- * initialize serialInit as X
- * send A to MATLAB
- * expecting to receive A
- * if doeS not receive A, then continue reading COM port and blinking red LED
- */
+   initialize serialInit as X
+   send A to MATLAB
+   expecting to receive A
+   if doeS not receive A, then continue reading COM port and blinking red LED
+*/
 void initialize() {
   char serialInit = 'X';
   Serial.println("A");
-  while (serialInit != 'A') 
+  while (serialInit != 'A')
   {
     serialInit = Serial.read();
     Blink(RED);
@@ -120,7 +119,7 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
     }
     return inputs;
 
-  } else if (strcmp(fstr, "smoothPursuit") == 0) {
+  } else if (strcmp(fstr, "arcMove") == 0) {
     /* Move in an arc
       Numerical inputs:
       radius - measured in steps, somewhat arbitrary at the moment
@@ -432,18 +431,19 @@ void setup()
 
   /* Communicates with Serial connection to verify */
   initialize();
+  /* Sends coefficients for speed model */
+  loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
-   *  The following dimensions are to use when findDimensions() is commented out.
-   *  big bot dimensions: x = 106528, y = 54624
-   *  small bot dimensions: x = 28640, y = 31984
+      The following dimensions are to use when findDimensions() is commented out.
+      big bot dimensions: x = 106528, y = 54624
+      small bot dimensions: x = 28640, y = 31984
   */
   dimensions[0] = *i * microsteps; /*x-dimension*/
   dimensions[1] = *(i + 1) * microsteps; /*y-dimension*/
 
-  loadInfo();
   Serial.println("Ready");
   digitalWrite(GREEN, HIGH);
 }
@@ -466,8 +466,8 @@ void loop()
     val.toCharArray(inputArray, val.length() + 1); /*convert val from String object to null terminated character array*/
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
     switch ((int) *command) { /*switch case based on first command*/
-      case 1: // calibrate 
-      //GREEN
+      case 1: // calibrate
+        //GREEN
         /* Calibrates to xMin and yMin and updates location to (0,0) */
         digitalWrite(GREEN, LOW); /*turn on green*/
         xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to 0*/
@@ -478,24 +478,28 @@ void loop()
         delay(1000);
         digitalWrite(GREEN, HIGH); /*turn off green*/
         break;
-      case 2: // moveTo:x0:y0:hold duration 
-      //BLUE
+      case 2: // moveTo:x0:y0:hold duration
+        //BLUE
         /* Simple move to designated location and holds for a certain time
         */
-        
+
         long locx;
         long locy;
 
-        locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
-        locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
+        locx = (long) (*(command + 1) / (2 * pi * motor_radius) * 200 * microsteps);
+        locy = (long) (*(command + 2) / (2 * pi * motor_radius) * 200 * microsteps);
         /* safety check, if the desired location beyond the dimensions, constrain it to the far point  */
-        if (locx > dimensions[0]) { dispx = dimensions[0]; };
-        if (locy > dimensions[1]) { dispy = dimensions[1]; };
-    
+        if (locx > dimensions[0]) {
+          dispx = dimensions[0];
+        };
+        if (locy > dimensions[1]) {
+          dispy = dimensions[1];
+        };
+
         /* displacement in scale of microsteps*/
         dispx = locx - location[0]; /* Converting input virtual dimensions to microsteps*/
         dispy = locy - location[1];
-        
+
         /*move by designated vector displacement*/
         digitalWrite(BLUE, LOW);/*turn on blue*/
         line(dispx, dispy, Delay);
@@ -504,18 +508,18 @@ void loop()
         digitalWrite(BLUE, HIGH);/*turn off blue*/
         break;
       case 3: // linearOscillate:x0:y0:x1:y1:speed:repetitions
-      //RED
+        //RED
         {
           /* Linear Oscillate
              Moves to first coordinate and oscillates between that and second coordinate
           */
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
-          long dx = (long) ((*(command + 3) - * (command + 1)) / (2*pi*motor_radius) * 200 * microsteps); /* Converting input virtual dimensions to microsteps*/
-          long dy = (long) ((*(command + 4) - * (command + 2)) / (2*pi*motor_radius) * 200 * microsteps);
+          long dx = (long) ((*(command + 3) - * (command + 1)) / (2 * pi * motor_radius) * 200 * microsteps); /* Converting input virtual dimensions to microsteps*/
+          long dy = (long) ((*(command + 4) - * (command + 2)) / (2 * pi * motor_radius) * 200 * microsteps);
           /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-          locx = (long) (*(command + 1) / (2*pi*motor_radius) * 200 * microsteps);
-          locy = (long) (*(command + 2) / (2*pi*motor_radius) * 200 * microsteps);
-          
+          locx = (long) (*(command + 1) / (2 * pi * motor_radius) * 200 * microsteps);
+          locy = (long) (*(command + 2) / (2 * pi * motor_radius) * 200 * microsteps);
+
           dispx = (long) locx - location[0];
           dispy = (long) locy - location[1];
           /*move along calculated displacement vector from current location to desired starting point*/
@@ -569,8 +573,8 @@ void loop()
         }
         break;
       case 4: // smoothPursuit:radius:angInit:angFinal:delayArc:arcRes
-      // 1:1 ratio between arcRes and number of lines used to draw the arc
-      //RED & BLUE
+        // 1:1 ratio between arcRes and number of lines used to draw the arc
+        //RED & BLUE
         {
           int R = *(command + 1); //radius
           int angInit = *(command + 2);
@@ -587,7 +591,7 @@ void loop()
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/           
+          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
             int dx = round(-R / arcRes * sin((float)i / arcRes)); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
             int dy = round(R / arcRes * cos((float)i / arcRes)); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
             line(dx, dy, Delay); /*draw small line, which represents part of circle/arc*/
