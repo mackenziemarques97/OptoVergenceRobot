@@ -1,6 +1,6 @@
-/*Serial.print()/Serial.println() prints to serial port
+/*Serial.print()/Serial.println() prints/sends to serial port 
  *which is then either read by MATLAB or printed in Serial Monitor
- *dpending on where serial port is connected to.
+ *depending on what serial port is connected to.
 */
 
 #include <stdio.h>
@@ -233,13 +233,13 @@ float* parseCoeffs(char strInput[]) {
    inputs: reverse coefficients array, speed, angle
    calculate delay using 3rd degree polynomials nested in 2-term exponential
 */
-double speedToDelay(double reverse_coeffs[], double Speed, double angle) {
+int speedToDelay(double reverse_coeffs[], double Speed, double angle) {
   double complex_coeffs[4];
   for (int i = 0; i <= 3; i++) {
     double temp_coeff[4] = {reverse_coeffs[0 + i * 4], reverse_coeffs[1 + i * 4], reverse_coeffs[2 + i * 4], reverse_coeffs[3 + i * 4]};
     complex_coeffs[i] = poly3(temp_coeff, angle);
   }
-  double Delay = exp2(complex_coeffs, Speed);
+  int Delay = exp2(complex_coeffs, Speed);
   return Delay;
 }
 
@@ -579,12 +579,13 @@ void loop()
         break;
       case 4: // arcMove:diameter:angInit:angFinal:delayArc/speed:arcRes
         // 1:1 ratio between arcRes and number of lines used to draw the arc
+        // TESTING - conversion from speed to delay
         //RED & BLUE
         {
           int R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
           int angInit = *(command + 2);
           int angFinal = *(command + 3);
-          int Delay = *(command + 4);
+          int Speed = *(command + 4);
           int numLines = *(command + 5);
           float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/ 
           
@@ -601,8 +602,8 @@ void loop()
             
             int dx = round(-R / arcRes * sin((float)i / arcRes)); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
             int dy = round(R / arcRes * cos((float)i / arcRes)); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
-            //double angle = tan(dy/dx);
-            //double Delay = speedToDelay(reverse_coeffs[], Speed, angle)
+            double angle = tan(dy/dx);
+            int Delay = speedToDelay(reverse_coeffs[], Speed, angle)
             line(dx, dy, Delay); /*draw small line, which represents part of circle/arc*/
           }
           digitalWrite(RED, HIGH);

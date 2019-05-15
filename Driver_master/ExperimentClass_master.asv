@@ -167,12 +167,9 @@ classdef ExperimentClass_master < handle
             
             % compute Euclidean speed
             speedArray_steps_s = (sqrt(x.^2+y.^2)./(time./1000)); %in steps/second
-            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(11./200); %speedArray converted to cm/s 
-            %following line is old, not sure 0.037699 is
-            %conversion factor is pi*1.2 cm (3.769911 cm) = 200 steps
-            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(3.76991./200); %speedArray converted to cm/s 
-            save('speed_step','speedArray_steps_s');
-            save('speed_cm','speedArray_cm_s');
+            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(0.037699./200); %speedArray converted to cm/s 
+            save('speed_steps','speedArray');
+            save('speed_meters','speedArray_meters');
             
             % Convert x and y distance to angle in degrees
             angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
@@ -184,7 +181,7 @@ classdef ExperimentClass_master < handle
             % Requires at least 10 trials each to generate a fit
             coeffs_angles = zeros(length(delays),4);
             for i = 1:length(delays)
-                f = fit(angles,speedArray_steps_s(:,i),'exp2');
+                f = fit(angles,speedArray(:,i),'exp2');
                 coeffs_angles(i,:) = [f.a,f.b,f.c,f.d]; % save coefficients
             end
             
@@ -202,7 +199,7 @@ classdef ExperimentClass_master < handle
             % Requires at least 10 trials each to generate a fit
             coeffs_delays = zeros(length(angles),4);
             for i = 1:numel(angles)
-                f = fit(transpose(speedArray_steps_s(i,:)),transpose(delays),'exp2');
+                f = fit(transpose(speedArray(i,:)),transpose(delays),'exp2');
                 coeffs_delays(i,:) = [f.a,f.b,f.c,f.d];
             end
             
