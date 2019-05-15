@@ -1,3 +1,8 @@
+/*Serial.print()/Serial.println() prints to serial port
+ *which is then either read by MATLAB or printed in Serial Monitor
+ *dpending on where serial port is connected to.
+*/
+
 #include <stdio.h>
 #include <math.h>
 
@@ -122,7 +127,7 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
   } else if (strcmp(fstr, "arcMove") == 0) {
     /* Move in an arc
       Numerical inputs:
-      radius - measured in steps, somewhat arbitrary at the moment
+      diameter - in cm, converted to microsteps in switch case
       angInit - arc starts at this angle
       angFinal - arc ends at this angle
       Delay - delay in microseconds for each line movement
@@ -346,7 +351,7 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
 
 
 /* Implementation of Bresenham's Algorithm for a line
-   Input vector (in number of steps) along with pulse width (delay/speed)
+   Input vector (in number of steps) along with pulse width (delay, which determines speed)
    Proprioceptive location
 */
 void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
@@ -572,16 +577,17 @@ void loop()
           delay(1000);
         }
         break;
-      case 4: // smoothPursuit:radius:angInit:angFinal:delayArc:arcRes
+      case 4: // arcMove:diameter:angInit:angFinal:delayArc/speed:arcRes
         // 1:1 ratio between arcRes and number of lines used to draw the arc
         //RED & BLUE
         {
-          int R = *(command + 1); //radius
+          int R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
           int angInit = *(command + 2);
           int angFinal = *(command + 3);
           int Delay = *(command + 4);
-          float arcRes = (*(command + 5) - 1) / 3; /*adjustment of number of lines for calculation*/
-
+          int numLines = *(command + 5);
+          float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/ 
+          
           float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
           float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
           float angInit_res = angInit_rad * arcRes;
@@ -592,8 +598,11 @@ void loop()
           digitalWrite(BLUE, LOW);
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
+            
             int dx = round(-R / arcRes * sin((float)i / arcRes)); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
             int dy = round(R / arcRes * cos((float)i / arcRes)); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            //double angle = tan(dy/dx);
+            //double Delay = speedToDelay(reverse_coeffs[], Speed, angle)
             line(dx, dy, Delay); /*draw small line, which represents part of circle/arc*/
           }
           digitalWrite(RED, HIGH);

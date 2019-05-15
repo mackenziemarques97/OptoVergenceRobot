@@ -1,4 +1,3 @@
-%can send 55 "delays" in the current data format, but not more
 clear
 comPort = serial('COM5','DataBits',8,'StopBits',1,'BaudRate',9600,'Parity','none');
 fopen(comPort);
@@ -16,7 +15,7 @@ end
 fprintf(comPort, '%s', 'A');
 flushinput(comPort);
 
-delay_array = rand(1,55);
+delay_array = rand(1,56);
 
 % output = check(comPort) %should receive Beginning
 
