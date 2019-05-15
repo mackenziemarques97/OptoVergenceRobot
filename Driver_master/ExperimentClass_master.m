@@ -129,9 +129,9 @@ classdef ExperimentClass_master < handle
             fprintf(obj.connection,('speedModelFit:%d:%d:%d:%d'),...
                 [delayi,delayf,ddelay,angleTrials]);
             % while Beginning is being sent from Arduino, print given message
-            while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
-                disp('Speed Experiment Trials');
-            end
+%             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
+%                 disp('Speed Experiment Trials');
+%             end
             
             % 1st read from Arduino: ddistance
             ddistance = fscanf(obj.connection,'%d')

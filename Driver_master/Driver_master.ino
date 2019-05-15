@@ -3,6 +3,9 @@
  *depending on what serial port is connected to.
 */
 
+/*Current notes/concerns:
+ * might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
+ */
 #include <stdio.h>
 #include <math.h>
 
@@ -23,8 +26,9 @@
 #define BLUE 49
 #define GREEN 50
 
-/* Defining the measurement of the stepmotor
+/* Defining the measurement of the rotation
     diameter of pulley
+    will be multiplied by 2pi later in the code to get circumference
 */
 float motor_radius = 0.65; /* cm */
 
@@ -39,8 +43,8 @@ float pi = 3.14159265359; /*numerical value used for pi*/
 String val; /*String object to store inputs read from the Serial Connection*/
 String coeffsString; /*String object to store speed model coefficients sent from MATLAB*/
 float coeffsArray; /*for parsing speed model coefficients*/
-float forward_coeffs[16]; /*used in delayToSpeed function*/
-float reverse_coeffs[16]; /*used in speedToDelay function*/
+double forward_coeffs[16]; /*used in delayToSpeed function*/
+double reverse_coeffs[16]; /*used in speedToDelay function*/
 
 /*Blink an LED twice
    input: specific LED pin
@@ -143,9 +147,9 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
     }
     return inputs;
 
-  } else if (strcmp(fstr, "SpeedModelFit") == 0) {
+  } else if (strcmp(fstr, "speedModelFit") == 0) {
     /*switch case
-       SpeedModeling:delayi:delayf:ddelay:angleTrials
+       speedModelFit:delayi:delayf:ddelay:angleTrials
     */
     static double inputs[7];
     inputs[0] = 5;
@@ -585,7 +589,7 @@ void loop()
           int R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
           int angInit = *(command + 2);
           int angFinal = *(command + 3);
-          int Speed = *(command + 4);
+          double Speed = *(command + 4);
           int numLines = *(command + 5);
           float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/ 
           
@@ -603,7 +607,7 @@ void loop()
             int dx = round(-R / arcRes * sin((float)i / arcRes)); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
             int dy = round(R / arcRes * cos((float)i / arcRes)); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
             double angle = tan(dy/dx);
-            int Delay = speedToDelay(reverse_coeffs[], Speed, angle)
+            int Delay = speedToDelay(reverse_coeffs, Speed, angle);
             line(dx, dy, Delay); /*draw small line, which represents part of circle/arc*/
           }
           digitalWrite(RED, HIGH);
@@ -643,7 +647,7 @@ void loop()
             int maxDelay = j;
             Serial.println("Delay");
             /* Angle Loop */
-            for (int i = 0; i <= -maxDistance; i -= ddistance) {
+            for (int i = 0; i <= maxDistance; i += ddistance) {
               recalibrate(xMin);
               recalibrate(yMin);
               delay(300);
