@@ -8,7 +8,8 @@
 /* upper limit of delay storage is 55
  * in current data format - float
  */
-float delay_array[55] = {};
+float delay_array[56] = {};
+
 
 void initialize() {
   char serialInit = 'X';

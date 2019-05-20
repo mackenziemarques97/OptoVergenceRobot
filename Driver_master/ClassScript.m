@@ -6,7 +6,7 @@ else
 end
 a = ExperimentClass_master(serialPort);
 
-a.speedModelFit(15,65,5,12);
+%a.speedModelFit(15,65,5,12);
 % a.linearOscillate(10,10,60,25,30,2,100);
 % 
 %a.moveTo(20,20,500);
@@ -15,7 +15,7 @@ a.speedModelFit(15,65,5,12);
 % 
 %x = 1;
 %while x == 1
-%a.arcMove(30,90,-90,30,27);
+a.arcMove(30,90,-90,900,54);
 %end
 % 
 %a.calibrate();

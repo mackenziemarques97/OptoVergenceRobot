@@ -43,15 +43,15 @@ for i = angInit_res:(angFinal_res/numLines):angFinal_res
     dx(count) = -R / arcRes * sin(i / arcRes);
     dy(count) = R / arcRes * cos(i / arcRes);
     angle = atan(dy(count) / dx(count) * 180/pi);
-    Delays(count) = speedToDelay(speed, angle);
+    Delays(count) = speedToDelay(reverse_coeffs, speed, angle);
     count = count + 1;
 end
 %testing
 Delays
-size(Delays)
+
 waitSignal = check(comPort) % should receive "ReadyToReceiveDelays"
 sendArray(comPort, Delays);
-waitSignal = check(comPort)
+waitSignal = check(comPort) % should receive "DelaysReceived"
 
 
 % % random playing with communication
@@ -95,7 +95,7 @@ end
 %% Calculating input speed to a delay sent to Arduino
 % coeff_array is a 4x4 array - rows representing exp2, columns representing
 % poly3
-function [delay] = speedToDelay(speed,angle)
+function [delay] = speedToDelay(reverse_coeffs,speed,angle)
 complex_coeffs = zeros(size(reverse_coeffs));
 for i = 1:length(reverse_coeffs(:,1))
     complex_coeffs(i) = poly3(reverse_coeffs(i,:),angle);

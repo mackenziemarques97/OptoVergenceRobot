@@ -67,9 +67,6 @@ classdef ExperimentClass_master < handle
             fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d'),...
                 [x0,y0,x1,y1,speed,repetitions]);
             checkForMovementEnd(obj, 'Linear Oscillate Trial');
-%             while(strcmp(fscanf(obj.connection,'%s'),'Done')~=1)
-%                 disp('Linear Oscillate Trial')
-%             end
         end
         
         %% CALIBRATION
@@ -77,9 +74,6 @@ classdef ExperimentClass_master < handle
             % Returns target to xMin and yMin at the bottom-left corner
             fprintf(obj.connection,'calibrate:');
             checkForMovementEnd(obj, 'Calibrate');
-%             while(strcmp(fscanf(obj.connection,'%s'),'Done')~=1)
-%                 disp('Calibrate')
-%             end
         end
         
         %% Move
@@ -88,27 +82,50 @@ classdef ExperimentClass_master < handle
             % Moves target to (x,y) and holds for designated milliseconds
             fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]);
             checkForMovementEnd(obj, 'Linear Move Trial');
-%             while(strcmp(check(obj),'Done')~=1)
-%                 disp('Linear Move Trial')
-%                 count = count + 1
-%             end
-%             %check if this worked!
-%             if (count == 0)
-%                 disp('Linear Move Trial')
-%                 Hello
-%             end
         end
         
         %% Arc
-        function arcMove(obj,radius,angInit,angFinal,speed,res)
+        function arcMove(obj,diameter,angInit,angFinal,speed,numLines)
             % Moves target in an arc specified by radius and initial and final
             % angles
             fprintf(obj.connection,('arcMove:%d:%d:%d:%d:%d'),...
-                [radius,angInit,angFinal,speed,res]);
+                [diameter,angInit,angFinal,speed,numLines]);
+            
+            %testing
+            %angle inputs range from 90 to -90 degrees
+            dx = zeros(1,numLines); dy = zeros(1,numLines);
+            Delays = zeros(1,numLines); %preallocating
+            microsteps = 16;
+            motor_radius = 0.65; %cm
+            arcRes = (numLines - 1) / 3;
+            R = diameter / (4 * pi * motor_radius) * 200 * microsteps;
+            
+            angInit_rad = (pi / 180) * (-angInit + 90); %for init and final, convert inputs to range from 0 to 180 degrees
+            angFinal_rad = (pi / 180) * (-angFinal + 90); %then convert to radians
+            angInit_res = angInit_rad * arcRes; %scale by angles by arcRes
+            angFinal_res = angFinal_rad * arcRes;
+            
+            count = 1;
+            for i = angInit_res:(angFinal_res/numLines):angFinal_res
+                dx(count) = -R / arcRes * sin(i / arcRes);
+                dy(count) = R / arcRes * cos(i / arcRes);
+                angle = atan(dy(count) / dx(count) * 180/pi);
+                Delays(count) = speedToDelay(obj, speed, angle);
+                count = count + 1;
+            end
+            %testing
+            Delays
+            size(Delays)
+            waitSignal = check(obj) % should receive "ReadyToReceiveDelays"
+            sendCoeffs(obj, Delays);
+            waitSignal = check(obj) % should receive "DelaysReceived"
+            sendCoeffs(obj, dx);
+            waitSignal = check(obj) % should receive "dxReceived"
+            sendCoeffs(obj, dy);
+            waitSignal = check(obj) % should receive "dyReceived"
+            
             checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
-%             while(strcmp(fscanf(obj.connection,'%s'),'Done')~=1)
-%                 disp('Arc Movement/Smooth Pursuit Trial');
-%             end
+            
         end
         
         %% Close Connection
