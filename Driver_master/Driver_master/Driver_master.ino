@@ -1,13 +1,13 @@
-/*Serial.print()/Serial.println() prints/sends to serial port 
- *which is then either read by MATLAB or printed in Serial Monitor
- *depending on what serial port is connected to.
+/*Serial.print()/Serial.println() prints/sends to serial port
+  which is then either read by MATLAB or printed in Serial Monitor
+  depending on what serial port is connected to.
 */
 
 /*Current notes/concerns:
- * attempting to make speed constant throughout arc movement
- * currently not smoother than using the same delay for all of the lines in the arc
- * might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
- */
+   attempting to make speed constant throughout arc movement
+   currently not smoother than using the same delay for all of the lines in the arc
+   might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
+*/
 #include <stdio.h>
 #include <math.h>
 
@@ -47,13 +47,14 @@ String coeffsString; /*String object to store speed model coefficients sent from
 float coeffsArray; /*for parsing speed model coefficients*/
 double forward_coeffs[16]; /*used in delayToSpeed function*/
 double reverse_coeffs[16]; /*used in speedToDelay function*/
-/*arrays for storing movements and Delays from speedToDelay
-*using 27 lines for small robot
-*will likley increase to 55 to large robot
+/*TESTING
+  arrays for storing movements and Delays from speedToDelay
+  using 27 lines for small robot
+  will likley increase to 55 to large robot
 */
-double dx[27] = {0};
-double dy[27] = {0};
-double Delays[27] = {0};
+double dx[55] = {0};
+double dy[55] = {0};
+double Delays[55] = {0};
 
 /*Blink an LED twice
    input: specific LED pin
@@ -601,8 +602,8 @@ void loop()
           int angFinal = *(command + 3);
           double Speed = *(command + 4);
           int numLines = *(command + 5);
-          float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/ 
-          
+          float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
+
           float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
           float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
           float angInit_res = angInit_rad * arcRes;
@@ -612,10 +613,10 @@ void loop()
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
 
-          //TEST
-          
+          //TESTING
+
           int count = 0;
-          for (int i = angInit_res; i <= angFinal_res; i++){
+          for (int i = angInit_res; i <= angFinal_res; i++) {
             Serial.println(count);
             double dx = {round(-R / arcRes * sin((float)i / arcRes))}; /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
             Serial.println(dx);
@@ -623,25 +624,25 @@ void loop()
             Serial.println(dy);
             double angle = abs(atan2(dy, dx) * (180 / pi));
             Serial.println(angle);
-            if (angle >= 90 && angle <= 135){
+            if (angle >= 90 && angle <= 135) {
               angle = angle - 90;
             }
-            else if (angle > 135 && angle <= 180){
+            else if (angle > 135 && angle <= 180) {
               angle = angle - 135;
             }
             double Delays[count] = {speedToDelay(reverse_coeffs, Speed, angle)};
             count++;
           }
-          
+
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           count = 0;
-          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/  
+          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
             line(dx[count], dy[count], Delay); /*draw small line, which represents part of circle/arc*/
             count++;
           }
 
-          //TEST 
-          
+          //TEST
+
           digitalWrite(RED, HIGH);
           digitalWrite(BLUE, HIGH);
           Serial.println("Done");

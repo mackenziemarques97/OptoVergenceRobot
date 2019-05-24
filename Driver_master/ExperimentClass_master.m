@@ -1,5 +1,5 @@
 classdef ExperimentClass_master < handle
-
+    
     properties
         connection
         forward_coeffs = zeros(4,4);
@@ -31,9 +31,8 @@ classdef ExperimentClass_master < handle
             end
             
             fprintf(obj.connection,'%c','A'); %MATLAB sending 'A'
-      
             %equivalent of typing 'A' into Serial monitor
-            mbox = msgbox('Serial Communication setup'); uiwait(mbox);
+            
             flushinput(obj.connection);
             
             % Save parameters (forward_coeffs, reverse_coeffs) that will be sent from MATLAB
@@ -44,16 +43,16 @@ classdef ExperimentClass_master < handle
             forward_coeffs = obj.forward_coeffs;
             reverse_coeffs = obj.reverse_coeffs;
             
-            waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
-            sendCoeffs(obj, forward_coeffs);
-            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-            sendCoeffs(obj, reverse_coeffs);
-            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+%             waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
+%             sendInfo(obj, forward_coeffs);
+%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+%             sendInfo(obj, reverse_coeffs);
+%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
             
-            waitSignal = check(obj) %fscanf(obj.connection,'%s') %read from Arduino; should receive "Ready"
+            waitSignal = check(obj) %read from Arduino; should receive "Ready"
         end
         
-        function output = readSerial(obj,type) 
+        function output = readSerial(obj,type)
             output = fscanf(obj.connection,type);
         end
         
@@ -93,11 +92,13 @@ classdef ExperimentClass_master < handle
             
             %testing
             %angle inputs range from 90 to -90 degrees
+            %max number for numLines is 36
             dx = zeros(1,numLines); dy = zeros(1,numLines);
             Delays = zeros(1,numLines); %preallocating
             microsteps = 16;
             motor_radius = 0.65; %cm
             arcRes = (numLines - 1) / 3;
+            speed = (200 * speed) / (1.2 * pi);
             R = diameter / (4 * pi * motor_radius) * 200 * microsteps;
             
             angInit_rad = (pi / 180) * (-angInit + 90); %for init and final, convert inputs to range from 0 to 180 degrees
@@ -115,14 +116,18 @@ classdef ExperimentClass_master < handle
             end
             %testing
             Delays
-            size(Delays)
-            waitSignal = check(obj) % should receive "ReadyToReceiveDelays"
-            sendCoeffs(obj, Delays);
-            waitSignal = check(obj) % should receive "DelaysReceived"
-            sendCoeffs(obj, dx);
+            dx
+            dy
+            
+%             waitSignal = check(obj) % should receive "ReadyToReceiveDelays"
+%             sendInfo(obj, Delays);
+%             waitSignal = check(obj) % should receive "DelaysReceived"
+            sendInfo(obj, dx);
             waitSignal = check(obj) % should receive "dxReceived"
-            sendCoeffs(obj, dy);
-            waitSignal = check(obj) % should receive "dyReceived"
+%             sendInfo(obj, dy);
+%             waitSignal = check(obj) % should receive "dyReceived"
+            
+            waitSignal = check(obj)
             
             checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
             
@@ -146,9 +151,9 @@ classdef ExperimentClass_master < handle
             fprintf(obj.connection,('speedModelFit:%d:%d:%d:%d'),...
                 [delayi,delayf,ddelay,angleTrials]);
             % while Beginning is being sent from Arduino, print given message
-%             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
-%                 disp('Speed Experiment Trials');
-%             end
+            %             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
+            %                 disp('Speed Experiment Trials');
+            %             end
             
             % 1st read from Arduino: ddistance
             ddistance = fscanf(obj.connection,'%d')
@@ -184,19 +189,17 @@ classdef ExperimentClass_master < handle
             
             % compute Euclidean speed
             speedArray_steps_s = (sqrt(x.^2+y.^2)./(time./1000)); %in steps/second
-            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(11./200); %speedArray converted to cm/s 
-            %following line is old, not sure 0.037699 is
             %conversion factor is pi*1.2 cm (3.769911 cm) = 200 steps
-            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(3.76991./200); %speedArray converted to cm/s 
+            %speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(3.76991./200); %speedArray converted to cm/s
             save('speed_step','speedArray_steps_s');
-            save('speed_cm','speedArray_cm_s');
+            %save('speed_cm','speedArray_cm_s');
             
             % Convert x and y distance to angle in degrees
             angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
             save('angles','angles');
             
             %% Finding model of delay to speed
-            % For each delay, finds the coefficients of a 
+            % For each delay, finds the coefficients of a
             % 2-term exponential model of angle vs measured speed
             % Requires at least 10 trials each to generate a fit
             coeffs_angles = zeros(length(delays),4);
@@ -205,7 +208,7 @@ classdef ExperimentClass_master < handle
                 coeffs_angles(i,:) = [f.a,f.b,f.c,f.d]; % save coefficients
             end
             
-            % Models the columns in coeffs_angles with a 2-term exponential 
+            % Models the columns in coeffs_angles with a 2-term exponential
             % with respect to delays
             forward_coeffs = zeros(4,4);
             for i = 1:4
@@ -214,7 +217,7 @@ classdef ExperimentClass_master < handle
             end
             
             %% Finding model of speed to delay
-            % For each angle, finds the coefficients of a 
+            % For each angle, finds the coefficients of a
             % 2-term exponential model of measured speed vs delay
             % Requires at least 10 trials each to generate a fit
             coeffs_delays = zeros(length(angles),4);
@@ -223,13 +226,13 @@ classdef ExperimentClass_master < handle
                 coeffs_delays(i,:) = [f.a,f.b,f.c,f.d];
             end
             
-            % Models the columns in coeffs_delays as a 3rd degree 
+            % Models the columns in coeffs_delays as a 3rd degree
             % polynomial with respect to angles
             reverse_coeffs = zeros(4,4);
             for i = 1:4
                 f = fit(angles,coeffs_delays(:,i),'poly3');
                 reverse_coeffs(i,:) = [f.p1,f.p2,f.p3,f.p4];
-            end 
+            end
             
             % Save coefficients in parameters.mat
             obj.forward_coeffs = forward_coeffs;
@@ -267,7 +270,7 @@ classdef ExperimentClass_master < handle
         %% 3rd Degree Polynomial
         function [output] = poly3(obj,coeffs,x)
             output = coeffs(1).*x.^3 + coeffs(2).*x.^2 + coeffs(3).*x + coeffs(4);
-        end 
+        end
         
         %% 2-term Fourier
         % not currently used
@@ -276,7 +279,7 @@ classdef ExperimentClass_master < handle
         function [output] = fourier2(obj,coeffs,x)
             output = coeffs(1) + coeffs(2).*cos(x.*coeffs(6)) +...
                 coeffs(3).*sin(x.*coeffs(6)) +...
-                coeffs(4).*cos(2.*x.*coeffs(6)) +... 
+                coeffs(4).*cos(2.*x.*coeffs(6)) +...
                 coeffs(5).*sin(2.*x.*coeffs(6));
         end
         
@@ -285,48 +288,48 @@ classdef ExperimentClass_master < handle
             output = coeffs(1).*exp(coeffs(2).*x) + coeffs(3).*exp(coeffs(4).*x);
         end
         
-        %% sendCoeffs function
+        %% sendInfo function
         % takes in matrix of coeffcients
         % converts matrix to a string that with : delimiter
         % sends string to Arduino
-        % receives string back from Arduino confirming coefficients 
+        % receives string back from Arduino confirming coefficients
         % were received and parsed
         
-        function sendCoeffs(obj, coeffs)
+        function sendInfo(obj, coeffs)
             str = inputname(2);
             strList = sprintf(':%d', coeffs);
-            strToSend = [str strList];
-            fprintf(obj.connection, strToSend);      
+            strToSend = [str strList]
+            fprintf(obj.connection, strToSend);
         end
         
-function waitSignal = check(obj)
-    data = '';
-    while(1)
-        data = fscanf(obj.connection, '%s');
-        if isempty(data) == 1
-            data = fscanf(obj.connection, '%s');
-            %1
-        elseif isempty(data) == 0
-            %disp(data);
-            waitSignal = data;
-            %2
-            break;
+        function waitSignal = check(obj)
+            data = '';
+            while(1)
+                data = fscanf(obj.connection, '%s');
+                if isempty(data) == 1
+                    data = fscanf(obj.connection, '%s');
+                    %1
+                elseif isempty(data) == 0
+                    %disp(data);
+                    waitSignal = data;
+                    %2
+                    break;
+                end
+            end
         end
-    end
-end
-
-function checkForMovementEnd(obj, message)
-    endSignal = '';
-    while(1)
-        endSignal = fscanf(obj.connection, '%s');
-        if strcmp(endSignal, 'Done') ~= 1
-        else 
-            disp(message);
-            break;
+        
+        function checkForMovementEnd(obj, message)
+            endSignal = '';
+            while(1)
+                endSignal = fscanf(obj.connection, '%s');
+                if strcmp(endSignal, 'Done') ~= 1
+                else
+                    disp(message);
+                    break;
+                end
+            end
         end
-    end
-end
-       
+        
     end
     
 end

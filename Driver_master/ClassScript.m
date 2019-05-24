@@ -15,7 +15,8 @@ a = ExperimentClass_master(serialPort);
 % 
 %x = 1;
 %while x == 1
-a.arcMove(30,90,-90,900,54);
+a.calibrate();
+a.arcMove(30,90,-90,20,36);
 %end
 % 
 %a.calibrate();

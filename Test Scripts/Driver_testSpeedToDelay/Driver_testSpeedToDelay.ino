@@ -7,6 +7,11 @@
    attempting to make speed constant throughout arc movement
    currently not smoother than using the same delay for all of the lines in the arc
    might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
+   WHY? - cannot send array of delays followed by dx, dy, but can send just the array of delays
+   37 numLines for dx and dy too many individually, but 36 works - should be smooth enough to seem like an arc
+   don't need to send the coefficients since delayToSpeed occurs in MATLAB
+   arcMove works when I manually enter Delays, dx, dy, but not when I try to interface with MATLAB
+   --> something wrong with dx being stored, dy Delays seems correct
 */
 #include <stdio.h>
 #include <math.h>
@@ -47,13 +52,14 @@ String coeffsString; /*String object to store speed model coefficients sent from
 float coeffsArray; /*for parsing speed model coefficients*/
 double forward_coeffs[16]; /*used in delayToSpeed function*/
 double reverse_coeffs[16]; /*used in speedToDelay function*/
-/*arrays for storing movements and Delays from speedToDelay
+/*TESTING
+  arrays for storing movements and Delays from speedToDelay
   using 27 lines for small robot
   will likley increase to 55 to large robot
 */
-double dx[56] = {0};
-double dy[56] = {0};
-double delay_array[56] = {0};
+double dx[38] = {0};
+double dy[38] = {0};
+double Delays[38] = {0};
 
 /*Blink an LED twice
    input: specific LED pin
@@ -249,66 +255,65 @@ void loadDelays() {
     if (coeffsString != NULL) {
       char inputArray[coeffsString.length() + 1];
       coeffsString.toCharArray(inputArray, coeffsString.length() + 1);
-      float *delays = parseCoeffs(inputArray);
-      if (*delays == 100) {
+      float *coeffs = parseDelays(inputArray);
+      if (*coeffs == 1) {
         Serial.println("DelaysReceived");
+        pinMode(GREEN, HIGH);
+        Blink(GREEN);
       }
-      if (*delays == 101) {
+      else if (*coeffs == 2) {
         Serial.println("dxReceived");
       }
-      if (*delays == 102) {
+      else if (*coeffs == 3) {
         Serial.println("dyReceived");
+        break;
       }
     }
   }
 }
 
-/*parseCoeffs function
-   parses coefficients sent through serial connection and returns coefficients array
-   method nearly identical to that used in parseCommand function
-*/
 float* parseDelays(char strInput[]) {
   const char delim[2] = ":";
   char * strtokIn;
   strtokIn = strtok(strInput, delim);
-  if (strcmp(strtokIn, "delay_array") == 0) {
-    static float delaysArray[56]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    delaysArray[0] = 100;
+  if (strcmp(strtokIn, "Delays") == 0) {
+    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
+    coeffsArray[0] = 1; /*corresponds to Delays*/
     int i = 1;
     while (strtokIn != NULL) {
       strtokIn = strtok(NULL, delim);
-      delaysArray[i++] = atof(strtokIn);
+      coeffsArray[i++] = atof(strtokIn);  
     }
-    for (i = 0; i < 55; i++) {
-      delay_array[i] = delaysArray[i + 1];
+    for (i = 0; i < 38; i++) {
+      Delays[i] = coeffsArray[i + 1];
     }
-    return delaysArray;
+    return coeffsArray;
   }
-  else if (strcmp(strtokIn, "dx") == 0) {
-    static float delaysArray[56]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    delaysArray[0] = 101;
+    else if (strcmp(strtokIn, "dx") == 0) {
+    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
+    coeffsArray[0] = 2; /*corresponds to dx*/
     int i = 1;
     while (strtokIn != NULL) {
       strtokIn = strtok(NULL, delim);
-      delaysArray[i++] = atof(strtokIn);
+      coeffsArray[i++] = atof(strtokIn);  
     }
-    for (i = 0; i < 55; i++) {
-      dx[i] = delaysArray[i + 1];
+    for (i = 0; i < 38; i++) {
+      dx[i] = coeffsArray[i + 1];
     }
-    return delaysArray;
+    return coeffsArray;
   }
-  else if (strcmp(strtokIn, "dy") == 0) {
-    static float delaysArray[56]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    delaysArray[0] = 102;
+    else if (strcmp(strtokIn, "dy") == 0) {
+    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
+    coeffsArray[0] = 3; /*corresponds to dy*/
     int i = 1;
     while (strtokIn != NULL) {
       strtokIn = strtok(NULL, delim);
-      delaysArray[i++] = atof(strtokIn);
+      coeffsArray[i++] = atof(strtokIn);  
     }
-    for (i = 0; i < 55; i++) {
-      dy[i] = delaysArray[i + 1];
+    for (i = 0; i < 38; i++) {
+      dy[i] = coeffsArray[i + 1];
     }
-    return delaysArray;
+    return coeffsArray;
   }
 }
 
@@ -410,19 +415,19 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
         if (pin == xMin) {
           line(microsteps, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
           location[0] = 0; /*update x-coordinate location to 0*/
-          delay(200);
+          delay(100);
         } else if (pin == xMax) {
           line(-microsteps, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
-          delay(200);
+          delay(100);
         } else if (pin == yMin) {
           line(0, microsteps, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
           location[1] = 0; /*update y-coordinate location to 0*/
-          delay(200);
+          delay(100);
         } else if (pin == yMax) {
           line(0, -microsteps, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
           location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
-          delay(200);
+          delay(100);
         }
         val = digitalRead(pin); /*continue reading the state of the pin*/
         steps -= 1; /*remove one step from total step count, correcting for the overshoot*/
@@ -521,7 +526,7 @@ void setup()
   /* Communicates with Serial connection to verify */
   initialize();
   /* Sends coefficients for speed model */
-  loadInfo();
+  //loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
@@ -530,8 +535,8 @@ void setup()
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = 28640; //*i * microsteps; /*x-dimension*/
-  dimensions[1] = 31984; //*(i + 1) * microsteps; /*y-dimension*/
+  dimensions[0] = 28640;//*i * microsteps; /*x-dimension*/
+  dimensions[1] = 31984;//*(i + 1) * microsteps; /*y-dimension*/
 
   Serial.println("Ready");
   digitalWrite(GREEN, HIGH);
@@ -668,11 +673,12 @@ void loop()
         //RED & BLUE
         {
           loadDelays();
-          int R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
-          int angInit = *(command + 2);
-          int angFinal = *(command + 3);
-          double Speed = *(command + 4);
-          int numLines = *(command + 5);
+          float R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
+          float angInit = *(command + 2);
+          float angFinal = *(command + 3);
+          //double Speed = *(command + 4);
+          int Delay = 20;
+          float numLines = *(command + 5);
           float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
 
           float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
@@ -683,18 +689,27 @@ void loop()
           long dispInity = ((float) R) * sin(angInit_rad) - location[1];
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
+          
+          //line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          Serial.println(dx[30]);
+          //TEST 1
+          //for (int i = 0; i <= numLines; i++){
+            /*Serial.print("dx"); Serial.print(i); Serial.print(" "); Serial.println(dx[i]);
+            /*Serial.print("dy"); Serial.print(i); Serial.print(" "); Serial.println(dy[i]);
+            /*Serial.print("Delays"); Serial.print(i); Serial.print(" "); Serial.println(Delays[i]);*/
 
-          //TEST
-          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          for (int i = angInit_res; i <= angFinal_res; i = i + (angFinal_res / numLines)) {
-            int count = i / (angFinal_res / numLines);
-            line(dx[count], dy[count], delay_array[count]);/*move from initial to final angle*/
-          }
-          //TEST
-
-          digitalWrite(RED, HIGH);
-          digitalWrite(BLUE, HIGH);
-          Serial.println("Done");
+            //line(dx[i], dy[i], Delays[i]); /*draw small line, which represents part of circle/arc*/
+          //}
+          
+          //TEST 2 
+          //for (float i = angInit_res; i <= angFinal_res; i += (angFinal_res/numLines)) {
+            //double dx = -R / arcRes * sin(i / arcRes); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+            //double dy = R / arcRes * cos(i / arcRes); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            //line(dx, dy, Delay);
+          //}
+          //digitalWrite(RED, HIGH);
+          //digitalWrite(BLUE, HIGH);
+          //Serial.println("Done");
         }
         break;
       case 5: //speedModelFit:delayi:delayf:ddelay:angleTrials

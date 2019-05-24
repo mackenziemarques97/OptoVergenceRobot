@@ -472,10 +472,10 @@ void setup()
   initialize();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps*/
-  dimensions[0] = *i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
+  dimensions[0] = 28640;//*i * microsteps; //small bot: 28640; big bot: 106528; /*x-dimension*/
+  dimensions[1] = 31936;//*(i + 1) * microsteps; //small bot: 31936, big bot: 54624; /*y-dimension*/
 
   //loadInfo();
   Serial.println("Ready");

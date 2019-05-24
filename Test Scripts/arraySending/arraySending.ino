@@ -5,8 +5,8 @@
 #define BLUE 49
 #define GREEN 50
 
-float forward_coeffs[16]; /*used in delayToSpeed function*/
-float reverse_coeffs[16]; /*used in speedToDelay function*/
+float forward_coeffs[55]; /*used in delayToSpeed function*/
+float reverse_coeffs[55]; /*used in speedToDelay function*/
 
 /*Blink an LED twice
    input: specific LED pin
@@ -78,9 +78,9 @@ float* parseCoeffs(char strInput[]) {
   char * strtokIn;
   strtokIn = strtok(strInput, delim);
   if (strcmp(strtokIn, "forward_coeffs") == 0) {
-    static float coeffsArray[18]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
+    static float coeffsArray[57]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
     coeffsArray[0] = 1; /*corresponds to forward_coeffs*/
-    coeffsArray[1] = 16; /*16 coefficients in forward_coeffs*/
+    coeffsArray[1] = 55; /*16 coefficients in forward_coeffs*/
     int i = 2;
     while (strtokIn != NULL) {
       strtokIn = strtok(NULL, delim);
@@ -91,15 +91,15 @@ float* parseCoeffs(char strInput[]) {
     }
     return coeffsArray;
   } else if (strcmp(strtokIn, "reverse_coeffs") == 0) {
-    static float coeffsArray[18];
+    static float coeffsArray[57];
     coeffsArray[0] = 2; /*corresponds to reverse_coeffs*/
-    coeffsArray[1] = 16; /*16 coefficients in reverse_coeffs*/
+    coeffsArray[1] = 57; /*16 coefficients in reverse_coeffs*/
     int i = 2;
     while (strtokIn != NULL) {
       strtokIn = strtok(NULL, delim);
       coeffsArray[i++] = atof(strtokIn);
     }
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 55; i++) {
       reverse_coeffs[i] = coeffsArray[i + 2];
     }
     return coeffsArray;
@@ -117,7 +117,7 @@ void setup() {
   Serial.begin(9600);
 
   initialize();
-  Serial.println("Z");
+  //Serial.println("Z");
   pinMode(BLUE, HIGH);
   Blink(BLUE);
 

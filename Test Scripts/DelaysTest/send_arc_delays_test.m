@@ -7,7 +7,7 @@ diameter = 30;
 angInit = 90;
 angFinal = -90;
 speed = 900;
-numLines = 55; %will store numLines+1 delays, first one doesn't count
+numLines = 36; %will store numLines+1 delays, first one doesn't count
 
 %testing
 %angle inputs range from 90 to -90 degrees
@@ -28,7 +28,7 @@ for i = angInit_res:(angFinal_res/numLines):angFinal_res
     dx(count) = -R / arcRes * sin(i / arcRes);
     dy(count) = R / arcRes * cos(i / arcRes);
     angles(count) = atan(dy(count) / dx(count) * 180/pi);
-    Delays(count) = speedToDelay(reverse_coeffs, speed, angle);
+    Delays(count) = speedToDelay(reverse_coeffs, speed, angles(count));
     count = count + 1;
 end
 

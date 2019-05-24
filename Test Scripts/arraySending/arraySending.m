@@ -1,6 +1,12 @@
+%% forward and reverse coeffs sending test
+
 clear
 comPort = serial('COM5','DataBits',8,'StopBits',1,'BaudRate',9600,'Parity','none');
 fopen(comPort);
+
+parameters = load('parameters.mat');
+forward_coeffs = rand(1,55); %parameters.forward_coeffs;
+reverse_coeffs = rand(1,55); %parameters.reverse_coeffs;
 
 SerialInit = 'X';
 while(SerialInit~='A')
@@ -15,13 +21,13 @@ end
 fprintf(comPort, '%s', 'A');
 flushinput(comPort);
 
-delay_array = rand(1,56);
-
 % output = check(comPort) %should receive Beginning
 
- output = check(comPort) %should receive "ReadyToReceiveDelays"
- sendArray(comPort, delay_array);
+ output = check(comPort) %should receive "ReadyToReceiveCoeffs"
+ sendArray(comPort, forward_coeffs);
  output = check(comPort) %should receive "ForwardCoeffsReceived"
+ sendArray(comPort, reverse_coeffs);
+ output = check(comPort) %should receive "ReverseCoeffs Received"
  
 % % random playing with communication
 % % send and receive a 5

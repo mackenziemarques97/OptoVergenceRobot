@@ -1,10 +1,10 @@
-%can send 55 "delays" in the current data format, but not more
+%% setup
+
 clear
 comPort = serial('COM5','DataBits',8,'StopBits',1,'BaudRate',9600,'Parity','none');
 fopen(comPort);
 
-save_filename = 'parameters.mat';
-parameters = load(save_filename);
+parameters = load('parameters.mat');
 reverse_coeffs = parameters.reverse_coeffs;
 
 SerialInit = 'X';
@@ -20,11 +20,13 @@ end
 fprintf(comPort, '%s', 'A');
 flushinput(comPort);
 
+%% delays from speedToDelay sending and receiving test
+%can send 51 "delays" in the current data format, but not more
 diameter = 30;
 angInit = 90;
 angFinal = -90;
 speed = 900;
-numLines = 54;
+numLines = 49;
 
 dx = zeros(1,numLines); dy = zeros(1,numLines);
 Delays = zeros(1,numLines); %preallocating
@@ -46,21 +48,12 @@ for i = angInit_res:(angFinal_res/numLines):angFinal_res
     Delays(count) = speedToDelay(reverse_coeffs, speed, angle);
     count = count + 1;
 end
+
 %testing
-Delays
 
 waitSignal = check(comPort) % should receive "ReadyToReceiveDelays"
 sendArray(comPort, Delays);
 waitSignal = check(comPort) % should receive "DelaysReceived"
-
-
-% % random playing with communication
-% % send and receive a 5
-% fprintf(comPort, '%s', '5');
-%  output = check(comPort)
-% % send and receive "Hello"
-% fprintf(comPort, '%s', 'Hello');
-%  output = check(comPort)
 
 fclose(comPort);
 
