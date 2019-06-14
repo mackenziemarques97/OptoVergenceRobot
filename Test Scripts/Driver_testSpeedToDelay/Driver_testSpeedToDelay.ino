@@ -1,9 +1,15 @@
-/*Serial.print()/Serial.println() prints/sends to serial port
+/*Note: Do you want the robot to determine the dimensions at the start of the run?
+ * If so, make sure is uncommented in findDimensions() in setup.
+ * If not, comment out findDimensions() and manually enter dimensions noted in the comments.
+ */
+
+/*Explanations of common Arduino functions:
+  ~Serial.print()/Serial.println() prints/sends to serial port
   which is then either read by MATLAB or printed in Serial Monitor
   depending on what serial port is connected to.
 */
 
-/*Current notes/concerns:
+/*Current troubleshooting concerns:
    attempting to make speed constant throughout arc movement
    currently not smoother than using the same delay for all of the lines in the arc
    might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
@@ -12,11 +18,14 @@
    don't need to send the coefficients since delayToSpeed occurs in MATLAB
    arcMove works when I manually enter Delays, dx, dy, but not when I try to interface with MATLAB
    --> something wrong with dx being stored, dy Delays seems correct
+   **I THINK, since I use something similar to the parseCommand function to send delays&dx&dy from MATLAB to Arduino, 
+   *then each value should be accessed using *command+1 format (pointer variables). 
 */
+
 #include <stdio.h>
 #include <math.h>
 
-/* Defining Pins */
+/* Defining pins */
 /*pins for the x-axis stepper motor*/
 #define xPulse 8 /*50% duty cycle pulse width modulation*/
 #define xDir 9 /*rotation direction*/
@@ -33,25 +42,26 @@
 #define BLUE 49
 #define GREEN 50
 
-/* Defining the measurement of the rotation
-    diameter of pulley
+/* Defines scaling factor for rotation
+    radius of pulley
     will be multiplied by 2pi later in the code to get circumference
 */
 float motor_radius = 0.65; /* cm */
 
-/* Defining initial variables and arrays */
+/* Define initial variables and arrays */
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
-unsigned long microsteps = 16; /*divides the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
+unsigned long microsteps = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2] = {30000 * microsteps, 30000 * microsteps}; /*preallocating dimensions to previously measured values*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
 
-int Delay = 30; /*default Delay for calibration and basic movement actions in terms of square pulse width (microseconds)*/
-float pi = 3.14159265359; /*numerical value used for pi*/
+int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
+float pi = 3.14159265359; /*numerical approximation used for pi*/
 String val; /*String object to store inputs read from the Serial Connection*/
 String coeffsString; /*String object to store speed model coefficients sent from MATLAB*/
 float coeffsArray; /*for parsing speed model coefficients*/
 double forward_coeffs[16]; /*used in delayToSpeed function*/
 double reverse_coeffs[16]; /*used in speedToDelay function*/
+
 /*TESTING
   arrays for storing movements and Delays from speedToDelay
   using 27 lines for small robot
@@ -79,11 +89,11 @@ void Blink(int LED) {
   digitalWrite(LED, HIGH);
 }
 
-/*confirm serial connection function
+/*Confirm serial connection function
    initialize serialInit as X
    send A to MATLAB
    expecting to receive A
-   if doeS not receive A, then continue reading COM port and blinking red LED
+   if does not receive A, then continue reading COM port and blinking red LED
 */
 void initialize() {
   char serialInit = 'X';
@@ -95,7 +105,7 @@ void initialize() {
   }
 }
 
-/* parseCommand function: Parses command received from Serial Connection and returns designated inputs */
+/*Parse commands received from Serial Connection and return designated inputs to MATLAB*/
 double* parseCommand(char strCommand[]) { /*inputs are null terminated character arrays*/
   const char delim[2] = ":"; /*unchangeable character, 2 element array designating the delimiter as :*/
   char *fstr; /*first string defined as a pointer variable*/
@@ -182,6 +192,9 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
   }
 }
 
+/*I do not need this function if I am calculating the Delays in MATLAB!
+ * Not sure if that is the method I will stick with, though.
+ */
 /*loadInfo function
    receive forward_ & reverse_coeffs strings sent from MATLAB
    parse coeffs into designated arrays
@@ -415,19 +428,19 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
         if (pin == xMin) {
           line(microsteps, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
           location[0] = 0; /*update x-coordinate location to 0*/
-          delay(100);
+          delay(200);
         } else if (pin == xMax) {
           line(-microsteps, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
-          delay(100);
+          delay(200);
         } else if (pin == yMin) {
           line(0, microsteps, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
           location[1] = 0; /*update y-coordinate location to 0*/
-          delay(100);
+          delay(200);
         } else if (pin == yMax) {
           line(0, -microsteps, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
           location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
-          delay(100);
+          delay(200);
         }
         val = digitalRead(pin); /*continue reading the state of the pin*/
         steps -= 1; /*remove one step from total step count, correcting for the overshoot*/
@@ -535,8 +548,8 @@ void setup()
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = 28640;//*i * microsteps; /*x-dimension*/
-  dimensions[1] = 31984;//*(i + 1) * microsteps; /*y-dimension*/
+  dimensions[0] = 106528;//*i * microsteps; /*x-dimension*/
+  dimensions[1] = 54624;//*(i + 1) * microsteps; /*y-dimension*/
 
   Serial.println("Ready");
   digitalWrite(GREEN, HIGH);
@@ -670,14 +683,17 @@ void loop()
         // 1:1 ratio between arcRes and number of lines used to draw the arc
         // TESTING - conversion from speed to delay
         // model only accounts for angles between 0 and 45 degrees
+
+        //06/10/19: testing big bot movements with new motor
+        //arc movement not working - must troubleshoot
+        
         //RED & BLUE
-        {
-          loadDelays();
+        {/*keep this code for all testing runs*/
           float R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
           float angInit = *(command + 2);
           float angFinal = *(command + 3);
-          //double Speed = *(command + 4);
-          int Delay = 20;
+          double Speed = *(command + 4);
+          int Delay = 40; /*sample/arbitrary Delay for examples runs since speedToDelay not setup*/
           float numLines = *(command + 5);
           float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
 
@@ -689,9 +705,59 @@ void loop()
           long dispInity = ((float) R) * sin(angInit_rad) - location[1];
           digitalWrite(RED, LOW);
           digitalWrite(BLUE, LOW);
+          /*keep this code for all testing runs*/
+
+          /*the following code allows for arc movement without speed adjustment
+           * for testing purposes
+           * constant Delay throughout 
+           * can be commented out 
+           */
+          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
+            int dx = round(-R / (arcRes) * sin((float)i / (arcRes))); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+            int dy = round(R / (arcRes) * cos((float)i / (arcRes))); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            line(dx, dy, Delay); /*draw small line, which represents part of circle/arc*/
+          }
+
+          digitalWrite(RED, HIGH);
+          digitalWrite(BLUE, HIGH);
+          Serial.println("Done");
+          
+          /*TEST: the following code is for testing speed adjustment
+           *can be commented out
+           */
+//          loadDelays();
+//
+//          int count = 0;
+//          for (int i = angInit_res; i <= angFinal_res; i++) {
+//            //Serial.println(count);
+//            double dx = {round(-R / arcRes * sin((float)i / arcRes))}; /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+//            //Serial.println(dx);
+//            double dy = {R / arcRes * cos((float)i / arcRes)}; /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+//            //Serial.println(dy);
+//            double angle = abs(atan2(dy, dx) * (180 / pi));
+//            //Serial.println(angle);
+//            if (angle >= 90 && angle <= 135) {
+//              angle = angle - 90;
+//            }
+//            else if (angle > 135 && angle <= 180) {
+//              angle = angle - 135;
+//            }
+//            double Delays[count] = {speedToDelay(reverse_coeffs, Speed, angle)};
+//            count++;
+//          }
+//
+//          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+//          count = 0;
+//          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
+//            line(dx[count], dy[count], Delays[count]); /*draw small line, which represents part of circle/arc*/
+//            count++;
+//          }
+
+          //TEST
           
           //line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          Serial.println(dx[30]);
+          //Serial.println(dx[30]);
           //TEST 1
           //for (int i = 0; i <= numLines; i++){
             /*Serial.print("dx"); Serial.print(i); Serial.print(" "); Serial.println(dx[i]);

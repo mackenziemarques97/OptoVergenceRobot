@@ -93,42 +93,37 @@ classdef ExperimentClass_master < handle
             %testing
             %angle inputs range from 90 to -90 degrees
             %max number for numLines is 36
-            dx = zeros(1,numLines); dy = zeros(1,numLines);
-            Delays = zeros(1,numLines); %preallocating
-            microsteps = 16;
-            motor_radius = 0.65; %cm
-            arcRes = (numLines - 1) / 3;
-            speed = (200 * speed) / (1.2 * pi);
-            R = diameter / (4 * pi * motor_radius) * 200 * microsteps;
-            
-            angInit_rad = (pi / 180) * (-angInit + 90); %for init and final, convert inputs to range from 0 to 180 degrees
-            angFinal_rad = (pi / 180) * (-angFinal + 90); %then convert to radians
-            angInit_res = angInit_rad * arcRes; %scale by angles by arcRes
-            angFinal_res = angFinal_rad * arcRes;
-            
-            count = 1;
-            for i = angInit_res:(angFinal_res/numLines):angFinal_res
-                dx(count) = -R / arcRes * sin(i / arcRes);
-                dy(count) = R / arcRes * cos(i / arcRes);
-                angle = atan(dy(count) / dx(count) * 180/pi);
-                Delays(count) = speedToDelay(obj, speed, angle);
-                count = count + 1;
-            end
-            %testing
-            Delays
-            dx
-            dy
-            
+%             dx = zeros(1,numLines); dy = zeros(1,numLines);
+%             Delays = zeros(1,numLines); %preallocating
+%             microsteps = 16;
+%             motor_radius = 0.65; %cm
+%             arcRes = (numLines - 1) / 3;
+%             speed = (200 * speed) / (1.2 * pi);
+%             R = diameter / (4 * pi * motor_radius) * 200 * microsteps;
+%             
+%             angInit_rad = (pi / 180) * (-angInit + 90); %for init and final, convert inputs to range from 0 to 180 degrees
+%             angFinal_rad = (pi / 180) * (-angFinal + 90); %then convert to radians
+%             angInit_res = angInit_rad * arcRes; %scale by angles by arcRes
+%             angFinal_res = angFinal_rad * arcRes;
+%             
+%             count = 1;
+%             for i = angInit_res:(angFinal_res/numLines):angFinal_res
+%                 dx(count) = -R / arcRes * sin(i / arcRes);
+%                 dy(count) = R / arcRes * cos(i / arcRes);
+%                 angle = atan(dy(count) / dx(count) * 180/pi);
+%                 Delays(count) = speedToDelay(obj, speed, angle);
+%                 count = count + 1;
+%             end
+%             %testing
+%             
 %             waitSignal = check(obj) % should receive "ReadyToReceiveDelays"
 %             sendInfo(obj, Delays);
 %             waitSignal = check(obj) % should receive "DelaysReceived"
-            sendInfo(obj, dx);
-            waitSignal = check(obj) % should receive "dxReceived"
+%             sendInfo(obj, dx);
+%             waitSignal = check(obj) % should receive "dxReceived"
 %             sendInfo(obj, dy);
 %             waitSignal = check(obj) % should receive "dyReceived"
-            
-            waitSignal = check(obj)
-            
+                        
             checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
             
         end
