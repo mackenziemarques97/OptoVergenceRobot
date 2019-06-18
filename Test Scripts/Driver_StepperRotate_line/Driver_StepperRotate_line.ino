@@ -1,8 +1,6 @@
-/*TEST CODE: Trying to figure out why in findDimensions, LED moves toward xMin first, not xMax
- * couldn't switch rotation direction of xDir motor rod
- * but can now...
- * 
- * This works for both x and y motor on big bot to move in both directions correctly.
+/*TEST CODE: Rotate shaft of a single stepper motor back and forth.
+ * This is a shortcut. Uses line() function to rotate shaft. 
+ * For testing effect of stepper motor + driver + Arduino on monkey neural recordings.
  */
 
 #include <stdio.h>
@@ -10,15 +8,12 @@
 
 #define xPulse 8 /*50% duty cycle pulse width modulation*/
 #define xDir 9 /*rotation direction*/
-#define yPulse 10 /*50% duty cycle pulse width modulation*/
-#define yDir 11 /*rotation direction*/
-
-#define xMin 2
-#define xMax 3
+#define yPulse 10
+#define yDir 11
 
 
 int direction = 1;
-unsigned long microsteps = 16;
+int microsteps = 16;
 unsigned long dimensions[2] = {30000 * microsteps, 30000 * microsteps};
 unsigned long location[2] = {0, 0};
 int Delay = 30;
@@ -77,21 +72,7 @@ void setup() {
 pinMode(xPulse, OUTPUT);
 pinMode(xDir, OUTPUT);
 
-
-pinMode(xMin, INPUT);
-pinMode(xMax, INPUT);
-
-
-digitalWrite(xMin, HIGH);
-digitalWrite(xMax, HIGH);
-
 digitalWrite(xDir, direction);
-
-/*switch pin between xMax xMin yMax yMin to make sure recalibration toward correct pin
- * rod rotation in correct direction based on pin location
- */
-
-
 }
 
 void loop() {
