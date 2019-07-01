@@ -1,4 +1,6 @@
 /*leds[0] refers to 1st LED, leds[10] refers to 11th LED
+
+   different cases for
 */
 
 #include <FastLED.h>
@@ -27,6 +29,8 @@ CRGB W_leds[NUM_LEDS];
 CRGB NW_leds[NUM_LEDS];
 CRGB Center_leds[NUM_LEDS];
 
+bool questionPrinted = false;
+
 void setup() {
   delay( 3000 ); // power-up safety delay
   FastLED.addLeds<LED_TYPE, N_LED_PIN, COLOR_ORDER>(N_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
@@ -38,21 +42,28 @@ void setup() {
   FastLED.addLeds<LED_TYPE, W_LED_PIN, COLOR_ORDER>(W_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NW_LED_PIN, COLOR_ORDER>(NW_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, Center_LED_PIN, COLOR_ORDER>(Center_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-  
+
   FastLED.setBrightness(  BRIGHTNESS );
   Serial.begin(9600);
-  
-  /*Add direction and degree entry*/
-  Serial.println("Direction?");
-  Serial.flush();
-  char Dir = Serial.read();
-  if (Dir != NULL){
-      Serial.println(Dir);
-  }
-  //Serial.println("Degree?");
+
 }
 
 void loop() {
-  NW_leds[5] = CRGB::Pink; FastLED.show(); //delay(100);
+  Serial.flush();
+  String ent = Serial.readString();
+
+  if (questionPrinted == false) {
+    Serial.println("Direction?");
+    questionPrinted = true;
+  }
+  else if (questionPrinted == true){
+    Serial.println(ent);
+    }
+  }
+
+  /*Add direction and degree entry*/
+  //Serial.println("Direction?");
+  //Serial.println("Degree?");
+
+  //NW_leds[5] = CRGB::Pink; FastLED.show(); //delay(100);
   //SW_leds[5] = CRGB::Black; FastLED.show(); delay(100);
-}
