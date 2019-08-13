@@ -18,6 +18,6 @@ void setup() {
 }
 
 void loop() {
-  leds[5] = CRGB::Pink; FastLED.show(); //delay(100);
+  leds[0] = CRGB::Green; FastLED.show(); //delay(100);
   //leds[5] = CRGB::Black; FastLED.show(); delay(100);
 }

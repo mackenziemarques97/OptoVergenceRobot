@@ -128,7 +128,7 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
        (x0,y0) and (x1,y1) - coordinates to move between in designated coordinate system
        Speed - delayMicroseconds between pulses
        Repetitions - Number of times to oscillate
-       linearOscillate:x0:y0:x1:y1:speed:repetitions:resolution
+       linearOscillate:x0:y0:x1:y1:speed:repetitions
     */
     static double inputs[7];
     inputs[0] = 3; /*set first element in array to 3, switch case for oscillate*/
@@ -163,7 +163,7 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
     /*switch case
        speedModelFit:delayi:delayf:ddelay:angleTrials
     */
-    static double inputs[7];
+    static double inputs[5];
     inputs[0] = 5;
     int i = 1;
     while (fstr != NULL) {
@@ -732,16 +732,6 @@ void loop()
           Serial.println("Done");
         }
         break;
-      case 6:
-        {
-          //Serial.println("case 6");
-          //if (*(command+1) == "N"){
-            //ledpin = 40;
-          //}
-          //Serial.println(*(command+1));
-          //Serial.println(ledpin);
-          //Serial.println(*(command+2));
-        }
     }
   }
 }

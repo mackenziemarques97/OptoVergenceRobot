@@ -122,9 +122,9 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
        Speed - delayMicroseconds between pulses
        Repetitions - Number of times to oscillate
        Resolution - Resolution of pathway stepsize
-       oscillate:x0:y0:x1:y1:speed:repetitions:resolution
+       oscillate:x0:y0:x1:y1:speed:repetitions
     */
-    static double inputs[8];
+    static double inputs[7];
     inputs[0] = 3; /*set first element in array to 3, switch case for oscillate*/
     int i = 1;
     /*assign numerical inputs to spaces in array*/
