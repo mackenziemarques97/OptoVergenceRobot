@@ -3,13 +3,15 @@
    oneLED:N:green:4:3 - in the N strip, the 4th LED counting away from center
    turns on green for 3 seconds, then turns off
 
-   saccade:1:S:red:1:3:SE:green:13:3 - the 1st LED in the S strip turns on red
-   for 3 seconds, turns off, 13th LED in SE strip turns on green for 3 seconds,
+   saccade:1:N:red:1:3:NW:green:13:3 - the 1st LED in the N strip turns on red
+   for 3 seconds, turns off, 13th LED in NW strip turns on green for 3 seconds,
    then turns off
 
-   saccade:2:S:red:1:3:SE:green:13:3 - the 1st LED in the S strip lights up red
+   saccade:2:N:red:1:3:SE:green:20:3 - the 1st LED in the N strip lights up red
    for 3 seconds, the 13th LED in SE strip lights up green for 3 seconds,
    then both LEDs turn off
+
+  NOTE: Saccade command including S and SE lights up extraneous LEDs at end of run.
 
    smoothPursuit:N:blue:1:16 - 1st LED in N strip lights up blue,
    the light moves down the strip to the 16th LED, then shuts off
@@ -36,7 +38,7 @@
 #include <math.h>
 #include <FastLED.h>
 
-#define BRIGHTNESS  64
+#define BRIGHTNESS  100
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
@@ -48,16 +50,16 @@
 #define NUM_Center 1
 
 /*LED pins on Arduino for each direction strip*/
-#define N_Strip 40
-#define NW_Strip 41
-#define NE_Strip 42
-#define S_Strip 43
-#define SW_Strip 44
-#define SE_Strip 45
-#define W_Strip 46
-#define E_Strip 47
+#define N_Strip 40 //bluewhite
+#define NW_Strip 41 //yellowblack
+#define NE_Strip 42 //black
+#define S_Strip 43 //purple
+#define SW_Strip 44 //greenwhite
+#define SE_Strip 45 //brown
+#define W_Strip 46 //white
+#define E_Strip 47 //blue
 /*LED pin on Arduino for center LED*/
-#define Center 48
+#define Center 48 //brownblack
 
 /*create an array of LED arrays to represent the direction strips*/
 CRGB leds_Strips[NUM_STRIPS][NUM_LEDS_PER_STRIP]; /* CRGB is an object representing a color in RGB color space */

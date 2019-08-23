@@ -4,9 +4,9 @@
 
 #include <FastLED.h>
 
-#define LED_PIN     40
+#define LED_PIN     47
 #define NUM_LEDS    23
-#define BRIGHTNESS  64
+#define BRIGHTNESS  50
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -18,6 +18,6 @@ void setup() {
 }
 
 void loop() {
-  leds[0] = CRGB::Green; FastLED.show(); //delay(100);
+  leds[0] = CRGB::White; FastLED.show(); //delay(100);
   //leds[5] = CRGB::Black; FastLED.show(); delay(100);
 }
