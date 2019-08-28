@@ -25,7 +25,7 @@
 
 /*
     code only deals with red, blue, and green LEDs
-    more can be added if user wants
+    more can be added later if user wants
 */
 
 /*
@@ -38,7 +38,7 @@
 #include <math.h>
 #include <FastLED.h>
 
-#define BRIGHTNESS  100
+#define BRIGHTNESS  100 /* valid values between 0 and 255 */
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
@@ -229,7 +229,7 @@ double* parseLEDcommand(char strCommand[]) {
           Serial.println("Valid direction entry.");
           i++;
         }
-        else if (strcmp(token, "Center") == 0) {
+        else if (strcmp(token, "center") == 0) {
           command[i] = 8;
           Serial.println("Valid direction entry.");
           i++;
