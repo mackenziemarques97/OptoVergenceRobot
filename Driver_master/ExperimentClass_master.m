@@ -1,18 +1,18 @@
-classdef ExperimentClass_master < handle
+classdef ExperimentClass_master < handle %defines handle class
     
     properties
-        connection
-        forward_coeffs = zeros(4,4);
-        reverse_coeffs = zeros(4,4);
-        save_filename = 'parameters.mat';
+        connection %serial connection
+        forward_coeffs = zeros(4,4); %matrix of coefficients for speed model 
+        reverse_coeffs = zeros(4,4); %reverse matrix of coefficients for speed model
+        save_filename = 'parameters.mat'; %filename for saving parameters (forward_coeffs, reverse_coeffs)
     end
     
     methods
         %% Experiment Constructor
-        function obj = ExperimentClass_master(comPort)
+        function obj = ExperimentClass_master(comPort) %comPort is "COM#" from USB serial connection; AKA serial port
             % Intializes Experiment class and opens connection
-            obj.connection = serial(comPort);
-            set(obj.connection,'DataBits',8);
+            obj.connection = serial(comPort); %creates serial port object associated with the serial port
+            set(obj.connection,'DataBits',8); %next 4 lines characterize connection
             set(obj.connection,'StopBits',1);
             set(obj.connection,'BaudRate',9600);
             set(obj.connection,'Parity','none');
@@ -22,7 +22,7 @@ classdef ExperimentClass_master < handle
             % Confirms serial connection
             SerialInit = 'X';
             while (SerialInit~='A')
-                SerialInit=fread(obj.connection,1,'uchar'); %be ready to receive any incoming data
+                SerialInit=fread(obj.connection,1,'uchar'); %"be ready to receive any incoming"
             end
             if (SerialInit ~= 'A')
                 disp('Serial Communication Not Setup');
@@ -30,10 +30,10 @@ classdef ExperimentClass_master < handle
                 disp('Serial Read')
             end
             
-            fprintf(obj.connection,'%c','A'); %MATLAB sending 'A'
-            %equivalent of typing 'A' into Serial monitor
+            fprintf(obj.connection,'%c','A'); %MATLAB sends out 'A'
+            %equivalent of typing 'A' into serial monitor from Arduino side
             
-            flushinput(obj.connection);
+            flushinput(obj.connection); %removes data from input buffer associated with serial port
             
             % Save parameters (forward_coeffs, reverse_coeffs) that will be sent from MATLAB
             % to Arduino at start of each experiment
@@ -43,11 +43,12 @@ classdef ExperimentClass_master < handle
             forward_coeffs = obj.forward_coeffs;
             reverse_coeffs = obj.reverse_coeffs;
             
-%             waitSignal = check(obj) %should receive "ReadyToReceiveCoeffs"
-%             sendInfo(obj, forward_coeffs);
-%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-%             sendInfo(obj, reverse_coeffs);
-%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+            % Communicate with Arduino and send speed model coefficients
+            waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
+            sendInfo(obj, forward_coeffs);
+            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+            sendInfo(obj, reverse_coeffs);
+            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
             
             waitSignal = check(obj) %read from Arduino; should receive "Ready"
         end
@@ -56,7 +57,7 @@ classdef ExperimentClass_master < handle
             output = fscanf(obj.connection,type);
         end
         
-        %% LINEAR OSCILLATION
+        %% LINEAR OSCILLATION - robot movement function
         function linearOscillate(obj,x0,y0,x1,y1,speed,repetitions)
             % Moves from point (x0,y0) to (x1,y1). Speed is characterized by the
             % pulse-width modulation of the signals set to the stepper motor. Movement
@@ -68,14 +69,14 @@ classdef ExperimentClass_master < handle
             checkForMovementEnd(obj, 'Linear Oscillate Trial');
         end
         
-        %% CALIBRATION
+        %% CALIBRATION - robot movement function
         function calibrate(obj)
             % Returns target to xMin and yMin at the bottom-left corner
             fprintf(obj.connection,'calibrate:');
             checkForMovementEnd(obj, 'Calibrate');
         end
         
-        %% Move
+        %% Move To - robot movement command
         function moveTo(obj,x,y,hold)
             %count = 0; %to count number of times display while loop runs
             % Moves target to (x,y) and holds for designated milliseconds
@@ -83,14 +84,14 @@ classdef ExperimentClass_master < handle
             checkForMovementEnd(obj, 'Linear Move Trial');
         end
         
-        %% Arc
+        %% Arc - robot movement command
         function arcMove(obj,diameter,angInit,angFinal,speed,numLines)
             % Moves target in an arc specified by radius and initial and final
             % angles
             fprintf(obj.connection,('arcMove:%d:%d:%d:%d:%d'),...
                 [diameter,angInit,angFinal,speed,numLines]);
             
-            %testing
+            %IN DEVELOPMENT
             %angle inputs range from 90 to -90 degrees
             %max number for numLines is 36
 %             dx = zeros(1,numLines); dy = zeros(1,numLines);
@@ -128,7 +129,7 @@ classdef ExperimentClass_master < handle
             
         end
         
-        %% Close Connection
+        %% Close Serial Connection
         function endSerial(obj)
             fclose(obj.connection);
         end
@@ -152,8 +153,7 @@ classdef ExperimentClass_master < handle
             
             % 1st read from Arduino: ddistance
             ddistance = fscanf(obj.connection,'%d')
-            %finalDistance = ddistance*angleTrials; % unused variable
-            %currently
+            %finalDistance = ddistance*angleTrials; % an unused variable
             delayTrials = floor((delayf-delayi)/ddelay + 1);
             
             % Preallocate arrays
@@ -288,8 +288,7 @@ classdef ExperimentClass_master < handle
         % converts matrix to a string that with : delimiter
         % sends string to Arduino
         % receives string back from Arduino confirming coefficients
-        % were received and parsed
-        
+        % were received and parsed       
         function sendInfo(obj, coeffs)
             str = inputname(2);
             strList = sprintf(':%d', coeffs);
@@ -297,22 +296,32 @@ classdef ExperimentClass_master < handle
             fprintf(obj.connection, strToSend);
         end
         
+        %% waitSignal - communication function  
+        % do not suppress "waitSignal = check(obj)" line if you want what's
+        % received to print in MATLAB's command window
+        %
+        % reads info in serial buffer
+        % contiues reading if nothing received
+        % if something is received
+        % prints in command window
         function waitSignal = check(obj)
-            data = '';
+            data = ''; % "data" variable starts out empty
             while(1)
-                data = fscanf(obj.connection, '%s');
-                if isempty(data) == 1
-                    data = fscanf(obj.connection, '%s');
+                data = fscanf(obj.connection, '%s'); % reads and stores data from serial buffer 
+                if isempty(data) == 1 % if nothing is read
+                    data = fscanf(obj.connection, '%s');% continue reading
                     %1
-                elseif isempty(data) == 0
-                    %disp(data);
-                    waitSignal = data;
-                    %2
+                elseif isempty(data) == 0 % if something is received
+                    waitSignal = data; % print it; it will likely be a string (message w/ no spaces)
                     break;
                 end
             end
         end
         
+        %% checkForMovementEnd - communication function
+        % similar to waitSignal function, possibly redundant
+        % waits for message from Arduino that an LED/robot has finished
+        % then prints it
         function checkForMovementEnd(obj, message)
             endSignal = '';
             while(1)
@@ -323,9 +332,8 @@ classdef ExperimentClass_master < handle
                     break;
                 end
             end
-        end
+        end  
         
-    end
-    
+    end  
 end
 
