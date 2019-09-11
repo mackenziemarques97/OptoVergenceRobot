@@ -8,17 +8,19 @@
    currently not smoother than using the same delay for all of the lines in the arc
    might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
 */
+
+/* Include the following libraries */
 #include <stdio.h>
 #include <math.h>
 
-/* Defining Pins */
+/* Define Pins */
 /*pins for the x-axis stepper motor*/
 #define xPulse 8 /*50% duty cycle pulse width modulation*/
 #define xDir 9 /*rotation direction*/
 /*pins for the y-axis stepper motor*/
 #define yPulse 10
 #define yDir 11
-/*pins for the 4 microswitchces*/
+/*pins for the 4 microswitches*/
 #define xMin 2
 #define xMax 3
 #define yMin 4
@@ -28,15 +30,16 @@
 #define BLUE 49
 #define GREEN 50
 
-/* Defining the measurement of the rotation
-    diameter of pulley
+/*Define the measurement of the rotation
+    with radius of pulley
     will be multiplied by 2pi later in the code to get circumference
+    used to determine distance LED has traveled
 */
 float motor_radius = 0.65; /* cm */
 
 /* Defining initial variables and arrays */
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
-unsigned long microsteps = 16; /*divides the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
+unsigned long microsteps = 16; /*divide the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2] = {30000 * microsteps, 30000 * microsteps}; /*preallocating dimensions to previously measured values*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
 
@@ -47,6 +50,7 @@ String coeffsString; /*String object to store speed model coefficients sent from
 float coeffsArray; /*for parsing speed model coefficients*/
 double forward_coeffs[16]; /*used in delayToSpeed function*/
 double reverse_coeffs[16]; /*used in speedToDelay function*/
+
 /*TESTING
   arrays for storing movements and Delays from speedToDelay
   using 27 lines for small robot
@@ -74,11 +78,11 @@ void Blink(int LED) {
   digitalWrite(LED, HIGH);
 }
 
-/*confirm serial connection function
+/*Confirm serial connection function
    initialize serialInit as X
    send A to MATLAB
    expecting to receive A
-   if doeS not receive A, then continue reading COM port and blinking red LED
+   if does not receive A, then continue reading COM port and blinking red LED
 */
 void initialize() {
   char serialInit = 'X';
@@ -90,7 +94,7 @@ void initialize() {
   }
 }
 
-/* parseCommand function: Parses command received from Serial Connection and returns designated inputs */
+/*Parse command received from Serial Connection and return designated inputs */
 double* parseCommand(char strCommand[]) { /*inputs are null terminated character arrays*/
   const char delim[2] = ":"; /*unchangeable character, 2 element array designating the delimiter as :*/
   char *fstr; /*first string defined as a pointer variable*/
@@ -177,8 +181,7 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
   }
 }
 
-/*loadInfo function
-   receive forward_ & reverse_coeffs strings sent from MATLAB
+/*Receive forward_ & reverse_coeffs strings sent from MATLAB
    parse coeffs into designated arrays
    first string defined as pointer variable
    once reverse_coeffs has been received, break from while loop
@@ -205,8 +208,7 @@ void loadInfo() {
   }
 }
 
-/*parseCoeffs function
-   parses coefficients sent through serial connection and returns coefficients array
+/*Parse coefficients sent through serial connection and return coefficients array
    method nearly identical to that used in parseCommand function
 */
 float* parseCoeffs(char strInput[]) {
@@ -242,7 +244,7 @@ float* parseCoeffs(char strInput[]) {
   }
 }
 
-/*Function to calculate delay from given speed
+/*Calculate delay from given speed
    likely the more useful than delayToSpeed
    inputs: reverse coefficients array, speed, angle
    calculate delay using 3rd degree polynomials nested in 2-term exponential
@@ -257,7 +259,7 @@ double speedToDelay(double reverse_coeffs[], double Speed, double angle) {
   return Delay;
 }
 
-/*Function to calculate speed from given delay
+/*Calculate speed from given delay
    inputs: forward coefficients array, delay, angle
    calculate speed using nested exp2 function
 */
@@ -289,11 +291,10 @@ double exp2(double coeffs[], double x) {
   return output;
 }
 
-/* findDimensions function:
-   Moves to xMax from current location then to xMin and counts the number of steps it took
-   Does the same in the y-direction
-   Returns the number of steps in a 2-element array, x & y dimension
-   Ends at (xMin, yMin)
+/* Move to xMax from current location then to xMin and count the number of steps it took
+   Same in the y-direction
+   Return the number of steps in a 2-element array, x & y dimension
+   End at (xMin, yMin)
 */
 int* findDimensions() {
   recalibrate(xMax); /*move to xMax*/
@@ -304,10 +305,9 @@ int* findDimensions() {
   return i;
 }
 
-/* recalibrate function:
-   Moves target to specified edge (xMax, xMin, yMax, yMin)
-   Standardizes edge as the point when the microswitch is just released.
-   Returns number of steps it took to get there
+/* Move target to specified edge (xMax, xMin, yMax, yMin)
+   Standardize edge as the point when the microswitch is just released.
+   Return number of steps it took to get there
    0 = pressed, 1 = unpressed for pin reads
 */
 unsigned long recalibrate(int pin) { /*input is microswitch pin*/
@@ -451,7 +451,7 @@ void setup()
   /* Communicates with Serial connection to verify */
   initialize();
   /* Sends coefficients for speed model */
-  loadInfo();
+  //loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
@@ -615,33 +615,40 @@ void loop()
 
           //TESTING
 
-          int count = 0;
-          for (int i = angInit_res; i <= angFinal_res; i++) {
-            Serial.println(count);
-            double dx = {round(-R / arcRes * sin((float)i / arcRes))}; /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
-            Serial.println(dx);
-            double dy = {R / arcRes * cos((float)i / arcRes)}; /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
-            Serial.println(dy);
-            double angle = abs(atan2(dy, dx) * (180 / pi));
-            Serial.println(angle);
-            if (angle >= 90 && angle <= 135) {
-              angle = angle - 90;
-            }
-            else if (angle > 135 && angle <= 180) {
-              angle = angle - 135;
-            }
-            double Delays[count] = {speedToDelay(reverse_coeffs, Speed, angle)};
-            count++;
-          }
+          //int count = 0;
+          //for (int i = angInit_res; i <= angFinal_res; i++) {
+          //Serial.println(count);
+          //double dx = {round(-R / arcRes * sin((float)i / arcRes))}; /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+          //Serial.println(dx);
+          //double dy = {R / arcRes * cos((float)i / arcRes)}; /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+          //Serial.println(dy);
+          //double angle = abs(atan2(dy, dx) * (180 / pi));
+          //Serial.println(angle);
+          //if (angle >= 90 && angle <= 135) {
+          //  angle = angle - 90;
+          //}
+          //else if (angle > 135 && angle <= 180) {
+          //  angle = angle - 135;
+          //}
+          //double Delays[count] = {speedToDelay(reverse_coeffs, Speed, angle)};
+          //count++;
+          //}
 
-          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          count = 0;
-          for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
-            line(dx[count], dy[count], Delay); /*draw small line, which represents part of circle/arc*/
-            count++;
-          }
+          //count = 0;
+          //for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
+          //line(dx[count], dy[count], Delay); /*draw small line, which represents part of circle/arc*/
+          //count++;
+          //}
 
           //TEST
+
+          //The following code accomplishes arc movement, but at inconsistent speeds.
+          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          for (int i = angInit_res; i <= angFinal_res; i++) {
+            int dx = round(-R / arcRes * sin((float)i / arcRes));
+            int dy = round(R / arcRes * cos((float)i / arcRes));
+            line(dx, dy, Delay);
+          }
 
           digitalWrite(RED, HIGH);
           digitalWrite(BLUE, HIGH);

@@ -4,7 +4,7 @@ system = computer();
 if strcmp(system, "MACI64")
     serialPort = '/dev/tty.usbmodem14201';
 else
-    serialPort = 'COM8';
+    serialPort = 'COM3';
 end
 a = ExperimentClass_master(serialPort);
 
@@ -18,10 +18,10 @@ a = ExperimentClass_master(serialPort);
 %% Test specifications
 
 a.calibrate();
-a.moveTo(50,50,100);
-a.linearOscillate(10,10,50,50,30,3);
+a.moveTo(20,25,100);
+a.linearOscillate(20,20,5,5,30,1);
 a.calibrate();
-a.arcMove(50,90,-90,20,36);
+a.arcMove(30,90,-90,20,36);
 
 %a.calibrate();
 %a.moveTo(0,30,100); 

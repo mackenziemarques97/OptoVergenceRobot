@@ -44,13 +44,14 @@ classdef ExperimentClass_master < handle %defines handle class
             reverse_coeffs = obj.reverse_coeffs;
             
             % Communicate with Arduino and send speed model coefficients
-            waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
-            sendInfo(obj, forward_coeffs);
-            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-            sendInfo(obj, reverse_coeffs);
-            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
-            
-            waitSignal = check(obj) %read from Arduino; should receive "Ready"
+%             waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
+%             sendInfo(obj, forward_coeffs);
+%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+%             sendInfo(obj, reverse_coeffs);
+%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+%             
+%             waitSignal = check(obj) %read from Arduino; should receive "Ready"
+
         end
         
         function output = readSerial(obj,type)

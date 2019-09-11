@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <math.h>
 
-#define xPulse 8 /*50% duty cycle pulse width modulation*/
-#define xDir 9 /*rotation direction*/
+#define xPulse 10 /*50% duty cycle pulse width modulation*/
+#define xDir 11 /*rotation direction*/
 
-int Delay = 30; /*delay/pulse width in microseconds*/
-int rot_time = 2000; /*rotation time*/
+int Delay = 60; /*delay/pulse width in microseconds*/
+int rot_time = 500; /*rotation time*/
 unsigned long time_stamp; /*time stamp using millis()*/
 int Direction;
 
