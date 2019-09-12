@@ -15,9 +15,9 @@
 ***********************************************************************************/
 
 /***declaring RGB pins in PWM mode***/
-int red = 3;
-int green = 5;
-int blue = 6;
+int red = 22;
+int green = 23;
+int blue = 24;
 
 /***brightness control variables***/
 int redBrightness = 0;

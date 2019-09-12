@@ -1,8 +1,8 @@
 int ledDelay = 1000;
 
-#define RED 3
-#define GREEN 4
-#define BLUE 5
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 
 void setup() {
   pinMode(RED, OUTPUT);
@@ -20,17 +20,17 @@ void loop() {
   Serial.println(ledColor);
   switch (ledColor) {
     case 0://RED
-      analogWrite(RED, 200);
+      analogWrite(RED, 125);
       delay(ledDelay);
       analogWrite(RED, 255);
       break;
     case 1://BLUE
-      analogWrite(BLUE, 200);
+      analogWrite(BLUE, 125);
       delay(ledDelay);
       analogWrite(BLUE, 255);
       break;
     case 2://GREEN
-      analogWrite(GREEN, 200);
+      analogWrite(GREEN, 125);
       delay(ledDelay);
       analogWrite(GREEN, 255);
       break;

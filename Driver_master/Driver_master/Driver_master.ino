@@ -27,8 +27,8 @@
 #define yMax 5
 /*pins for RGB LED*/
 #define RED 48
-#define BLUE 49
-#define GREEN 50
+#define GREEN 49
+#define BLUE 50
 
 /*Define the measurement of the rotation
     with radius of pulley
@@ -666,18 +666,18 @@ void loop()
           delayf = (int) * (command + 2);
           ddelay = (int) * (command + 3);
           angleTrials = (int) * (command + 4);
-          /*determine minimum dimension between x and y*/
+          /*determine smallest dimension between x and y; with big bot is y-dim*/
           long minDim = min((long)(dimensions[0] / microsteps), (long)(dimensions[1] / microsteps));
-          /*determine divisions of 90% of min dimension*/
-          int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
-          int maxDistance = ddistance * (angleTrials - 1);
+          /*determine divisions of 90% of smallest dimension based on number of angles to run at*/
+          int ddistance = (int) (0.9 * minDim / (angleTrials - 1)); /*divide maxDistance into # of trials; ddistance is increment of y dimension for each angle*/
+          int maxDistance = ddistance * (angleTrials - 1); /*max distance for data collection; =0.9 * minDim*/
           Serial.println("Beginning");
           Serial.println(ddistance);
 
           /* Number of loops for speed and angles*/
-          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*does nothing for now*/
+          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*just a calculation; not used for anything currently*/
 
-          /* Intialize loop arrays that will be sent over*/
+          /* Intialize arrays that will be sent over to MATLAB*/
           unsigned long speedRuns[angleTrials];
           int xDistance[angleTrials];
           int yDistance[angleTrials];
@@ -691,14 +691,15 @@ void loop()
               recalibrate(xMin);
               recalibrate(yMin);
               delay(300);
+              /*loop through 0 to 45 degrees; coordinates of (maxDistance,0) to (maxDistance,maxDistance)*/
               int x = maxDistance; // Steps
               int y = i;
 
-              /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
+              /* Calculate how long it takes to move to specified position at specified time stamp */
               long startTime = millis();
-              line((long) x * microsteps, (long) y * microsteps, maxDelay);
+              line((long) x * microsteps, (long) y * microsteps, maxDelay); /*move through line*/
               long endTime = millis();
-              long timed = endTime - startTime;
+              long timed = endTime - startTime; /*calculate time it took to make movement*/
 
               /* Saving information in appropriate arrays*/
               speedRuns[trialNum] = timed;
