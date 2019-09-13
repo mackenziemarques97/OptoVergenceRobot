@@ -1,65 +1,77 @@
-/*Serial.print()/Serial.println() prints/sends to serial port
+/*Note: Do you want the robot to determine the dimensions at the start of the run?
+ * If so, make sure is uncommented in findDimensions() in setup.
+ * If not, comment out findDimensions() and manually enter dimensions noted in the comments.
+ */
+
+/*Explanations of common Arduino functions:
+  ~Serial.print()/Serial.println() prints/sends to serial port
   which is then either read by MATLAB or printed in Serial Monitor
   depending on what serial port is connected to.
 */
 
-/*Current notes/concerns:
+/*Current troubleshooting concerns:
    attempting to make speed constant throughout arc movement
    currently not smoother than using the same delay for all of the lines in the arc
    might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
+   WHY? - cannot send array of delays followed by dx, dy, but can send just the array of delays
+   37 numLines for dx and dy too many individually, but 36 works - should be smooth enough to seem like an arc
+   don't need to send the coefficients since delayToSpeed occurs in MATLAB
+   arcMove works when I manually enter Delays, dx, dy, but not when I try to interface with MATLAB
+   --> something wrong with dx being stored, dy Delays seems correct
+   **I THINK, since I use something similar to the parseCommand function to send delays&dx&dy from MATLAB to Arduino, 
+   *then each value should be accessed using *command+1 format (pointer variables). 
 */
 
 /* Include the following libraries */
 #include <stdio.h>
 #include <math.h>
 
-/* Defining pins */
+/* Define Pins */
 /*pins for the x-axis stepper motor*/
 #define xPulse 8 /*50% duty cycle pulse width modulation*/
 #define xDir 9 /*rotation direction*/
 /*pins for the y-axis stepper motor*/
 #define yPulse 10
 #define yDir 11
-/*pins for the 4 microswitchces*/
+/*pins for the 4 microswitches*/
 #define xMin 2
 #define xMax 3
 #define yMin 4
 #define yMax 5
 /*pins for RGB LED*/
 #define RED 48
-#define BLUE 49
-#define GREEN 50
+#define GREEN 49
+#define BLUE 50
 
-/* Define initial variables and arrays */
+/*Define the measurement of the rotation
+    with radius of pulley
+    will be multiplied by 2pi later in the code to get circumference
+    used to determine distance LED has traveled
+*/
+float motor_radius = 0.65; /* cm */
+
+/* Defining initial variables and arrays */
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
-unsigned long stepsPerRev = 200;
-unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
-unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values*/
+unsigned long microsteps = 16; /*divide the steps per revolution by this number, determined by microstepping settings on stepper driver, 16 corresponds to 3200 pulse/rev*/
+unsigned long dimensions[2] = {30000 * microsteps, 30000 * microsteps}; /*preallocating dimensions to previously measured values*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
 
-int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
-float pi = 3.14159265359; /*numerical approximation used for pi*/
+int Delay = 30; /*default Delay for calibration and basic movement actions in terms of square pulse width (microseconds)*/
+float pi = 3.14159265359; /*numerical value used for pi*/
 String val; /*String object to store inputs read from the Serial Connection*/
 String coeffsString; /*String object to store speed model coefficients sent from MATLAB*/
 float coeffsArray; /*for parsing speed model coefficients*/
 double forward_coeffs[16]; /*used in delayToSpeed function*/
 double reverse_coeffs[16]; /*used in speedToDelay function*/
 
-/* Defines scaling factor for rotation
-    radius of pulley
-    will be multiplied by 2pi later in the code to get circumference
-*/
-float motor_radius = 0.65; /* cm */
-float Circ = 2 * pi * motor_radius;
-
 /*TESTING
   arrays for storing movements and Delays from speedToDelay
   using 27 lines for small robot
   will likley increase to 55 to large robot
 */
-double dx[38] = {0};
-double dy[38] = {0};
-double Delays[38] = {0};
+double dx[55] = {0};
+double dy[55] = {0};
+double Delays[55] = {0};
 
 /*Blink an LED twice
    input: specific LED pin
@@ -95,7 +107,7 @@ void initialize() {
   }
 }
 
-/*Parse commands received from Serial Connection and return designated inputs to MATLAB*/
+/*Parse command received from Serial Connection and return designated inputs */
 double* parseCommand(char strCommand[]) { /*inputs are null terminated character arrays*/
   const char delim[2] = ":"; /*unchangeable character, 2 element array designating the delimiter as :*/
   char *fstr; /*first string defined as a pointer variable*/
@@ -182,11 +194,8 @@ double* parseCommand(char strCommand[]) { /*inputs are null terminated character
   }
 }
 
-/*I do not need this function if I am calculating the Delays in MATLAB!
-   Not sure if that is the method I will stick with, though.
-*/
-/*loadInfo function
-   receive forward_ & reverse_coeffs strings sent from MATLAB
+
+/*Receive forward_ & reverse_coeffs strings sent from MATLAB
    parse coeffs into designated arrays
    first string defined as pointer variable
    once reverse_coeffs has been received, break from while loop
@@ -213,8 +222,7 @@ void loadInfo() {
   }
 }
 
-/*parseCoeffs function
-   parses coefficients sent through serial connection and returns coefficients array
+/*Parse coefficients sent through serial connection and return coefficients array
    method nearly identical to that used in parseCommand function
 */
 float* parseCoeffs(char strInput[]) {
@@ -250,77 +258,7 @@ float* parseCoeffs(char strInput[]) {
   }
 }
 
-void loadDelays() {
-  Serial.println("ReadyToReceiveDelays"); /*signal MATLAB to begin send coeffs*/
-  while (1) { /*loop through infinitely*/
-    String coeffsString = Serial.readString();/*read characters from serial connection into String object*/
-    /*this section of code is nearly identical to part of parseCommand function above*/
-    if (coeffsString != NULL) {
-      char inputArray[coeffsString.length() + 1];
-      coeffsString.toCharArray(inputArray, coeffsString.length() + 1);
-      float *coeffs = parseDelays(inputArray);
-      if (*coeffs == 1) {
-        Serial.println("DelaysReceived");
-        pinMode(GREEN, HIGH);
-        Blink(GREEN);
-      }
-      else if (*coeffs == 2) {
-        Serial.println("dxReceived");
-      }
-      else if (*coeffs == 3) {
-        Serial.println("dyReceived");
-        break;
-      }
-    }
-  }
-}
-
-float* parseDelays(char strInput[]) {
-  const char delim[2] = ":";
-  char * strtokIn;
-  strtokIn = strtok(strInput, delim);
-  if (strcmp(strtokIn, "Delays") == 0) {
-    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    coeffsArray[0] = 1; /*corresponds to Delays*/
-    int i = 1;
-    while (strtokIn != NULL) {
-      strtokIn = strtok(NULL, delim);
-      coeffsArray[i++] = atof(strtokIn);
-    }
-    for (i = 0; i < 38; i++) {
-      Delays[i] = coeffsArray[i + 1];
-    }
-    return coeffsArray;
-  }
-  else if (strcmp(strtokIn, "dx") == 0) {
-    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    coeffsArray[0] = 2; /*corresponds to dx*/
-    int i = 1;
-    while (strtokIn != NULL) {
-      strtokIn = strtok(NULL, delim);
-      coeffsArray[i++] = atof(strtokIn);
-    }
-    for (i = 0; i < 38; i++) {
-      dx[i] = coeffsArray[i + 1];
-    }
-    return coeffsArray;
-  }
-  else if (strcmp(strtokIn, "dy") == 0) {
-    static float coeffsArray[39]; /*preallocate space for designating forward or reverse coeffs and number of coefficients total*/
-    coeffsArray[0] = 3; /*corresponds to dy*/
-    int i = 1;
-    while (strtokIn != NULL) {
-      strtokIn = strtok(NULL, delim);
-      coeffsArray[i++] = atof(strtokIn);
-    }
-    for (i = 0; i < 38; i++) {
-      dy[i] = coeffsArray[i + 1];
-    }
-    return coeffsArray;
-  }
-}
-
-/*Function to calculate delay from given speed
+/*Calculate delay from given speed
    likely the more useful than delayToSpeed
    inputs: reverse coefficients array, speed, angle
    calculate delay using 3rd degree polynomials nested in 2-term exponential
@@ -335,7 +273,7 @@ double speedToDelay(double reverse_coeffs[], double Speed, double angle) {
   return Delay;
 }
 
-/*Function to calculate speed from given delay
+/*Calculate speed from given delay
    inputs: forward coefficients array, delay, angle
    calculate speed using nested exp2 function
 */
@@ -367,11 +305,10 @@ double exp2(double coeffs[], double x) {
   return output;
 }
 
-/* findDimensions function:
-   Moves to xMax from current location then to xMin and counts the number of steps it took
-   Does the same in the y-direction
-   Returns the number of steps in a 2-element array, x & y dimension
-   Ends at (xMin, yMin)
+/* Move to xMax from current location then to xMin and count the number of steps it took
+   Same in the y-direction
+   Return the number of steps in a 2-element array, x & y dimension
+   End at (xMin, yMin)
 */
 int* findDimensions() {
   recalibrate(xMax); /*move to xMax*/
@@ -382,10 +319,9 @@ int* findDimensions() {
   return i;
 }
 
-/* recalibrate function:
-   Moves target to specified edge (xMax, xMin, yMax, yMin)
-   Standardizes edge as the point when the microswitch is just released.
-   Returns number of steps it took to get there
+/* Move target to specified edge (xMax, xMin, yMax, yMin)
+   Standardize edge as the point when the microswitch is just released.
+   Return number of steps it took to get there
    0 = pressed, 1 = unpressed for pin reads
 */
 unsigned long recalibrate(int pin) { /*input is microswitch pin*/
@@ -395,13 +331,13 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
   int val = digitalRead(pin); /*read the pin, 0 = pressed, 1 = unpressed*/
   while (val) {
     if (pin == xMin) { /*if pin is xMin*/
-      line(-microstepsPerStep * 10, 0, Delay); /*move in negative x-direction toward xMin*/
+      line(-microsteps * 10, 0, Delay); /*move in negative x-direction toward xMin*/
     } else if (pin == xMax) { /*if pin is xMax*/
-      line(microstepsPerStep * 10, 0, Delay); /*move in positive x-direction toward xMax*/
+      line(microsteps * 10, 0, Delay); /*move in positive x-direction toward xMax*/
     } else if (pin == yMin) { /*if pin is yMin*/
-      line(0, -microstepsPerStep * 10, Delay); /*move in negative y-direction toward yMin*/
+      line(0, -microsteps * 10, Delay); /*move in negative y-direction toward yMin*/
     } else if (pin == yMax) { /*if pin is yMax*/
-      line(0, microstepsPerStep * 10, Delay); /*move in positive y-direction toward yMax*/
+      line(0, microsteps * 10, Delay); /*move in positive y-direction toward yMax*/
     }
     steps += 10; /*add 10 to steps counter*/
 
@@ -416,19 +352,19 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
     if (val == 0) { /*if switch is pressed*/
       while (val == 0) { /*while switch is pressed*/
         if (pin == xMin) {
-          line(microstepsPerStep, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
+          line(microsteps, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
           location[0] = 0; /*update x-coordinate location to 0*/
           delay(200);
         } else if (pin == xMax) {
-          line(-microstepsPerStep, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
+          line(-microsteps, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
           delay(200);
         } else if (pin == yMin) {
-          line(0, microstepsPerStep, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
+          line(0, microsteps, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
           location[1] = 0; /*update y-coordinate location to 0*/
           delay(200);
         } else if (pin == yMax) {
-          line(0, -microstepsPerStep, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
+          line(0, -microsteps, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
           location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
           delay(200);
         }
@@ -532,25 +468,27 @@ void setup()
   //loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
-      small bot dimensions: x = 28640, y = 31984
+      small bot dimensions: x = 28656, y = 32058
   */
-  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = 28565;//*i * microsteps; /*x-dimension*/
+  dimensions[1] = 32058;//*(i + 1) * microsteps; /*y-dimension*/
 
   Serial.println("Ready");
   digitalWrite(GREEN, HIGH);
 }
 
-/* Main looping function
+/* Main loop function
    Waits for commands from Serial Connection and executes actions
 */
 void loop()
 {
   Serial.flush();
+  long dispx, dispy;
+  int xErr, yErr;
   val = Serial.readString(); /*read characters from input into a String object*/
 
   /* Execute once there is incoming Serial information
@@ -560,63 +498,51 @@ void loop()
     char inputArray[val.length() + 1]; /*create an array the size of val string +1*/
     val.toCharArray(inputArray, val.length() + 1); /*convert val from String object to null terminated character array*/
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
-    long xDisp, yDisp;
-    int xErr, yErr;
-    long desiredXLoc, desiredYLoc;
-    int holdTime;
-    long xLocinuSteps, yLocinuSteps;
-    long dx, dy;
-    long locx, locy;
-    long x0, y0, x1, y1;
-    int targetDelay, numReps;
-    long xInit, yInit;
-    
+    Serial.println(val);
     switch ((int) *command) { /*switch case based on first command*/
       case 1: // calibrate
         //GREEN
-        {
-          /* Calibrates to xMin and yMin and updates location to (0,0) */
-          digitalWrite(GREEN, LOW); /*turn on green*/
-          xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-          yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
-          location[0] = 0;
-          location[1] = 0;
-          Serial.println("Done");
-          delay(1000);
-          digitalWrite(GREEN, HIGH); /*turn off green*/
-        }
+        /* Calibrates to xMin and yMin and updates location to (0,0) */
+        digitalWrite(GREEN, LOW); /*turn on green*/
+        xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to 0*/
+        yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to 0*/
+        location[0] = 0;
+        location[1] = 0;
+        Serial.println("Done");
+        delay(1000);
+        digitalWrite(GREEN, HIGH); /*turn off green*/
         break;
       case 2: // moveTo:x0:y0:hold duration
         //BLUE
-        {
-          /* Simple move to designated location and holds for a certain time
-          */
-          desiredXLoc = *(command + 1); //cm
-          desiredYLoc = *(command + 2); //cm
-          holdTime = *(command + 3); //ms
+        /* Simple move to designated location and holds for a certain time
+        */
 
-          xLocinuSteps = (long) (desiredXLoc / Circ * stepsPerRev * microstepsPerStep);
-          yLocinuSteps = (long) (desiredYLoc / Circ * stepsPerRev * microstepsPerStep);
+        long locx;
+        long locy;
+        double x0 = *(command + 1); //cm
+        double y0 = *(command + 2);
 
-          /* safety check, if the desired location beyond the dimensions, constrain it to the far point  */
-          if (xLocinuSteps > dimensions[0]) {
-            xLocinuSteps = dimensions[0];
-          };
-          if (yLocinuSteps > dimensions[1]) {
-            yLocinuSteps = dimensions[1];
-          };
+        locx = (long) (*(command + 1) / (2 * pi * motor_radius) * 200 * microsteps); //Steps = (cm x (uSteps/revolution))/2piR)
+        locy = (long) (*(command + 2) / (2 * pi * motor_radius) * 200 * microsteps);
 
-          /* displacement in scale of microsteps*/
-          xDisp = xLocinuSteps - location[0]; /* Converting inputs from cm to microsteps*/
-          yDisp = yLocinuSteps - location[1];
+        /* safety check, if the desired location beyond the dimensions, constrain it to the far point  */
+        if (locx > dimensions[0]) {
+          locx = dimensions[0];
+        };
+        if (locy > dimensions[1]) {
+          locy = dimensions[1];
+        };
 
-          /*move by designated vector displacement*/
-          digitalWrite(BLUE, LOW);/*turn on blue*/
-          line(xDisp, yDisp, Delay);
-          Serial.println("Done");
-          delay(holdTime); /*delay by the specified hold duration*/
-          digitalWrite(BLUE, HIGH);/*turn off blue*/
-        }
+        /* displacement in scale of microsteps*/
+        dispx = locx - location[0]; /* Converting input virtual dimensions to microsteps*/
+        dispy = locy - location[1];
+
+        /*move by designated vector displacement*/
+        digitalWrite(BLUE, LOW);/*turn on blue*/
+        line(dispx, dispy, Delay);
+        Serial.println("Done");
+        delay(*(command + 3)); /*delay by the specified hold duration*/
+        digitalWrite(BLUE, HIGH);/*turn off blue*/
         break;
       case 3: // linearOscillate:x0:y0:x1:y1:speed:repetitions
         //RED
@@ -624,63 +550,57 @@ void loop()
           /* Linear Oscillate
              Moves to first coordinate and oscillates between that and second coordinate
           */
-          x0 = *(command + 1); //cm
-          y0 = *(command + 2); //cm
-          x1 = *(command + 3); //cm
-          y1 = *(command + 4); //cm
-          targetDelay = *(command + 5); //us
-          numReps = *(command + 6); //number of repetitions/oscillations
-          
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
-          dx = (long) ((x1 - x0) / Circ * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
-          dy = (long) ((y1 - y0) / Circ * stepsPerRev * microstepsPerStep);
+          long dx = (long) ((*(command + 3) - * (command + 1)) / (2 * pi * motor_radius) * 200 * microsteps); /* Converting input virtual dimensions to microsteps*/
+          long dy = (long) ((*(command + 4) - * (command + 2)) / (2 * pi * motor_radius) * 200 * microsteps);
           /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-          xInit = (long) (x0 / Circ * stepsPerRev * microstepsPerStep);
-          yInit = (long) (y0 / Circ * stepsPerRev * microstepsPerStep);
+          locx = (long) (*(command + 1) / (2 * pi * motor_radius) * 200 * microsteps);
+          locy = (long) (*(command + 2) / (2 * pi * motor_radius) * 200 * microsteps);
 
-          xDisp = (long) xInit - location[0];
-          yDisp = (long) yInit - location[1];
+          dispx = (long) locx - location[0];
+          dispy = (long) locy - location[1];
           /*move along calculated displacement vector from current location to desired starting point*/
           digitalWrite(RED, LOW);/*turn on red*/
-          line(xDisp, yDisp, Delay);
+          line(dispx, dispy, Delay);
           delay(1000);
-          int targetDelay = *(command + 5); /*max speed implemented is input speed from command*/
+          int maxSpeed = *(command + 5); /*max speed implemented is input speed from command*/
           long store_a = -dx / 2; /*ditto*/
           long store_b = -dy / 2; /*ditto*/
-          int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
-          int dv = startDelay - targetDelay;
+          //int f = 3;
+          int minSpeed = 60; /*Minimum speed that target slows down to at edges of movement*/
+          int dv = minSpeed - maxSpeed;
           /*vector from initial to final location scaled for...*/
           long dtx = (long) dx / (10 * dv / 2);
           long dty = (long) dy / (10 * dv / 2);
 
-          for (int j = 1; j <= numReps; j++) { /*implemented number of times specified by repetitions input*/
+          for (int j = 1; j <= *(command + 6); j++) { /*implemented number of times specified by repetitions input*/
             /* Speeds up in first 10% with intervals of 2 microseconds from min speed to max speed*/
             for (int i = 0; i < (int)dv / 2; i++) {
-              int a = startDelay - i * 2;
+              int a = minSpeed - i * 2;
               line(dtx, dty, a);
             }
 
             /* Moves middle 80% at max speed*/
-            line((long) dx * 0.8, (long) dy * 0.8, targetDelay);
+            line((long) dx * 0.8, (long) dy * 0.8, maxSpeed);
 
             /* Slows down end 10% */
             for (int i = 0; i < (int)dv / 2; i++) {
-              int a = targetDelay + i * 2;
+              int a = maxSpeed + i * 2;
               line(dtx, dty, a);
             }
 
             /* Speeds up end 10% back */
             for (int i = 0; i < (int)dv / 2; i++) {
-              int a = startDelay - i * 2;
+              int a = minSpeed - i * 2;
               line(-dtx, -dty, a);
             }
 
             /* Moves middle 80% back at max speed*/
-            line((long) - dx * 0.8, (long) - dy * 0.8, targetDelay);
+            line((long) - dx * 0.8, (long) - dy * 0.8, maxSpeed);
 
             /* Slows down end 10% back*/
             for (int i = 0; i < (int) dv / 2; i++) {
-              int a = targetDelay + i * 2;
+              int a = maxSpeed + i * 2;
               line(-dtx, -dty, a);
             }
           }
@@ -695,7 +615,7 @@ void loop()
         // model only accounts for angles between 0 and 45 degrees
         //RED & BLUE
         {
-          int R = *(command + 1) / (4 * pi * motor_radius) * stepsPerRev * microstepsPerStep; //radius adjusted from cm to microsteps
+          int R = *(command + 1) / (4 * pi * motor_radius) * 200 * microsteps; //radius adjusted from cm to microsteps
           int angInit = *(command + 2);
           int angFinal = *(command + 3);
           double Speed = *(command + 4);
@@ -764,18 +684,18 @@ void loop()
           delayf = (int) * (command + 2);
           ddelay = (int) * (command + 3);
           angleTrials = (int) * (command + 4);
-          /*determine minimum dimension between x and y*/
-          long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
-          /*determine divisions of 90% of min dimension*/
-          int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
-          int maxDistance = ddistance * (angleTrials - 1);
+          /*determine smallest dimension between x and y; with big bot is y-dim*/
+          long minDim = min((long)(dimensions[0] / microsteps), (long)(dimensions[1] / microsteps));
+          /*determine divisions of 90% of smallest dimension based on number of angles to run at*/
+          int ddistance = (int) (0.9 * minDim / (angleTrials - 1)); /*divide maxDistance into # of trials; ddistance is increment of y dimension for each angle*/
+          int maxDistance = ddistance * (angleTrials - 1); /*max distance for data collection; =0.9 * minDim*/
           Serial.println("Beginning");
           Serial.println(ddistance);
 
           /* Number of loops for speed and angles*/
-          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*does nothing for now*/
+          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*just a calculation; not used for anything currently*/
 
-          /* Intialize loop arrays that will be sent over*/
+          /* Intialize arrays that will be sent over to MATLAB*/
           unsigned long speedRuns[angleTrials];
           int xDistance[angleTrials];
           int yDistance[angleTrials];
@@ -789,14 +709,15 @@ void loop()
               recalibrate(xMin);
               recalibrate(yMin);
               delay(300);
+              /*loop through 0 to 45 degrees; coordinates of (maxDistance,0) to (maxDistance,maxDistance)*/
               int x = maxDistance; // Steps
               int y = i;
 
-              /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
+              /* Calculate how long it takes to move to specified position at specified time stamp */
               long startTime = millis();
-              line((long) x * microstepsPerStep, (long) y * microstepsPerStep, maxDelay);
+              line((long) x * microsteps, (long) y * microsteps, maxDelay); /*move through line*/
               long endTime = millis();
-              long timed = endTime - startTime;
+              long timed = endTime - startTime; /*calculate time it took to make movement*/
 
               /* Saving information in appropriate arrays*/
               speedRuns[trialNum] = timed;
