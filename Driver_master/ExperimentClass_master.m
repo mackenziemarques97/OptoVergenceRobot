@@ -50,7 +50,7 @@ classdef ExperimentClass_master < handle %defines handle class
 %             sendInfo(obj, reverse_coeffs);
 %             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
 %             
-%             waitSignal = check(obj) %read from Arduino; should receive "Ready"
+             waitSignal = check(obj) %read from Arduino; should receive "Ready"
 
         end
         

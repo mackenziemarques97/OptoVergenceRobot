@@ -51,7 +51,7 @@ double reverse_coeffs[16]; /*used in speedToDelay function*/
     radius of pulley
     will be multiplied by 2pi later in the code to get circumference
 */
-float motor_radius = 0.65; //cm 
+float motor_radius = 0.65; //cm
 float Circ = 2 * pi * motor_radius; /*circumference of pulley*/
 
 /*TESTING
@@ -517,7 +517,7 @@ void setup()
   analogWrite(RED, ledOff); /*red off*/
   analogWrite(BLUE, ledOff); /*blue off*/
   analogWrite(GREEN, ledOff); /*green off*/
-  
+
   digitalWrite(yDir, direction);
   digitalWrite(xDir, direction);
   /*set serial data transmission rate (baud rate)*/
@@ -559,7 +559,7 @@ void loop()
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
     /*put objects and variable initializations before start of switch case or block each case so variables remain within each scope*/
     long xDisp, yDisp;
-    
+
     switch ((int) *command) { /*switch case based on first command*/
       case 1: // calibrate
         //GREEN
@@ -583,7 +583,7 @@ void loop()
           long desiredXLoc = *(command + 1); //cm
           long desiredYLoc = *(command + 2); //cm
           int holdTime = *(command + 3); //ms
-          
+
           long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
           long yLocinuSteps = (long) ((desiredYLoc / Circ) * stepsPerRev * microstepsPerStep);
           /*safety check, if the desired location is negative, move to (0,0)*/
@@ -630,9 +630,9 @@ void loop()
           long yInit = (long) ((y0 / Circ) * stepsPerRev * microstepsPerStep);
           long xFinal = (long) ((x1 / Circ) * stepsPerRev * microstepsPerStep);
           long yFinal = (long) ((y1 / Circ) * stepsPerRev * microstepsPerStep);
-          Serial.println(x1); Serial.println(y1);
-          Serial.println(xFinal); Serial.println(yFinal);
-          Serial.println(dimensions[0]); Serial.println(dimensions[1]);
+          //Serial.println(x1); Serial.println(y1);
+          //Serial.println(xFinal); Serial.println(yFinal);
+          //Serial.println(dimensions[0]); Serial.println(dimensions[1]);
 
           /*safety check, if the starting location is negative, move to (0,0)*/
           if (xInit < 0) {
@@ -644,11 +644,11 @@ void loop()
           /*safety check, if starting location is outside bounds of bot, set to the boundary*/
           if (xInit > dimensions[0]) {
             xInit = dimensions[0];
-            x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep); 
+            x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
           };
           if (yInit > dimensions[1]) {
             yInit = dimensions[1];
-            y0 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep); 
+            y0 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
           };
           /*safety check, if the ending location is negative, move to (0,0)*/
           if (xFinal < 0) {
@@ -660,21 +660,21 @@ void loop()
           /*safety check, if ending location is outside bounds of bot, set to the boundary*/
           if (xFinal > dimensions[0]) {
             xFinal = dimensions[0];
-            x1 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep); 
+            x1 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
           };
           if (yFinal > dimensions[1]) {
             yFinal = dimensions[1];
-            y1 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep); 
+            y1 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
           };
-          Serial.println(x1); Serial.println(y1);
-          Serial.println(xInit); Serial.println(yInit);
-          Serial.println(xFinal); Serial.println(yFinal);
+          //Serial.println(x1); Serial.println(y1);
+          //Serial.println(xInit); Serial.println(yInit);
+          //Serial.println(xFinal); Serial.println(yFinal);
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
           long dx = (long) (((x1 - x0) / Circ) * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
           long dy = (long) (((y1 - y0) / Circ) * stepsPerRev * microstepsPerStep);
           xDisp = (long) xInit - location[0];
           yDisp = (long) yInit - location[1];
-          
+
           /*move along calculated displacement vector from current location to desired starting point*/
           analogWrite(RED, ledOn);/*turn on red*/
           line(xDisp, yDisp, Delay);
@@ -741,14 +741,14 @@ void loop()
           if ( Rsteps > dimensions[0] ) {
             Rsteps = dimensions[0];
           }
-          
+
           float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
           float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
           float angInit_res = angInit_rad * arcRes;
           float angFinal_res = angFinal_rad * arcRes;
           long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
           long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
-          
+
           analogWrite(RED, ledOn);
           analogWrite(BLUE, ledOn);
 
@@ -805,7 +805,7 @@ void loop()
           delayf = (int) * (command + 2);
           ddelay = (int) * (command + 3);
           angleTrials = (int) * (command + 4);
-          
+
           /*determine smallest dimension between x and y*/
           long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
           /*determine divisions of 90% of min dimension, based on the number of angle trials*/
@@ -821,7 +821,7 @@ void loop()
           int xDistance[angleTrials];
           int yDistance[angleTrials];
           int trialNum;
-          
+
           /* Delay Loop */
           for (int j = delayi; j <= delayf; j += ddelay) {
             int targetDelay = j;
