@@ -17,8 +17,8 @@ a = ExperimentClass_master(serialPort);
 
 %% Test specifications
 
-a.calibrate();
 a.moveTo(20,25,100);
+a.calibrate();
 a.linearOscillate(20,20,5,5,30,1);
 a.calibrate();
 a.arcMove(30,90,-90,20,36);
