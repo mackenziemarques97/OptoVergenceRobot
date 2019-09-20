@@ -22,6 +22,8 @@ a.calibrate();
 a.linearOscillate(20,20,5,5,30,1);
 a.calibrate();
 a.arcMove(30,90,-90,20,36);
+a.calibrate();
+a.arcMove(38,10,-90,20,36);
 
 %a.calibrate();
 %a.moveTo(0,30,100); 

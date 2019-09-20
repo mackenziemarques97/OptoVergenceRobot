@@ -125,9 +125,11 @@ classdef ExperimentClass_master < handle %defines handle class
 %             waitSignal = check(obj) % should receive "dxReceived"
 %             sendInfo(obj, dy);
 %             waitSignal = check(obj) % should receive "dyReceived"
-                        
+            if (diameter > 35)  
+                waitsignal = check(obj)
+            else
             checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
-            
+            end 
         end
         
         %% Close Serial Connection
@@ -320,7 +322,7 @@ classdef ExperimentClass_master < handle %defines handle class
         end
         
         %% checkForMovementEnd - communication function
-        % similar to waitSignal function, possibly redundant
+        % similar to waitSignal function
         % waits for message from Arduino that an LED/robot has finished
         % then prints it
         function checkForMovementEnd(obj, message)

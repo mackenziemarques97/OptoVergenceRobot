@@ -1,5 +1,3 @@
-//hello
-
 /*Serial.print()/Serial.println() prints/sends to serial port,
   which is then either read by MATLAB or printed in Serial Monitor
   depending on what serial port is connected to.
@@ -446,15 +444,15 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
    Input vector (in number of steps) along with pulse width (delay, which determines speed)
    Proprioceptive location
 */
-void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
+void line(int x1, int y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
   location[0] += x1; /*add x1 to current x-coordinate location*/
   location[1] += y1; /*add y1 to current y-coordinate location*/
-  long x0 = 0, y0 = 0;
-  long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
+  int x0 = 0, y0 = 0;
+  int dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
   /*if x0 is less than x1, set signx equal to 1; if x0 is not less than x1, set signx equal to -1*/
   /*if x-component of vector (desired x displacement) is positive, signx = 1 (clockwise rotation of motor)*/
-  long dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
-  long err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
+  int dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
+  int err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
   digitalWrite(xDir, (signx + 1) / 2); /*setup x motor rotation direction, if signx = 1, rotate counterclockwise; if signx = -1, don't move*/
   digitalWrite(yDir, (signy + 1) / 2); /*setup y motor rotation direction*/
   for (;;) { /*infinite loop (;;)*/
@@ -586,6 +584,7 @@ void loop()
           long desiredYLoc = *(command + 2); //cm
           int holdTime = *(command + 3); //ms
 
+          /*Converting inputs from cm to microsteps*/
           long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
           long yLocinuSteps = (long) ((desiredYLoc / Circ) * stepsPerRev * microstepsPerStep);
           /*safety check, if the desired location is negative, move to (0,0)*/
@@ -603,7 +602,7 @@ void loop()
             yLocinuSteps = dimensions[1];
           };
           /* displacement in scale of microsteps*/
-          xDisp = xLocinuSteps - location[0]; /* Converting inputs from cm to microsteps*/
+          xDisp = xLocinuSteps - location[0];
           yDisp = yLocinuSteps - location[1];
 
           /*move by designated vector displacement*/
@@ -624,40 +623,40 @@ void loop()
           long y0 = *(command + 2); //cm
           long x1 = *(command + 3); //cm
           long y1 = *(command + 4); //cm
-          int targetDelay = *(command + 5); //us
+          int targetDelay = *(command + 5); //Units: us
           int numReps = *(command + 6); //number of repetitions/oscillations
 
-          /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-          long xInit = (long) ((x0 / Circ) * stepsPerRev * microstepsPerStep);
-          long yInit = (long) ((y0 / Circ) * stepsPerRev * microstepsPerStep);
-          long xFinal = (long) ((x1 / Circ) * stepsPerRev * microstepsPerStep);
-          long yFinal = (long) ((y1 / Circ) * stepsPerRev * microstepsPerStep);
-          //Serial.println(x1); Serial.println(y1);
-          //Serial.println(xFinal); Serial.println(yFinal);
-          //Serial.println(dimensions[0]); Serial.println(dimensions[1]);
+          long xInit = (long) ((x0 / Circ) * stepsPerRev * microstepsPerStep); //x0 (cm) converted to steps
+          long yInit = (long) ((y0 / Circ) * stepsPerRev * microstepsPerStep); //y0 (cm) converted to steps
+          long xFinal = (long) ((x1 / Circ) * stepsPerRev * microstepsPerStep); //x1 (cm) converted to steps
+          long yFinal = (long) ((y1 / Circ) * stepsPerRev * microstepsPerStep); //y1 (cm) converted to steps
 
-          /*safety check, if the starting location is negative, move to (0,0)*/
-          if (xInit < 0) {
-            xInit = 0;
+          /*safety check: if the starting location is negative, set to (0,0)*/
+          if (xInit < 0) { //if init loc in terms of steps is less than 0
+            xInit = 0; //set init loc in terms of steps to 0
+            x0 = 0; //set init loc in terms of cm to 0
           }
           if (yInit < 0) {
             yInit = 0;
+            y0 = 0;
           }
-          /*safety check, if starting location is outside bounds of bot, set to the boundary*/
-          if (xInit > dimensions[0]) {
-            xInit = dimensions[0];
-            x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
+          /*safety check: if starting location is outside bounds of bot, set to the boundary*/
+          if (xInit > dimensions[0]) { //if init loc in terms of steps greater than max number of steps stored for x-dim
+            xInit = dimensions[0]; //set init loc in terms of steps to dimension limit
+            x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep); //set init loc in terms of cm to dimension limit converted to cm
           };
           if (yInit > dimensions[1]) {
             yInit = dimensions[1];
             y0 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
           };
-          /*safety check, if the ending location is negative, move to (0,0)*/
+          /*safety check, if the ending location is negative, set to (0,0)*/
           if (xFinal < 0) {
             xFinal = 0;
+            x1 = 0;
           }
           if (yFinal < 0) {
             yFinal = 0;
+            y1 = 0;
           }
           /*safety check, if ending location is outside bounds of bot, set to the boundary*/
           if (xFinal > dimensions[0]) {
@@ -668,9 +667,7 @@ void loop()
             yFinal = dimensions[1];
             y1 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
           };
-          //Serial.println(x1); Serial.println(y1);
-          //Serial.println(xInit); Serial.println(yInit);
-          //Serial.println(xFinal); Serial.println(yFinal);
+
           /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
           long dx = (long) (((x1 - x0) / Circ) * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
           long dy = (long) (((y1 - y0) / Circ) * stepsPerRev * microstepsPerStep);
@@ -731,23 +728,26 @@ void loop()
         // model only incorporates angles between 0 and 45 degrees using origin of (xMin, yMin)
         //RED & BLUE
         {
-          int d = *(command + 1); //diameter in cm
-          float Rcm = d / 2; //radius in cm
+          int dcm = *(command + 1); //diameter in cm
+          //safety check: diameter of arc
+          if ( dcm > 35  ) { //diameter is greater than max limit of x-dim
+            Serial.println("EntryError");
+            break;
+          }
+          float dsteps = (dcm / Circ) * stepsPerRev * microstepsPerStep; //diameter in microsteps
+          float Rcm = dcm / 2; //radius in cm
           float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps
           int angInit = *(command + 2); //starting angle in degrees
           int angFinal = *(command + 3); //final angle in degrees
-          double Speed = *(command + 4);
-          int numLines = *(command + 5);
-          float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
-
-          if ( Rsteps > dimensions[0] ) {
-            Rsteps = dimensions[0];
-          }
-
-          float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
-          float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
+          double Speed = *(command + 4); //this input not currently used, will be used when speed model is integrated
+          int numLines = *(command + 5); //number of lines used to form the arc movement for version movement
+          float arcRes = (numLines - 1) / 3; //adjustment of numLines for calculation
+          
+          float angInit_rad = (pi / 180) * (-angInit + 90); /*convert initial angle from degrees to radians*/
+          float angFinal_rad = (pi / 180) * (-angFinal + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
           float angInit_res = angInit_rad * arcRes;
           float angFinal_res = angFinal_rad * arcRes;
+          
           long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
           long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
 
@@ -785,13 +785,22 @@ void loop()
 
           //The following code accomplishes arc movement, but at inconsistent speeds.
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          for (int i = angInit_res; i <= angFinal_res; i++) {
-            int dx = round(-Rsteps / arcRes * sin((float)i / arcRes));
-            int dy = round(Rsteps / arcRes * cos((float)i / arcRes));
-            line(dx, dy, Delay);
+          if ( angInit_rad < angFinal_rad ) {
+            for (int i = angInit_res; i <= angFinal_res; i++) {
+              int dx = round(-Rsteps / arcRes * sin((float)i / arcRes));
+              int dy = round(Rsteps / arcRes * cos((float)i / arcRes));
+              line(dx, dy, Delay);
+            }
+          }
+          else if ( angInit_res > angFinal_rad ) {
+            for (int i = angInit_res; i >= angFinal_res; i--) {
+              int dx = round(Rsteps / arcRes * sin((float)i / arcRes));
+              int dy = round(-Rsteps / arcRes * cos((float)i / arcRes));
+              line(dx, dy, Delay);
+            }
           }
 
-          analogWrite(RED, ledOn);
+          analogWrite(RED, ledOff);
           analogWrite(BLUE, ledOff);
           Serial.println("Done");
         }
