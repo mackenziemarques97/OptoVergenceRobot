@@ -2,11 +2,11 @@
 %% System setup
 system = computer(); %store computer-type MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
-    serialPort = '/dev/tty.usbmodem14201'; %format string stored in serialPort like is
-else %otherwise
-    serialPort = 'COM3'; %format like this
+    serialPort = '/dev/tty.usbmodem14201'; %format 
+else
+    serialPort = 'COM3';
 end
-a = ExperimentClass_master(serialPort); %create an object of the class to use it
+a = ExperimentClass_master(serialPort);
 
 %% Command formats
 % a.calibrate();
