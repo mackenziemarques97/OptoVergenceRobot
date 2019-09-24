@@ -113,12 +113,12 @@ classdef ExperimentClass_master4corners < handle %define handle class
             % compute Euclidean speed
             speedArray_steps_s = (sqrt(x.^2+y.^2)./(time./1000)); %in steps/second
             %conversion factor is pi*1.2 cm (3.769911 cm) = 200 steps
-            speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*((2.*pi.*0.65)./200); %speedArray converted to cm/s
+            %speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(3.76991./200); %speedArray converted to cm/s
             save('speed_step','speedArray_steps_s');
-            save('speed_cm','speedArray_cm_s');
+            %save('speed_cm','speedArray_cm_s');
             
             % Convert x and y distance to angle in degrees
-            angles = atan(y(1:totalAngles,1)./x(1:totalAngles,1))*180/pi;
+            angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
             save('angles','angles');
             
             %% Finding model of delay to speed
@@ -260,7 +260,8 @@ classdef ExperimentClass_master4corners < handle %define handle class
                     break;
                 end
             end
-        end    
+        end  
+        
     end  
 end
 

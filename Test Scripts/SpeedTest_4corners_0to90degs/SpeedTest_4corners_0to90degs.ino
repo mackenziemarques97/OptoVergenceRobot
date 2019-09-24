@@ -281,7 +281,6 @@ void loop() {
           int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
           /*maxDistance = 0.9*minDim, or 90% of the length of the smallest dimension*/
           int maxDistance = ddistance * (angleTrials - 1);
-          Serial.println("Beginning");
           Serial.println(ddistance);
           int totalAngles = (angleTrials * 2) - 1;
 
