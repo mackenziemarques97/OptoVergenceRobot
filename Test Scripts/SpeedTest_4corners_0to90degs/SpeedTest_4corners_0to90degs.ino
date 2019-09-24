@@ -1,9 +1,9 @@
-/*In speedModelFit, create a loop that goes through 
- * origin of (xMin, yMin) at 0-45 degrees [(maxDist, 0)-(maxDist,maxDist)] and 45-90 degrees [(maxDist,maxDist)-(0,maxDist)]
- * (xMin, yMax) at 0-45 degrees [(maxDist, 0)-(maxDist,-maxDist)] and 45-90 degrees [(maxDist,-maxDist)-(0,-maxDist)] 
- * (xMax, yMin) at 0-45 degrees [(-maxDist, 0)-(-maxDist,maxDist)] and 45-90 degrees [(-maxDist,maxDist)-(0,maxDist)]
- * (xMax, yMax) at 0-45 degrees [(-maxDist, 0)-(-maxDist,-maxDist)] and 45-90 degrees [(-maxDist,-maxDist)-(0,-maxDist)]
- */ 
+/*In speedModelFit, create a loop that goes through
+   origin of (xMin, yMin) at 0-45 degrees [(maxDist, 0)-(maxDist,maxDist)] and 45-90 degrees [(maxDist,maxDist)-(0,maxDist)]
+   (xMin, yMax) at 0-45 degrees [(maxDist, 0)-(maxDist,-maxDist)] and 45-90 degrees [(maxDist,-maxDist)-(0,-maxDist)]
+   (xMax, yMin) at 0-45 degrees [(-maxDist, 0)-(-maxDist,maxDist)] and 45-90 degrees [(-maxDist,maxDist)-(0,maxDist)]
+   (xMax, yMax) at 0-45 degrees [(-maxDist, 0)-(-maxDist,-maxDist)] and 45-90 degrees [(-maxDist,-maxDist)-(0,-maxDist)]
+*/
 
 #include <stdio.h>
 #include <math.h>
@@ -20,15 +20,38 @@
 #define xMax 3
 #define yMin 4
 #define yMax 5
+/*pins for RGB LED*/
+#define RED 48
+#define GREEN 49
+#define BLUE 50
 
 /* Define initial variables and arrays */
+int ledOff = 255;
+int ledOn = 127;
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
 unsigned long stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
+unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
+unsigned long location[2] = {0, 0}; /*presetting location*/
 
 int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
-String val; /*String object to store inputs read from the Serial Connection*/
+String infoFromSerialConnection; /*String object to store inputs read from the Serial Connection*/
+
+/*Blink an LED twice
+   input: specific LED pin
+   that pin must be set to HIGH first
+*/
+void Blink(int LED) {
+  analogWrite(LED, ledOn);
+  delay(300);
+  analogWrite(LED, ledOff);
+  delay(300);
+  analogWrite(LED, ledOn);
+  delay(300);
+  analogWrite(LED, ledOff);
+  delay(300);
+}
 
 /*Confirm serial connection function
    initialize serialInit as X
@@ -241,31 +264,91 @@ void loop() {
 
   if (infoFromSerialConnection != NULL) {
     char inputArray[infoFromSerialConnection.length() + 1]; /*create an array the size of val string +1*/
-    val.toCharArray(inputArray, infoFromSerialConnection.length() + 1); /*convert val from String object to null terminated character array*/
+    infoFromSerialConnection.toCharArray(inputArray, infoFromSerialConnection.length() + 1); /*convert val from String object to null terminated character array*/
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
     switch ((int) *command) {
       case 1: //modified speed data collection
+        {
+          int delayi, delayf, ddelay, angleTrials;
+          delayi = (int) * (command + 1);
+          delayf = (int) * (command + 2);
+          ddelay = (int) * (command + 3);
+          angleTrials = (int) * (command + 4);
 
-        int delayi, delayf, ddelay, angleTrials;
-        delayi = (int) * (command + 1);
-        delayf = (int) * (command + 2);
-        ddelay = (int) * (command + 3);
-        angleTrials = (int) * (command + 4);
+          /*determine smallest dimension between x and y*/
+          long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
+          /*determine divisions of 90% of min dimension, based on the number of angle trials*/
+          int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
+          /*maxDistance = 0.9*minDim, or 90% of the length of the smallest dimension*/
+          int maxDistance = ddistance * (angleTrials - 1);
+          Serial.println("Beginning");
+          Serial.println(ddistance);
+          int totalAngles = (angleTrials * 2) - 1;
 
-        /*determine smallest dimension between x and y*/
-        long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
-        /*determine divisions of 90% of min dimension, based on the number of angle trials*/
-        int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
-        /*maxDistance = 0.9*minDim, or 90% of the length of the smallest dimension*/
-        int maxDistance = ddistance * (angleTrials - 1);
+          /* Intialize loop arrays that will be sent over*/
+          unsigned long speedRuns[totalAngles];
+          int xDistance[totalAngles];
+          int yDistance[totalAngles];
+          /* Delay Loop */
+          int trialNum;
 
-        /* Intialize loop arrays that will be sent over*/
-        unsigned long speedRuns[angleTrials];
-        int xDistance[angleTrials];
-        int yDistance[angleTrials];
-        /* Delay Loop */
-        int trialNum;
+          /* Delay Loop */
+          for (int del = delayi; del <= delayf; del += ddelay) {
+            int targetDelay = del;
+            Serial.println("Delay");
+            /* Angle Loop */
+            /*origin of xMin,yMin ; 0 to 45 degrees; change in y */
+            for (int dy = 0; dy <= maxDistance; dy += ddistance) {
+              recalibrate(xMin);
+              recalibrate(yMin);
+              delay(300);
+              int x = maxDistance; // Steps
+              int y = dy;
+              /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
+              long startTime = millis();
+              line((long) x * microstepsPerStep, (long) y * microstepsPerStep, targetDelay);
+              long endTime = millis();
+              long timed = endTime - startTime;
+              /* Saving information in appropriate arrays*/
+              speedRuns[trialNum] = timed;
+              xDistance[trialNum] = x;
+              yDistance[trialNum] = y;
+              trialNum++;
+              delay(300);
+            }
+            /*origin of xMin,yMin ; 45 to 90 degrees, excluding 45 since collected in last loop; change in x*/
+            for (int dx = maxDistance - ddistance; dx <= 0; dx -= ddistance) {
+              recalibrate(xMin);
+              recalibrate(yMin);
+              delay(300);
+              int x = dx; // Steps
+              int y = maxDistance;
+              /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
+              long startTime = millis();
+              line((long) x * microstepsPerStep, (long) y * microstepsPerStep, targetDelay);
+              long endTime = millis();
+              long timed = endTime - startTime;
+              /* Saving information in appropriate arrays*/
+              speedRuns[trialNum] = timed;
+              xDistance[trialNum] = x;
+              yDistance[trialNum] = y;
+              trialNum++;
+              delay(300);
+            }
+
+            /*Send x and y distances and time after each delay trial
+              used to calculate Euclidean speed in MATLAB*/
+            Serial.println("Sending");
+            for (int i = 0; i < totalAngles; i++) {
+              Serial.println(speedRuns[i]);
+              Serial.println(xDistance[i]);
+              Serial.println(yDistance[i]);
+            }
+            trialNum = 0;
+          }
+          Serial.println("Done");
+        }
+        break;
     }
   }
-
 }

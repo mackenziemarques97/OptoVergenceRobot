@@ -1,4 +1,4 @@
-classdef ExperimentClass_master < handle %define handle class
+classdef ExperimentClass_master4corners < handle %define handle class
     
     properties %define properties of the handle class
         connection %serial connection
@@ -10,8 +10,8 @@ classdef ExperimentClass_master < handle %define handle class
     methods %define methods of the handle class (functions to use)
         %% Experiment Constructor
         % constructor method to create an instance of the class
-        % ExperimentClass_master
-        function obj = ExperimentClass_master(serialPort) %comPort is "COM#" from USB serial connection; AKA serial port
+        % ExperimentClass_master4corners
+        function obj = ExperimentClass_master4corners(serialPort) %comPort is "COM#" from USB serial connection; AKA serial port
             obj.connection = serial(serialPort); %creates serial port object associated with the serial port
             set(obj.connection,'DataBits',8); %next 4 lines characterize communication port connection
             set(obj.connection,'StopBits',1);
@@ -57,7 +57,22 @@ classdef ExperimentClass_master < handle %define handle class
 
         end
         
-        %% LINEAR OSCILLATION - robot movement function
+        %% CALIBRATION - robot movement method
+        function calibrate(obj)
+            % Returns target to xMin and yMin at the bottom-left corner
+            fprintf(obj.connection,'calibrate:'); %send string in this format with colon delimiter to Arduino
+            checkForMovementEnd(obj, 'Calibrate'); %check that "Done" is recevied at end of movement
+        end
+        
+        %% Move To - robot movement method
+        function moveTo(obj,x,y,hold)
+            %count = 0; %to count number of times display while loop runs
+            % Moves target to (x,y) and holds for designated milliseconds
+            fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]); %send string in this format with colon delimiter to Arduino
+            checkForMovementEnd(obj, 'Linear Move Trial'); %check that "Done" is recevied at end of movement
+        end
+        
+        %% LINEAR OSCILLATION - robot movement method
         function linearOscillate(obj,x0,y0,x1,y1,speed,repetitions)
             % Moves from point (x0,y0) to (x1,y1). Speed is characterized by the
             % pulse-width modulation of the signals set to the stepper motor. Movement
@@ -65,31 +80,16 @@ classdef ExperimentClass_master < handle %define handle class
             % the step size for drawing of a pathway. Movement at the 10% edges are
             % slowed down.
             fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d'),...
-                [x0,y0,x1,y1,speed,repetitions]);
-            checkForMovementEnd(obj, 'Linear Oscillate Trial'); 
+                [x0,y0,x1,y1,speed,repetitions]); %send string in this format with colon delimiter to Arduino
+            checkForMovementEnd(obj, 'Linear Oscillate Trial'); %check that "Done" is received at end of movement
         end
         
-        %% CALIBRATION - robot movement function
-        function calibrate(obj)
-            % Returns target to xMin and yMin at the bottom-left corner
-            fprintf(obj.connection,'calibrate:');
-            checkForMovementEnd(obj, 'Calibrate');
-        end
-        
-        %% Move To - robot movement command
-        function moveTo(obj,x,y,hold)
-            %count = 0; %to count number of times display while loop runs
-            % Moves target to (x,y) and holds for designated milliseconds
-            fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]);
-            checkForMovementEnd(obj, 'Linear Move Trial');
-        end
-        
-        %% Arc - robot movement command
+        %% Arc - robot movement method
         function arcMove(obj,diameter,angInit,angFinal,speed,numLines)
             % Moves target in an arc specified by radius and initial and final
             % angles
             fprintf(obj.connection,('arcMove:%d:%d:%d:%d:%d'),...
-                [diameter,angInit,angFinal,speed,numLines]);
+                [diameter,angInit,angFinal,speed,numLines]); %send strings in this format with colon delimiter to Arduino
             
             %IN DEVELOPMENT
             %angle inputs range from 90 to -90 degrees
@@ -124,10 +124,10 @@ classdef ExperimentClass_master < handle %define handle class
 %             waitSignal = check(obj) % should receive "dxReceived"
 %             sendInfo(obj, dy);
 %             waitSignal = check(obj) % should receive "dyReceived"
-            if (diameter > 35)  
-                waitsignal = check(obj)
-            else
-            checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial');
+            if (diameter > 35) %if diameter entered is greater than 35 cm
+                waitsignal = check(obj) %wait for error message from Arduino
+            else %otherwise
+            checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial'); %check that "Done" is recevied at end of movement
             end 
         end
         
@@ -147,7 +147,7 @@ classdef ExperimentClass_master < handle %define handle class
             
             % Communicate with Arduino all the variables
             fprintf(obj.connection,('speedModelFit:%d:%d:%d:%d'),...
-                [delayi,delayf,ddelay,angleTrials]);
+                [delayi,delayf,ddelay,angleTrials]);%send string in this format with colon delimiter to Arduino
             % while Beginning is being sent from Arduino, print given message
             %             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
             %                 disp('Speed Experiment Trials');
