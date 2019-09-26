@@ -17,6 +17,6 @@ a = ExperimentClass_master4corners(serialPort); %create an object of the class t
 %by 5 us each loop, do this at 12 different angles between 0 and 45 degs,
 %45 and 90 degs
 
-a.speedModelFit(15,65,5,11); 
+a.speedModelFit(15,60,5,7); 
 
 a.endSerial();

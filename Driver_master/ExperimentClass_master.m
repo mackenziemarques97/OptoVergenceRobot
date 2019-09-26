@@ -196,20 +196,42 @@ classdef ExperimentClass_master < handle %define handle class
             save('angles','angles');
             
             %% Finding model of delay to speed
+            % The intention is to be able to input a delay/pulse width in us
+            % into a function that outputs the necessary speed in cm/s
+            % that would require that delay. The function is a
+            % model of speeds vs. angles and delays. This approach is used
+            % to check speed to delay model, which will be directly
+            % implemented in the Arduino code.
+            
             % For each delay, finds the coefficients of a
             % 2-term exponential model of angle vs measured speed
             % Requires at least 10 trials each to generate a fit
-            coeffs_angles = zeros(length(delays),4);
+            
+            %for angles, initialize array to have 4 coefficients for each delay
+            %4 coefficients necessary to define 2-term exponential
+            %INNER FUNCTIONS
+            coeffs_angles = zeros(length(delays),4); 
+            %for each delay
             for i = 1:length(delays)
-                f = fit(angles,speedArray_steps_s(:,i),'exp2');
-                coeffs_angles(i,:) = [f.a,f.b,f.c,f.d]; % save coefficients
+                %fit curve of speed in steps/sec vs. angles with a 2 term exponential
+                f = fit(angles,speedArray_steps_s(:,i),'exp2'); 
+                %save coefficients at each delay
+                %4 coeffs for each set of speed vs. angles
+                coeffs_angles(i,:) = [f.a,f.b,f.c,f.d]; 
             end
             
             % Models the columns in coeffs_angles with a 2-term exponential
             % with respect to delays
+            %OUTER FUNCTIONS
             forward_coeffs = zeros(4,4);
+            %for each column of coeffs_angles, which cooresponds to
+            %one of the coefficients of a 2-term exponential
             for i = 1:4
+                %fit the curve of coeffs_angles vs. delays as a 2-term
+                %exponential
                 f = fit(transpose(delays),coeffs_angles(:,i),'exp2');
+                %save coefficients from fit of inner coefficients
+                %4 coeffs for each coefficient
                 forward_coeffs(i,:) = [f.a,f.b,f.c,f.d];
             end
             

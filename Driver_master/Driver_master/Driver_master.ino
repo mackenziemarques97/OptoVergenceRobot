@@ -582,7 +582,7 @@ void loop()
           */
           long desiredXLoc = *(command + 1); //cm
           long desiredYLoc = *(command + 2); //cm
-          int holdTime = *(command + 3); //ms
+          int Delay = *(command + 3); //ms
 
           /*Converting inputs from cm to microsteps*/
           long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
@@ -609,7 +609,6 @@ void loop()
           analogWrite(BLUE, ledOn);/*turn on blue*/
           line(xDisp, yDisp, Delay);
           Serial.println("Done");
-          delay(holdTime); /*delay by the specified hold duration*/
           analogWrite(BLUE, ledOff);/*turn off blue*/
         }
         break;

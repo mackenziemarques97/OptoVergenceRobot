@@ -120,6 +120,7 @@ classdef ExperimentClass_master4corners < handle %define handle class
             % Convert x and y distance to angle in degrees
             angles = atan(y(1:totalAngles,1)./x(1:totalAngles,1))*180/pi;
             save('angles','angles');
+            save('delayTrials','delayTrials');
             
             %% Finding model of delay to speed
             % For each delay, finds the coefficients of a

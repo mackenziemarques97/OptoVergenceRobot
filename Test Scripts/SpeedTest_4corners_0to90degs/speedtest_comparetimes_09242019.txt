@@ -1,0 +1,273 @@
+09/24/2019:
+xMin,yMin calibration
+speedModelFit:20:60:5:4
+
+A
+Ready
+535
+Delay
+Sending
+angle 0
+time: 1468
+xDist: 1605
+yDist: 0
+angle 1
+time: 1597
+xDist: 1605
+yDist: 535
+angle 2
+time: 1723
+xDist: 1605
+yDist: 1070
+angle 3
+time: 1851
+xDist: 1605
+yDist: 1605
+angle 4
+time: 1719
+xDist: 1070
+yDist: 1605
+angle 5
+time: 1585
+xDist: 535
+yDist: 1605
+angle 6
+time: 1458
+xDist: 0
+yDist: 1605
+Delay
+Sending
+angle 0
+time: 1726
+xDist: 1605
+yDist: 0
+angle 1
+time: 1854
+xDist: 1605
+yDist: 535
+angle 2
+time: 1982
+xDist: 1605
+yDist: 1070
+angle 3
+time: 2109
+xDist: 1605
+yDist: 1605
+angle 4
+time: 1977
+xDist: 1070
+yDist: 1605
+angle 5
+time: 1844
+xDist: 535
+yDist: 1605
+angle 6
+time: 1716
+xDist: 0
+yDist: 1605
+Delay
+
+xMin,yMax calibration
+speedModelFit:20:60:5:4
+
+A
+Ready
+535
+Delay
+Sending
+angle 0
+time: 1469
+xDist: 1605
+yDist: 0
+angle 1
+time: 1595
+xDist: 1605
+yDist: -535
+angle 214
+time: 1724
+xDist: 1605
+yDist: -1070
+angle 3
+time: 1850
+xDist: 1605
+yDist: -1605
+angle 4
+time: 1718
+xDist: 1070
+yDist: -1605
+angle 5
+time: 1585
+xDist: 535
+yDist: -1605
+angle 6
+time: 1458
+xDist: 0
+yDist: -1605
+Delay
+Sending
+angle 0
+time: 1726
+xDist: 1605
+yDist: 0
+angle 1
+time: 1853
+xDist: 1605
+yDist: -535
+angle 2
+time: 1981
+xDist: 1605
+yDist: -1070
+angle 3
+time: 2109
+xDist: 1605
+yDist: -1605
+angle 4
+time: 1976
+xDist: 1070
+yDist: -1605
+angle 5
+time: 1844
+xDist: 535
+yDist: -1605
+angle 6
+time: 1717
+xDist: 0
+yDist: -1605
+Delay
+
+xMax,yMin calibration
+speedModelFit:20:60:5:4
+
+A
+Ready
+535
+Delay
+Sending
+angle 0
+time: 1468
+xDist: -1605
+yDist: 0
+angle 1
+time: 1596
+xDist: -1605
+yDist: 535
+angle 2
+time: 1724
+xDist: -1605
+yDist: 1070
+angle 3
+time: 1851
+xDist: -1605
+yDist: 1605
+angle 4
+time: 1718
+xDist: -1070
+yDist: 1605
+angle 5
+time: 1586
+xDist: -535
+yDist: 1605
+angle 6
+time: 1459
+xDist: 0
+yDist: 1605
+Delay
+Sending
+angle 0
+time: 1726
+xDist: -1605
+yDist: 0
+angle 1
+time: 1854
+xDist: -1605
+yDist: 535
+angle 2
+time: 1983
+xDist: -1605
+yDist: 1070
+angle 3
+time: 2108
+xDist: -1605
+yDist: 1605
+angle 4
+time: 1977
+xDist: -1070
+yDist: 1605
+angle 5
+time: 1845
+xDist: -535
+yDist: 1605
+angle 6
+time: 1716
+xDist: 0
+yDist: 1605
+Delay
+
+xMax,yMax calibration
+speedModelFit:20:60:5:4
+A
+Ready
+535
+Delay
+Sending
+angle 0
+time: 1468
+xDist: -1605
+yDist: 0
+angle 1
+time: 1597
+xDist: -1605
+yDist: -535
+angle 2
+time: 1723
+xDist: -1605
+yDist: -1070
+angle 3
+time: 1851
+xDist: -1605
+yDist: -1605
+angle 4
+time: 1718
+xDist: -1070
+yDist: -1605
+angle 5
+time: 1586
+xDist: -535
+yDist: -1605
+angle 6
+time: 1459
+xDist: 0
+yDist: -1605
+Delay
+Sending
+angle 0
+time: 1726
+xDist: -1605
+yDist: 0
+angle 1
+time: 1854
+xDist: -1605
+yDist: -535
+angle 2
+time: 1983
+xDist: -1605
+yDist: -1070
+angle 3
+time: 2110
+xDist: -1605
+yDist: -1605
+angle 4
+time: 1977
+xDist: -1070
+yDist: -1605
+angle 5
+time: 1844
+xDist: -535
+yDist: -1605
+angle 6
+time: 1716
+xDist: 0
+yDist: -1605
+Delay
+
+
