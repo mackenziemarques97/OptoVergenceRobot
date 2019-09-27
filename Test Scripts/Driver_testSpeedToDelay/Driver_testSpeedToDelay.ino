@@ -1,7 +1,7 @@
 /*Note: Do you want the robot to determine the dimensions at the start of the run?
- * If so, make sure is uncommented in findDimensions() in setup.
- * If not, comment out findDimensions() and manually enter dimensions noted in the comments.
- */
+   If so, make sure is uncommented in findDimensions() in setup.
+   If not, comment out findDimensions() and manually enter dimensions noted in the comments.
+*/
 
 /*Explanations of common Arduino functions:
   ~Serial.print()/Serial.println() prints/sends to serial port
@@ -18,8 +18,8 @@
    don't need to send the coefficients since delayToSpeed occurs in MATLAB
    arcMove works when I manually enter Delays, dx, dy, but not when I try to interface with MATLAB
    --> something wrong with dx being stored, dy Delays seems correct
-   **I THINK, since I use something similar to the parseCommand function to send delays&dx&dy from MATLAB to Arduino, 
-   *then each value should be accessed using *command+1 format (pointer variables). 
+   **I THINK, since I use something similar to the parseCommand function to send delays&dx&dy from MATLAB to Arduino,
+    then each value should be accessed using *command+1 format (pointer variables).
 */
 
 /*Serial.print()/Serial.println() prints/sends to serial port,
@@ -550,17 +550,17 @@ void setup()
   /* Communicates with Serial connection to verify */
   initialize();
   /* Sends coefficients for speed model */
-  //loadInfo();
+  loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = 106528;//*i * microstepsPerStep; /*x-dimension*/
+  dimensions[1] = 54624;//*(i + 1) * microstepsPerStep; /*y-dimension*/
 
   Serial.println("Ready");
   Blink(GREEN);
@@ -765,50 +765,56 @@ void loop()
           double Speed = *(command + 4); //this input not currently used, will be used when speed model is integrated
           int numLines = *(command + 5); //number of lines used to form the arc movement for version movement
           float arcRes = (numLines - 1) / 3; //adjustment of numLines for calculation
-          
+
           float angInit_rad = (pi / 180) * (-angInit + 90); /*convert initial angle from degrees to radians*/
           float angFinal_rad = (pi / 180) * (-angFinal + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
           float angInit_res = angInit_rad * arcRes;
           float angFinal_res = angFinal_rad * arcRes;
-          
+
           long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
           long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
 
           analogWrite(RED, ledOn);
           analogWrite(BLUE, ledOn);
+          //line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
 
           //TESTING
 
-          //int count = 0;
-          //for (int i = angInit_res; i <= angFinal_res; i++) {
-          //Serial.println(count);
-          //double dx = {round(-Rsteps / arcRes * sin((float)i / arcRes))}; /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
-          //Serial.println(dx);
-          //double dy = {Rsteps / arcRes * cos((float)i / arcRes)}; /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
-          //Serial.println(dy);
-          //double angle = abs(atan2(dy, dx) * (180 / pi));
-          //Serial.println(angle);
-          //if (angle >= 90 && angle <= 135) {
-          //  angle = angle - 90;
-          //}
-          //else if (angle > 135 && angle <= 180) {
-          //  angle = angle - 135;
-          //}
-          //double Delays[count] = {speedToDelay(reverse_coeffs, Speed, angle)};
-          //count++;
-          //}
-
+          int count = 0;
+          for (int i = angInit_res; i <= angFinal_res; i++) {
+            Serial.println(count);
+            double dx = round(-Rsteps / arcRes * sin((float)i / arcRes)); /*change in x-direction, derivative of rcos(theta) adjusted for resolution*/
+            Serial.println(dx);
+            double dy = round(Rsteps / arcRes * cos((float)i / arcRes)); /*change in y-direction, derivative of rsin(theta) adjusted for resolution*/
+            Serial.println(dy);
+            double angle = abs(atan2(dy, dx) * (180 / pi));
+            Serial.print("initAng: "); Serial.println(angle);
+            if (angle > 45 && angle <= 90) {
+              angle = 90 - angle;
+            }         
+            else if (angle > 90 && angle <= 135) {
+              angle = angle - 90;
+            }
+            else if (angle > 135 && angle <= 180) {
+              angle = 180 - angle;
+            }
+            Serial.print("finAng: "); Serial.println(angle); 
+            double del = speedToDelay(reverse_coeffs, Speed, angle);
+            Serial.print("del: "); Serial.println(del);
+            //double Delays[count] = {del};
+            count++;
+          }
+          //Serial.println("Hello");
           //count = 0;
           //for (int i = angInit_res; i <= angFinal_res; i++) { /*move from initial to final angle*/
-          //line(dx[count], dy[count], Delay); /*draw small line, which represents part of circle/arc*/
-          //count++;
+            //line(dx[count], dy[count], Delay); /*draw small line, which represents part of circle/arc*/
+            //count++;
           //}
 
-          //TEST
+          //END TEST
 
           //The following code accomplishes arc movement, but at inconsistent speeds.
-          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-          if ( angInit_rad < angFinal_rad ) {
+          /*if ( angInit_rad < angFinal_rad ) {
             for (int i = angInit_res; i <= angFinal_res; i++) {
               int dx = round(-Rsteps / arcRes * sin((float)i / arcRes));
               int dy = round(Rsteps / arcRes * cos((float)i / arcRes));
@@ -821,7 +827,7 @@ void loop()
               int dy = round(-Rsteps / arcRes * cos((float)i / arcRes));
               line(dx, dy, Delay);
             }
-          }
+          }*/
 
           analogWrite(RED, ledOff);
           analogWrite(BLUE, ledOff);

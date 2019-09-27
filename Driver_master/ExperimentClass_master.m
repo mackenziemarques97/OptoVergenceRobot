@@ -47,13 +47,13 @@ classdef ExperimentClass_master < handle %define handle class
             reverse_coeffs = obj.reverse_coeffs;
             
             % Communicate with Arduino and send speed model coefficients
-%             waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
-%             sendInfo(obj, forward_coeffs);
-%             waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
-%             sendInfo(obj, reverse_coeffs);
-%             waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
-%             
-             waitSignal = check(obj) %read from Arduino; should receive "Ready"
+            waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
+            sendInfo(obj, forward_coeffs);
+            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+            sendInfo(obj, reverse_coeffs);
+            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
+            
+            waitSignal = check(obj) %read from Arduino; should receive "Ready"
 
         end
         
@@ -195,6 +195,58 @@ classdef ExperimentClass_master < handle %define handle class
             angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
             save('angles','angles');
             
+            %% Finding model of speed to delay
+            % The intention is to be able to input a speed (in cm/s)
+            % into a function that will output the necessary delay (in us),
+            % given a certain angle, that would be required to achieve that
+            % speed. The function is a model of delay vs. angle and speed. 
+            
+            % For each angle, finds the coefficients of a
+            % 2-term exponential model of measured speed vs delay
+            % Requires at least 10 trials each to generate a fit
+            
+            % OUTER FUNCTION
+            % inputs speed
+            % outputs delay
+            
+            % for delays, initialize array to have 4 coefficients for each
+            % angle
+            % each row of coeffs_delays represents an angle
+            % each column of coeffs_delays represents a coefficient 
+            % of the function
+            % 4 coefficients necessary to define 2-term exponential
+            coeffs_delays = zeros(length(angles),4);
+            %for each angle
+            for i = 1:numel(angles)
+                %fit curve of speed in steps/sec vs. delays with a 
+                %2 term exponential
+                f = fit(transpose(speedArray_steps_s(i,:)),...
+                    transpose(delays),'exp2');
+                %save coefficients at each angle
+                %4 coeffs for each set of speed vs. delay
+                coeffs_delays(i,:) = [f.a,f.b,f.c,f.d];
+            end
+            
+            % INNER FUNCTION
+            % inputs angles
+            % outputs coefficients for outer function
+            
+            % Models the columns in coeffs_delays as a 3rd degree
+            % polynomial with respect to angles.
+            % The columns represent the coefficients of each term in the
+            % 2-term exp. 
+            reverse_coeffs = zeros(4,4);
+            %for each column of coeffs_delays, which corresponds to
+            %one of the coefficients of a 2-term exponential
+            for i = 1:4
+                %fit the curve of coeffs_delays vs. angles as a 3rd degree
+                %polynomial
+                f = fit(angles,coeffs_delays(:,i),'poly3');
+                %save coefficients from fit of inner coefficients
+                %4 outer coeffecicents
+                reverse_coeffs(i,:) = [f.p1,f.p2,f.p3,f.p4];
+            end
+            
             %% Finding model of delay to speed
             % The intention is to be able to input a delay/pulse width in us
             % into a function that outputs the necessary speed in cm/s
@@ -207,24 +259,32 @@ classdef ExperimentClass_master < handle %define handle class
             % 2-term exponential model of angle vs measured speed
             % Requires at least 10 trials each to generate a fit
             
-            %for angles, initialize array to have 4 coefficients for each delay
+            % OUTER FUNCTION
+            % inputs angle
+            % outputs speed
+            
+            %for angles, initialize array to have 4 coefficients for 
+            %each delay
             %4 coefficients necessary to define 2-term exponential
-            %INNER FUNCTIONS
             coeffs_angles = zeros(length(delays),4); 
             %for each delay
             for i = 1:length(delays)
-                %fit curve of speed in steps/sec vs. angles with a 2 term exponential
+                %fit curve of speed in steps/sec vs. angles with a 
+                %2 term exponential
                 f = fit(angles,speedArray_steps_s(:,i),'exp2'); 
                 %save coefficients at each delay
                 %4 coeffs for each set of speed vs. angles
                 coeffs_angles(i,:) = [f.a,f.b,f.c,f.d]; 
             end
             
+            % INNER FUNCTION
+            % inputs delays
+            % outputs coefficients for outer function
+            
             % Models the columns in coeffs_angles with a 2-term exponential
             % with respect to delays
-            %OUTER FUNCTIONS
             forward_coeffs = zeros(4,4);
-            %for each column of coeffs_angles, which cooresponds to
+            %for each column of coeffs_angles, which corresponds to
             %one of the coefficients of a 2-term exponential
             for i = 1:4
                 %fit the curve of coeffs_angles vs. delays as a 2-term
@@ -235,71 +295,54 @@ classdef ExperimentClass_master < handle %define handle class
                 forward_coeffs(i,:) = [f.a,f.b,f.c,f.d];
             end
             
-            %% Finding model of speed to delay
-            % For each angle, finds the coefficients of a
-            % 2-term exponential model of measured speed vs delay
-            % Requires at least 10 trials each to generate a fit
-            coeffs_delays = zeros(length(angles),4);
-            for i = 1:numel(angles)
-                f = fit(transpose(speedArray_steps_s(i,:)),transpose(delays),'exp2');
-                coeffs_delays(i,:) = [f.a,f.b,f.c,f.d];
-            end
-            
-            % Models the columns in coeffs_delays as a 3rd degree
-            % polynomial with respect to angles
-            reverse_coeffs = zeros(4,4);
-            for i = 1:4
-                f = fit(angles,coeffs_delays(:,i),'poly3');
-                reverse_coeffs(i,:) = [f.p1,f.p2,f.p3,f.p4];
-            end
-            
             % Save coefficients in parameters.mat
-            obj.forward_coeffs = forward_coeffs;
-            obj.reverse_coeffs = reverse_coeffs;
+            obj.forward_coeffs = forward_coeffs; %for delayToSpeed
+            obj.reverse_coeffs = reverse_coeffs; %fpr speedToDelay
             save(obj.save_filename,'forward_coeffs','reverse_coeffs');
         end
-        %% Calculating a given delay and converting to speed
-        % coeff_array is a 4x4 array - rows and columns both representing exp2
-        function [speed] = delayToSpeed(obj,delay,angle)
-            complex_coeffs = zeros(size(obj.forward_coeffs));
-            for i = 1:length(obj.forward_coeffs(:,1))
-                complex_coeffs(i) = obj.exp2(obj.forward_coeffs(i,:),delay);
-            end
-            speed = obj.exp2(complex_coeffs,angle);
-        end
-        
-        %% Calculating input speed to a delay sent to Arduino
-        % coeff_array is a 4x4 array - rows representing exp2, columns representing
-        % poly3
+                %% Calculating a delay given speed and angle
+        % reverse_coeffs is a 4x4 array 
+        % input speed & angle
+        % output delay
+        % inner function uses poly3
+        % outer function uses exp2
         function [delay] = speedToDelay(obj,speed,angle)
-            complex_coeffs = zeros(size(obj.reverse_coeffs));
-            for i = 1:length(obj.reverse_coeffs(:,1))
+            %initialize matrix that is 4x1, for coeffs of outer func
+            complex_coeffs = zeros(length(obj.reverse_coeffs(1,:)),1);
+            %for i = 1:4 (length of the first row of forward_coeffs)
+            for i = 1:length(obj.reverse_coeffs(1,:))
+                %calculate outer func coeffs using reverse_coeffs
+                %as coeffs for poly3 and the angle as an input
                 complex_coeffs(i) = obj.poly3(obj.reverse_coeffs(i,:),angle);
             end
+            %use the outer func coeffs and the speed as an input to
+            %calculate the delay
             delay = obj.exp2(complex_coeffs,speed);
         end
         
-        %% 2nd Degree Polynomial
-        % not currently used
-        % not a good model for speed to delay conversion
-        function [output] = poly2(obj,coeffs,x)
-            output = coeffs(1).*x.^2 + coeffs(2).*x + coeffs(3);
+        %% Calculating a speed given delay and angle
+        % forward_coeffs is a 4x4 array 
+        % input delay & angle
+        % output speed
+        % inner function uses exp2
+        % outer function uses exp2
+        function [speed] = delayToSpeed(obj,delay,angle)
+            %initialize matrix that is 4x1, for coeffs of outer func
+            complex_coeffs = zeros(length(obj.forward_coeffs(1,:)),1);
+            %for i = 1:4 (length of the first row of forward_coeffs)
+            for i = 1:length(obj.forward_coeffs(1,:))
+                %calculate outer func coeffs using foward_coeffs
+                %as coeffs for exp2 and the delay as an input
+                complex_coeffs(i) = obj.exp2(obj.forward_coeffs(i,:),delay);
+            end
+            %use the outer func coeffs and the angle as an input to
+            %calculate the speed
+            speed = obj.exp2(complex_coeffs,angle);
         end
         
         %% 3rd Degree Polynomial
         function [output] = poly3(obj,coeffs,x)
             output = coeffs(1).*x.^3 + coeffs(2).*x.^2 + coeffs(3).*x + coeffs(4);
-        end
-        
-        %% 2-term Fourier
-        % not currently used
-        % was tested as a model for reverse_coeffs
-        % slightly less accurate than 3rd degree polynommial
-        function [output] = fourier2(obj,coeffs,x)
-            output = coeffs(1) + coeffs(2).*cos(x.*coeffs(6)) +...
-                coeffs(3).*sin(x.*coeffs(6)) +...
-                coeffs(4).*cos(2.*x.*coeffs(6)) +...
-                coeffs(5).*sin(2.*x.*coeffs(6));
         end
         
         %% Two-Term Exponential Function
