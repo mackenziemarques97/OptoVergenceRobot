@@ -2,32 +2,43 @@ classdef ExperimentClass_master < handle %define handle class
     
     properties %define properties of the handle class
         connection %serial connection
-        forward_coeffs = zeros(4,4); %matrix of coefficients for speed model, speedToDelay
-        reverse_coeffs = zeros(4,4); %reverse matrix of coefficients for speed model, delayToSpeed 
-        save_filename = 'parameters.mat'; %variable for filename for saving parameters (forward_coeffs, reverse_coeffs)
+        %matrix of coefficients for speed model, delayToSpeed
+        forward_coeffs = zeros(4,4);
+        %reverse matrix of coefficients for speed model, speedToDelay
+        reverse_coeffs = zeros(4,4); 
+        %variable for filename for saving parameters
+        %forward_coeffs & reverse_coeffs
+        save_filename = 'parameters.mat'; 
     end
     
     methods %define methods of the handle class (functions to use)
         %% Experiment Constructor
         % constructor method to create an instance of the class
         % ExperimentClass_master
-        function obj = ExperimentClass_master(serialPort) %comPort is "COM#" from USB serial connection; AKA serial port
-            obj.connection = serial(serialPort); %creates serial port object associated with the serial port
-            set(obj.connection,'DataBits',8); %next 4 lines characterize communication port connection
+        
+        %comPort is "COM#" from USB serial connection; AKA serial port
+        function obj = ExperimentClass_master(serialPort) 
+            %creates serial port object associated with the serial port
+            obj.connection = serial(serialPort); 
+            %next 4 lines characterize communication port connection
+            set(obj.connection,'DataBits',8); 
             set(obj.connection,'StopBits',1);
             set(obj.connection,'BaudRate',9600);
             set(obj.connection,'Parity','none');
             
-            fopen(obj.connection); %start serial connection/open serial port object
+            %start serial connection/open serial port object
+            fopen(obj.connection); 
             
             % Confirm serial connection
             % equivalent to initialize function in Driver_master.ino
             % string 'A' sent and received  
             SerialInit = 'X'; %store string X in variable SerialInit
             while (SerialInit~='A') %while SerialInit not equal to string A
-                SerialInit=fread(obj.connection,1,'uchar'); %read data from serial port
+                %read data from serial port
+                SerialInit=fread(obj.connection,1,'uchar'); 
             end
-            if (SerialInit ~= 'A') %if something other than A received from Arduino
+            %if something other than A received from Arduino
+            if (SerialInit ~= 'A') 
                 disp('Serial Communication Not Setup'); %display message
             elseif (SerialInit=='A') %if A received from Arduino
                 disp('Serial Read') %display message
@@ -36,10 +47,11 @@ classdef ExperimentClass_master < handle %define handle class
             fprintf(obj.connection,'%c','A'); %MATLAB sends out 'A'
             %equivalent of typing 'A' into serial monitor on Arduino side
             
-            flushinput(obj.connection); %removes data from input buffer associated with serial port
+            %removes data from input buffer associated with serial port
+            flushinput(obj.connection); 
             
-            % Save parameters (forward_coeffs, reverse_coeffs) that will be sent from MATLAB
-            % to Arduino at start of each experiment
+            % Save parameters (forward_coeffs, reverse_coeffs) that will be
+            % sent from MATLAB to Arduino at start of each experiment
             parameters = load(obj.save_filename);
             obj.forward_coeffs = parameters.forward_coeffs;
             obj.reverse_coeffs = parameters.reverse_coeffs;
@@ -47,49 +59,62 @@ classdef ExperimentClass_master < handle %define handle class
             reverse_coeffs = obj.reverse_coeffs;
             
             % Communicate with Arduino and send speed model coefficients
-            waitSignal = check(obj) %should receive and print in command window "ReadyToReceiveCoeffs"
+            %should receive and print in command window "ReadyToReceiveCoeffs"
+            waitSignal = check(obj) 
             sendInfo(obj, forward_coeffs);
-            waitSignal = check(obj) %should receive "ForwardCoeffsReceived"
+            %should receive "ForwardCoeffsReceived"
+            waitSignal = check(obj) 
             sendInfo(obj, reverse_coeffs);
-            waitSignal = check(obj) %should receive "ReverseCoeffsReceived"
-            
-            waitSignal = check(obj) %read from Arduino; should receive "Ready"
-
+            %should receive "ReverseCoeffsReceived"
+            waitSignal = check(obj) 
+            %read from Arduino; should receive "Ready"
+            waitSignal = check(obj) 
         end
         
         %% CALIBRATION - robot movement method
         function calibrate(obj)
             % Returns target to xMin and yMin at the bottom-left corner
-            fprintf(obj.connection,'calibrate:'); %send string in this format with colon delimiter to Arduino
-            checkForMovementEnd(obj, 'Calibrate'); %check that "Done" is recevied at end of movement
+            
+            %send string in this format with colon delimiter to Arduino
+            fprintf(obj.connection,'calibrate:'); 
+            %check that "Done" is received at end of movement
+            checkForMovementEnd(obj, 'Calibrate'); 
         end
         
         %% Move To - robot movement method
         function moveTo(obj,x,y,hold)
-            %count = 0; %to count number of times display while loop runs
             % Moves target to (x,y) and holds for designated milliseconds
-            fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]); %send string in this format with colon delimiter to Arduino
-            checkForMovementEnd(obj, 'Linear Move Trial'); %check that "Done" is recevied at end of movement
+            
+            %send string in this format with colon delimiter to Arduino
+            fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]); 
+            %check that "Done" is received at end of movement
+            checkForMovementEnd(obj, 'Linear Move Trial'); 
         end
         
         %% LINEAR OSCILLATION - robot movement method
         function linearOscillate(obj,x0,y0,x1,y1,speed,repetitions)
-            % Moves from point (x0,y0) to (x1,y1). Speed is characterized by the
-            % pulse-width modulation of the signals set to the stepper motor. Movement
-            % will oscillate the number of times as repetitions. Resolution represents
-            % the step size for drawing of a pathway. Movement at the 10% edges are
+            % Moves from point (x0,y0) to (x1,y1). Speed is characterized 
+            % by the pulse-width modulation of the signals set to the 
+            % stepper motor. Movement will oscillate the number of times 
+            % as repetitions. Resolution represents the step size for
+            % drawing of a pathway. Movement at the 10% edges are
             % slowed down.
+            
+            %send string in this format with colon delimiter to Arduino
             fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d'),...
-                [x0,y0,x1,y1,speed,repetitions]); %send string in this format with colon delimiter to Arduino
-            checkForMovementEnd(obj, 'Linear Oscillate Trial'); %check that "Done" is received at end of movement
+                [x0,y0,x1,y1,speed,repetitions]); 
+            %check that "Done" is received at end of movement
+            checkForMovementEnd(obj, 'Linear Oscillate Trial'); 
         end
         
         %% Arc - robot movement method
         function arcMove(obj,diameter,angInit,angFinal,speed,numLines)
-            % Moves target in an arc specified by radius and initial and final
-            % angles
+            % Moves target in an arc specified by radius and initial and 
+            % final angles
+            
+            %send strings in this format with colon delimiter to Arduino
             fprintf(obj.connection,('arcMove:%d:%d:%d:%d:%d'),...
-                [diameter,angInit,angFinal,speed,numLines]); %send strings in this format with colon delimiter to Arduino
+                [diameter,angInit,angFinal,speed,numLines]); 
             
             %IN DEVELOPMENT
             %angle inputs range from 90 to -90 degrees
@@ -124,16 +149,22 @@ classdef ExperimentClass_master < handle %define handle class
 %             waitSignal = check(obj) % should receive "dxReceived"
 %             sendInfo(obj, dy);
 %             waitSignal = check(obj) % should receive "dyReceived"
-            if (diameter > 35) %if diameter entered is greater than 35 cm
-                waitsignal = check(obj) %wait for error message from Arduino
-            else %otherwise
-            checkForMovementEnd(obj, 'Arc Movement/Smooth Pursuit Trial'); %check that "Done" is recevied at end of movement
+            
+            %for small bot, if diameter entered is greater than 35 cm
+            if (diameter > 35)
+                %wait for error message from Arduino
+                waitsignal = check(obj) 
+            %otherwise
+            else 
+                %check that "Done" is received at end of movement
+                checkForMovementEnd(obj,...
+                    'Arc Movement/Smooth Pursuit Trial'); 
             end 
         end
         
         %% Close Serial Connection
         function endSerial(obj)
-            fclose(obj.connection);
+            fclose(obj.connection); %close connection
         end
         
         %% Calculate Speed Model
@@ -146,34 +177,38 @@ classdef ExperimentClass_master < handle %define handle class
                 obj,delayi,delayf,ddelay,angleTrials)
             
             % Communicate with Arduino all the variables
+            %send string in this format with colon delimiter to Arduino
             fprintf(obj.connection,('speedModelFit:%d:%d:%d:%d'),...
-                [delayi,delayf,ddelay,angleTrials]);%send string in this format with colon delimiter to Arduino
-            % while Beginning is being sent from Arduino, print given message
-            %             while(strcmp(fscanf(obj.connection,'%s'),'Beginning')==1)
-            %                 disp('Speed Experiment Trials');
-            %             end
+                [delayi,delayf,ddelay,angleTrials]);
             
-            % 1st read from Arduino: ddistance
+            % 1st read from Arduino: ddistance; read from Arduino and
+            % printed
             ddistance = fscanf(obj.connection,'%d')
             %finalDistance = ddistance*angleTrials; % an unused variable
             delayTrials = floor((delayf-delayi)/ddelay + 1);
             
             % Preallocate arrays
-            % Every column will be a different speed
-            time = zeros(angleTrials,delayTrials);
+            % rows contain data for same angle/each row represents an
+            % angle
+            % columns contain data for same delay/each column represents a
+            % delay
             delays = delayi:ddelay:delayf;
+            time = zeros(angleTrials,delayTrials);
             x = zeros(angleTrials,delayTrials);
             y = zeros(angleTrials,delayTrials);
             delayCount = 0;
             
             % Keep doing calculations until waitSignal=Done and then break;
             while(1)
-                % 2nd and until 'Done' read from Arduino: status of waitSignal
+                % 2nd read from read from Arduino: status of waitSignal
                 waitSignal = fscanf(obj.connection,'%s')
+                %if waitSignal reads 'Done'
                 if (strcmp(waitSignal,'Done')==1)
+                    %then break
                     break;
+                %if waitSignal reads 'Sending'
                 elseif (strcmp(waitSignal,'Sending')==1)
-                    % When waitSignal=Sending, prepare to read data
+                    %prepare to read data and allocate to designated arrays
                     for i=1:angleTrials
                         timeRead = fscanf(obj.connection,'%d');
                         time(i,delayCount+1) = timeRead;
@@ -186,8 +221,10 @@ classdef ExperimentClass_master < handle %define handle class
             
             % compute Euclidean speed
             speedArray_steps_s = (sqrt(x.^2+y.^2)./(time./1000)); %in steps/second
-            %conversion factor is pi*1.2 cm (3.769911 cm) = 200 steps
-            %speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*(3.76991./200); %speedArray converted to cm/s
+            %conversion factor is 1 revolution = 2*pi*0.65 cm = 200 steps
+            %speedArray converted to cm/s
+            %speedArray_cm_s = (sqrt(x.^2+y.^2)./(time./1000)).*...
+                %((2*pi*0.65)./200); 
             save('speed_step','speedArray_steps_s');
             %save('speed_cm','speedArray_cm_s');
             
@@ -300,26 +337,6 @@ classdef ExperimentClass_master < handle %define handle class
             obj.reverse_coeffs = reverse_coeffs; %fpr speedToDelay
             save(obj.save_filename,'forward_coeffs','reverse_coeffs');
         end
-        %% Calculating a speed given delay and angle
-        % forward_coeffs is a 4x4 array 
-        % input delay & angle
-        % output speed
-        % inner function uses exp2
-        % outer function uses exp2
-        function [speed] = delayToSpeed(obj,delay,angle)
-            %initialize matrix that is 4x1, for coeffs of outer func
-            complex_coeffs = zeros(length(obj.forward_coeffs(1,:)),1);
-            %for i = 1:4 (length of the first row of forward_coeffs)
-            for i = 1:length(obj.forward_coeffs(1,:))
-                %calculate outer func coeffs using foward_coeffs
-                %as coeffs for exp2 and the delay as an input
-                complex_coeffs(i) = obj.exp2(obj.forward_coeffs(i,:),delay);
-            end
-            %use the outer func coeffs and the angle as an input to
-            %calculate the speed
-            speed = obj.exp2(complex_coeffs,angle);
-        end
-        
         %% Calculating a delay given speed and angle
         % reverse_coeffs is a 4x4 array 
         % input speed & angle
@@ -340,27 +357,29 @@ classdef ExperimentClass_master < handle %define handle class
             delay = obj.exp2(complex_coeffs,speed);
         end
         
-        %% 2nd Degree Polynomial
-        % not currently used
-        % not a good model for speed to delay conversion
-        function [output] = poly2(obj,coeffs,x)
-            output = coeffs(1).*x.^2 + coeffs(2).*x + coeffs(3);
+        %% Calculating a speed given delay and angle
+        % forward_coeffs is a 4x4 array 
+        % input delay & angle
+        % output speed
+        % inner function uses exp2
+        % outer function uses exp2
+        function [speed] = delayToSpeed(obj,delay,angle)
+            %initialize matrix that is 4x1, for coeffs of outer func
+            complex_coeffs = zeros(length(obj.forward_coeffs(1,:)),1);
+            %for i = 1:4 (length of the first row of forward_coeffs)
+            for i = 1:length(obj.forward_coeffs(1,:))
+                %calculate outer func coeffs using foward_coeffs
+                %as coeffs for exp2 and the delay as an input
+                complex_coeffs(i) = obj.exp2(obj.forward_coeffs(i,:),delay);
+            end
+            %use the outer func coeffs and the angle as an input to
+            %calculate the speed
+            speed = obj.exp2(complex_coeffs,angle);
         end
         
         %% 3rd Degree Polynomial
         function [output] = poly3(obj,coeffs,x)
             output = coeffs(1).*x.^3 + coeffs(2).*x.^2 + coeffs(3).*x + coeffs(4);
-        end
-        
-        %% 2-term Fourier
-        % not currently used
-        % was tested as a model for reverse_coeffs
-        % slightly less accurate than 3rd degree polynommial
-        function [output] = fourier2(obj,coeffs,x)
-            output = coeffs(1) + coeffs(2).*cos(x.*coeffs(6)) +...
-                coeffs(3).*sin(x.*coeffs(6)) +...
-                coeffs(4).*cos(2.*x.*coeffs(6)) +...
-                coeffs(5).*sin(2.*x.*coeffs(6));
         end
         
         %% Two-Term Exponential Function
