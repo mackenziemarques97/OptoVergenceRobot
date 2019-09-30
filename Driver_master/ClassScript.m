@@ -4,7 +4,7 @@ system = computer(); %store computer-type MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem14201'; %format string stored in serialPort like is
 else %otherwise
-    serialPort = 'COM3'; %format like this
+    serialPort = 'COM5'; %format like this
 end
 a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
@@ -17,13 +17,9 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
 %% Test specifications
 
-a.moveTo(20,25,100);
-a.calibrate();
 a.linearOscillate(20,20,5,5,30,1);
-a.calibrate();
 a.arcMove(30,90,-90,20,36);
-a.calibrate();
-a.arcMove(38,10,-90,20,36);
+a.speedModelFit(15,70,5,12);
 
 %a.calibrate();
 %a.moveTo(0,30,100); 

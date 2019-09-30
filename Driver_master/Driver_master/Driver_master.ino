@@ -403,7 +403,6 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
     }
     steps += 10; /*add 10 to steps counter*/
 
-
     if (steps > (long) dimensions[1] * 1.2) { /*if the number of steps is greater than 120% of the number of steps of the y-dimension*/
       Serial.end(); /*end the serial connection*/
       break; /*break put of the loop*/
@@ -839,8 +838,8 @@ void loop()
             /* Angle Loop */
             /*origin of xMin,yMin ; 0 to 45 degrees*/
             for (int i = 0; i <= maxDistance; i += ddistance) {
-              recalibrate(xMin);
               recalibrate(yMin);
+              recalibrate(xMin);
               delay(300);
               int x = maxDistance; // Steps
               int y = i;
