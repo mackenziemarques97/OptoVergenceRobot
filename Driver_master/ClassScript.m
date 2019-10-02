@@ -1,10 +1,10 @@
 %% Test Design Script
 %% System setup
-system = computer(); %store computer-type MATLAB is running on
+system = computer(); %store computer-t4ype MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem14201'; %format string stored in serialPort like is
 else %otherwise
-    serialPort = 'COM5'; %format like this
+    serialPort = 'COM3'; %format like this
 end
 a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
