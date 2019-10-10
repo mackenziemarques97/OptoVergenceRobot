@@ -574,7 +574,7 @@ void loop()
           analogWrite(GREEN, ledOff); /*turn off green*/
         }
         break;
-      case 2: // moveTo:x0:y0:hold duration
+      case 2: // moveTo:x0:y0:delay/pulse width
         //BLUE
         {
           /* Simple move to designated location and holds for a certain time
