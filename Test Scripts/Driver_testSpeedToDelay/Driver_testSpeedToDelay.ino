@@ -78,15 +78,6 @@ double reverse_coeffs[16]; /*used in speedToDelay function*/
 float motor_radius = 0.65; //cm
 float Circ = 2 * pi * motor_radius; /*circumference of pulley*/
 
-/*TESTING
-  arrays for storing movements and Delays from speedToDelay
-  using 27 lines for small robot
-  will likley increase to 55 to large robot
-*/
-double dx[38] = {0};
-double dy[38] = {0};
-double Delays[38] = {0};
-
 /*Blink an LED twice
    input: specific LED pin
    that pin must be set to HIGH first
@@ -310,7 +301,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      Delays[i] = coeffsArray[i + 1];
+      //Delays[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -323,7 +314,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      dx[i] = coeffsArray[i + 1];
+      //dx[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -336,7 +327,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      dy[i] = coeffsArray[i + 1];
+      //dy[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -631,7 +622,7 @@ void loop()
           yDisp = yLocinuSteps - location[1];
 
           double angle = abs(atan2(yDisp, xDisp) * (180 / pi));
-          
+
           /*move by designated vector displacement*/
           analogWrite(BLUE, ledOn);/*turn on blue*/
           double Delay = speedToDelay(reverse_coeffs, Speed, angle);
@@ -702,7 +693,7 @@ void loop()
           long dy = (long) (((y1 - y0) / Circ) * stepsPerRev * microstepsPerStep);
           xDisp = (long) xInit - location[0];
           yDisp = (long) yInit - location[1];
-          
+
           double angle = abs(atan2(dy, dx) * (180 / pi));
           double targetDelay = speedToDelay(reverse_coeffs, targetSpeed, angle);
 
@@ -759,6 +750,8 @@ void loop()
         // TESTING - conversion from speed to delay
         // model only incorporates angles between 0 and 45 degrees using origin of (xMin, yMin)
         //RED & BLUE
+
+
         {
           int dcm = *(command + 1); //diameter in cm
           //safety check: diameter of arc
@@ -775,6 +768,15 @@ void loop()
           Speed = (Speed / Circ) * stepsPerRev; //covert speed from cm/s to steps/s for input into speedToDelay model
           int numLines = *(command + 5); //number of lines used to form the arc movement for version movement
           float arcRes = (numLines - 1) / 3; //adjustment of numLines for calculation
+
+          /*TESTING
+            arrays for storing movements and Delays from speedToDelay
+            using 27 lines for small robot
+            will likley increase to 55 to large robot
+          */
+          double dx_array[numLines] = { 0 };
+          double dy_array[numLines] = { 0 };
+          double delays_array[numLines] = { 0 };
 
           float angInit_rad = (pi / 180) * (-angInit + 90); /*convert initial angle from degrees to radians*/
           float angFinal_rad = (pi / 180) * (-angFinal + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
@@ -811,8 +813,10 @@ void loop()
               }
               //Serial.print("finAng: "); Serial.println(angle);
               double del = speedToDelay(reverse_coeffs, Speed, angle);
-              //Serial.print("del: "); Serial.println(del);
-              line(dx, dy, del);
+              dx_array[count] = dx;
+              dy_array[count] = dy;
+              delays_array[count] = del;
+              //line(dx, dy, del);
               count++;
             }
           }
@@ -836,8 +840,9 @@ void loop()
               }
               //Serial.print("finAng: "); Serial.println(angle);
               double del = speedToDelay(reverse_coeffs, Speed, angle);
+              delays_array[count] = del;
               //Serial.print("del: "); Serial.println(del);
-              line(dx, dy, del);
+              //line(dx, dy, del);
               count++;
             }
           }
@@ -869,6 +874,13 @@ void loop()
               line(dx, dy, Delay);
             }
             }*/
+          for (int counter = 0; counter < numLines; counter++) {
+            line(dx_array[counter], dy_array[counter], delays_array[counter]);
+            //Serial.print("counter: "); Serial.println(counter);
+            //Serial.println(delays_array[counter]);
+            //Serial.println(dx_array[counter]);
+            //Serial.println(dy_array[counter]);
+          }
 
           analogWrite(RED, ledOff);
           analogWrite(BLUE, ledOff);
