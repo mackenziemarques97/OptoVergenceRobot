@@ -486,7 +486,7 @@ void loop() {
           turnOff(dir, deg); /* turns off LED, specified by dir and deg */
           break;
         }
-      case 2: //saccade:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
+      case 2: //saccade:1 (2ndaryswitchcase):LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
         {
           switch ((int) * (command + 1)) { /* secondary switch case based on 2nd entry in command */
             case 1: /* turn on fixation LED for given amount of time, turn off, turn on 2nd LED for given amount of time, turn off */
@@ -511,7 +511,7 @@ void loop() {
                 turnOff(dir2, deg2); /* turns off 2nd LED */
                 break;
               }
-            case 2:
+            case 2: //saccade:2 (2ndaryswitchcase):LED1dir:LED1color:LED1degree:LED1timeBeforeLED2:LED2dir:LED2color:LED2degree:timeLED1&2OnFor
               {
                 int dir1 = *(command + 2); /* identifies direction strand of fix point LED */
                 int col1 = *(command + 3); /* identifies color of fix point LED */
