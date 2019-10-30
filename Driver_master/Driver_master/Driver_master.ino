@@ -26,9 +26,9 @@
 #define yMin 4
 #define yMax 5
 /*pins for RGB LED*/
-#define RED 48
-#define GREEN 49
-#define BLUE 50
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 
 /* Define initial variables and arrays */
 int ledOff = 255;
