@@ -26,9 +26,9 @@
 #define yMin 4
 #define yMax 5
 /*pins for RGB LED*/
-#define RED 48
-#define GREEN 49
-#define BLUE 50
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 
 /* Define initial variables and arrays */
 int ledOff = 255;
@@ -525,7 +525,7 @@ void setup()
   /* Communicates with Serial connection to verify */
   initialize();
   /* Sends coefficients for speed model */
-  loadInfo();
+  //loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
