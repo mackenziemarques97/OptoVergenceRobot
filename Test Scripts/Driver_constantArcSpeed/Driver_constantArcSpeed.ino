@@ -879,10 +879,6 @@ void loop()
           //constant speed throughout arc
           for (int counter = 0; counter < numLines; counter++) {
             line(dx_array[counter], dy_array[counter], delays_array[counter]);
-            //Serial.print("counter: "); Serial.println(counter);
-            //Serial.println(delays_array[counter]);
-            //Serial.println(dx_array[counter]);
-            //Serial.println(dy_array[counter]);
           }
 
           delay(2000);
