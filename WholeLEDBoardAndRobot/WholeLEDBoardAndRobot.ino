@@ -60,15 +60,15 @@
 
 /*LED pins on Arduino for each direction strip*/
 #define N_Strip 40 //bluewhite
-//#define NW_Strip 41 //yellowblack
-//#define NE_Strip 42 //black
-//#define S_Strip 43 //purple
-//#define SW_Strip 44 //greenwhite
-//#define SE_Strip 45 //brown
-//#define W_Strip 46 //white
-//#define E_Strip 47 //blue
-///*LED pin on Arduino for center LED*/
-//#define Center 48 //brownblack
+#define NW_Strip 41 //yellowblack
+#define NE_Strip 42 //black
+#define S_Strip 43 //purple
+#define SW_Strip 44 //greenwhite
+#define SE_Strip 45 //brown
+#define W_Strip 46 //white
+#define E_Strip 47 //blue
+/*LED pin on Arduino for center LED*/
+#define Center 48 //brownblack
 
 /*create an array of LED arrays to represent the direction strips*/
 CRGB leds_Strips[NUM_STRIPS][NUM_LEDS_PER_STRIP]; /* CRGB is an object representing a color in RGB color space */
@@ -186,46 +186,46 @@ double* parsecommand(char strCommand[]) {
           Serial.println("Valid direction entry.");
           i++;
         }
-//        else if (strcmp(token, "NW") == 0) { /* if 2nd command entry is NW */
-//          command[i] = 1; /* put 1 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "NE") == 0) { /* if 2nd command entry is NE */
-//          command[i] = 2; /* put 2 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "S") == 0) { /* if 2nd command entry is S */
-//          command[i] = 3; /* put 3 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SW") == 0) { /* if 2nd command entry is SW */
-//          command[i] = 4; /* put 4 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SE") == 0) { /* if 2nd command entry is SE */
-//          command[i] = 5; /* put 5 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "W") == 0) { /* if 2nd command entry is W */
-//          command[i] = 6; /* put 6 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "E") == 0) { /* if 2nd command entry is E */
-//          command[i] = 7; /* put 7 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "center") == 0) { /* if 2nd command entry is center */
-//          command[i] = 8; /* put 8 in command[1] */
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
+        else if (strcmp(token, "NW") == 0) { /* if 2nd command entry is NW */
+          command[i] = 1; /* put 1 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "NE") == 0) { /* if 2nd command entry is NE */
+          command[i] = 2; /* put 2 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "S") == 0) { /* if 2nd command entry is S */
+          command[i] = 3; /* put 3 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SW") == 0) { /* if 2nd command entry is SW */
+          command[i] = 4; /* put 4 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SE") == 0) { /* if 2nd command entry is SE */
+          command[i] = 5; /* put 5 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "W") == 0) { /* if 2nd command entry is W */
+          command[i] = 6; /* put 6 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "E") == 0) { /* if 2nd command entry is E */
+          command[i] = 7; /* put 7 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "center") == 0) { /* if 2nd command entry is center */
+          command[i] = 8; /* put 8 in command[1] */
+          Serial.println("Valid direction entry.");
+          i++;
+        }
         else { /* if the 2nd command entry is anything other than N,NW,NE,S,SW,SE,W,E,center */
           command[i] = -1; /* put arbitrary placeholder -1 in command[1] */
           Serial.println("Invalid direction entry."); /* is an invalid direction entry */
@@ -275,46 +275,46 @@ double* parsecommand(char strCommand[]) {
           Serial.println("Valid direction entry.");
           i++;
         }
-//        else if (strcmp(token, "NW") == 0) {
-//          command[i] = 1;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "NE") == 0) {
-//          command[i] = 2;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "S") == 0) {
-//          command[i] = 3;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SW") == 0) {
-//          command[i] = 4;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SE") == 0) {
-//          command[i] = 5;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "W") == 0) {
-//          command[i] = 6;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "E") == 0) {
-//          command[i] = 7;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "center") == 0) {
-//          command[i] = 8;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
+        else if (strcmp(token, "NW") == 0) {
+          command[i] = 1;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "NE") == 0) {
+          command[i] = 2;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "S") == 0) {
+          command[i] = 3;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SW") == 0) {
+          command[i] = 4;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SE") == 0) {
+          command[i] = 5;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "W") == 0) {
+          command[i] = 6;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "E") == 0) {
+          command[i] = 7;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "center") == 0) {
+          command[i] = 8;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
         else {
           command[i] = -1;
           Serial.print("Invalid direction entry."); Serial.println(i);
@@ -363,41 +363,41 @@ double* parsecommand(char strCommand[]) {
           Serial.println("Valid direction entry.");
           i++;
         }
-//        else if (strcmp(token, "NW") == 0) {
-//          command[i] = 1;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "NE") == 0) {
-//          command[i] = 2;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "S") == 0) {
-//          command[i] = 3;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SW") == 0) {
-//          command[i] = 4;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "SE") == 0) {
-//          command[i] = 5;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "W") == 0) {
-//          command[i] = 6;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
-//        else if (strcmp(token, "E") == 0) {
-//          command[i] = 7;
-//          Serial.println("Valid direction entry.");
-//          i++;
-//        }
+        else if (strcmp(token, "NW") == 0) {
+          command[i] = 1;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "NE") == 0) {
+          command[i] = 2;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "S") == 0) {
+          command[i] = 3;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SW") == 0) {
+          command[i] = 4;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "SE") == 0) {
+          command[i] = 5;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "W") == 0) {
+          command[i] = 6;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
+        else if (strcmp(token, "E") == 0) {
+          command[i] = 7;
+          Serial.println("Valid direction entry.");
+          i++;
+        }
         else {
           command[i] = -1;
           Serial.print("Invalid direction entry. ");
@@ -546,90 +546,42 @@ void setColor(int dir, int col, int deg) { /* dir, col, deg are all integers sto
   }
 }
 
-/*
-////
-///* function to scan for valid degree entries and alter all entries to positional numbering scheme */
-//int checkDegree(int dir, int deg) {
-//  if (dir == 8) { /* leds_Center will only ever have 1 LED in it */
-//    if (deg == 0) { /* the only accepted entry for center deg is 0 */
-//      Serial.println("Valid degree entry."); /* since degree offset is measured wrt center LED */
-//    }
-//    else { /* if any other entry for deg of center LED (dir = 8) */
-//      Serial.println("Invalid degree entry for center LED."); /* invalid entry */
-//    }
-//  }
-//  else { /* if accessing anything except the center LED */
-//    if (deg > 20) { /* if outside the section of LEDs in a strip that have 1 degree separation */
-//      if (deg == 25) { /* if degree offset from center LED is 25 */
-//        deg = 20; /* change deg to 20 - that is the position in the strip assigned to LED with 25 degree offset */
-//        Serial.println("Valid degree entry.");
-//      }
-//      else if (deg == 30) { /* if degree offset is 30 */
-//        deg = 21; /* change deg to 21 */
-//        Serial.println("Valid degree entry.");
-//      }
-//      else if (deg == 35) { /*if degree offset is 35 */
-//        deg = 22; /* change deg to 22 */
-//        Serial.println("Valid degree entry.");
-//      }
-//      else if (deg > 35) { /* no LEDs beyond a 35 degree offset */
-//        deg = -1; /* assign arbitrary placeholder deg of -1 */
-//        Serial.println("Error. Inputs exceeds limits."); /* so invalid */
-//      }
-//      else if ((deg > 25 && deg < 30) || (deg > 30 && deg < 35)) { /* no LEDs between 25 and 30 or 30 and 35 degrees */
-//        deg = -1; /* assign arbitrary placeholder deg of -1 */
-//        Serial.println("Error. Degree entry not an option."); /* so invalid */
-//      }
-//    }
-//    else { /* in any other case */
-//      deg = deg - 1; /* convert degree offset entry to positional number */
-//      Serial.println("Valid degree entry."); /* example: entry of deg = 1 refers to leds[0], entry of deg = 20 refers to leds[19] */
-//    }
-//    return deg;
-//  }
-//}*/
-
-//
 /* function to scan for valid degree entries and alter all entries to positional numbering scheme */
 int checkDegree(int dir, int deg) {
   if (dir == 8) { /* leds_Center will only ever have 1 LED in it */
     if (deg == 0) { /* the only accepted entry for center deg is 0 */
-      Serial.println("Valid degree entry."); /* since degree offset is measured wrt center LED */
+      //Serial.println("Valid degree entry."); /* since degree offset is measured wrt center LED */
     }
     else { /* if any other entry for deg of center LED (dir = 8) */
-      Serial.println("Invalid degree entry for center LED."); /* invalid entry */
+      //Serial.println("Invalid degree entry for center LED."); /* invalid entry */
     }
   }
   else { /* if accessing anything except the center LED */
     if (deg > 20) { /* if outside the section of LEDs in a strip that have 1 degree separation */
       if (deg == 25) { /* if degree offset from center LED is 25 */
         deg = 20; /* change deg to 20 - that is the position in the strip assigned to LED with 25 degree offset */
-        Serial.println("Valid degree entry.");
-//      }
-//      else if (deg == 22) { /* if degree offset is 22 */
-//        deg = -1; /* assign arbitrary placeholder deg of -1 */
-//        Serial.println("Error. Inputs exceeds limits."); /* so invalid */
+        //Serial.println("Valid degree entry.");
       }
       else if (deg == 30) { /* if degree offset is 30 */
         deg = 21; /* change deg to 21 */
-        Serial.println("Valid degree entry.");
+        //Serial.println("Valid degree entry.");
       }
       else if (deg == 35) { /*if degree offset is 35 */
         deg = 22; /* change deg to 22 */
-        Serial.println("Valid degree entry.");
+        //Serial.println("Valid degree entry.");
       }
       else if (deg > 35) { /* no LEDs beyond a 35 degree offset */
         deg = -1; /* assign arbitrary placeholder deg of -1 */
-        Serial.println("Error. Inputs exceeds limits."); /* so invalid */
+        //Serial.println("Error. Inputs exceeds limits."); /* so invalid */
       }
       else if ((deg > 20 && deg < 25) || (deg > 25 && deg < 30) || (deg > 30 && deg < 35)) { /* no LEDs between 25 and 30 or 30 and 35 degrees */
         deg = -1; /* assign arbitrary placeholder deg of -1 */
-        Serial.println("Error. Degree entry not an option."); /* so invalid */
+        //Serial.println("Error. Degree entry not an option."); /* so invalid */
       }
     }
     else { /* in any other case */
       deg = deg - 1; /* convert degree offset entry to positional number */
-      Serial.println("Valid degree entry."); /* example: entry of deg = 1 refers to leds[0], entry of deg = 20 refers to leds[19] */
+      //Serial.println("Valid degree entry."); /* example: entry of deg = 1 refers to leds[0], entry of deg = 20 refers to leds[19] */
     }
     return deg;
   }
@@ -979,14 +931,14 @@ void setup()
   delay( 3000 ); /* power-up safety delay */
 
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, NW_Strip, COLOR_ORDER>(leds_Strips[1], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, NE_Strip, COLOR_ORDER>(leds_Strips[2], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, S_Strip, COLOR_ORDER>(leds_Strips[3], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, SW_Strip, COLOR_ORDER>(leds_Strips[4], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, SE_Strip, COLOR_ORDER>(leds_Strips[5], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, W_Strip, COLOR_ORDER>(leds_Strips[6], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, E_Strip, COLOR_ORDER>(leds_Strips[7], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
-//  FastLED.addLeds<LED_TYPE, Center, COLOR_ORDER>(leds_Center, NUM_Center).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, NW_Strip, COLOR_ORDER>(leds_Strips[1], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, NE_Strip, COLOR_ORDER>(leds_Strips[2], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, S_Strip, COLOR_ORDER>(leds_Strips[3], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, SW_Strip, COLOR_ORDER>(leds_Strips[4], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, SE_Strip, COLOR_ORDER>(leds_Strips[5], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, W_Strip, COLOR_ORDER>(leds_Strips[6], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, E_Strip, COLOR_ORDER>(leds_Strips[7], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, Center, COLOR_ORDER>(leds_Center, NUM_Center).setCorrection( TypicalLEDStrip );
 
   FastLED.setBrightness( BRIGHTNESS );
 
