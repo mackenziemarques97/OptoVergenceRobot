@@ -69,15 +69,15 @@ void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-componen
 }
 
 void setup() {
-pinMode(xPulse, OUTPUT);
-pinMode(xDir, OUTPUT);
+pinMode(yPulse, OUTPUT);
+pinMode(yDir, OUTPUT);
 
-digitalWrite(xDir, direction);
+digitalWrite(yDir, direction);
 }
 
 void loop() {
- line(20000, 0, 30);
+ line(0, 20000, 30);
  delay(1000);
- line(-20000, 0, 30);
+ line(0, -20000, 30);
  delay(1000);
 }
