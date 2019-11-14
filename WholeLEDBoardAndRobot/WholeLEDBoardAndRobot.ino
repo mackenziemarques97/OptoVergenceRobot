@@ -112,6 +112,7 @@ unsigned long location[2] = {0, 0}; /*presetting location*/
 
 int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
+int ledNum;
 String val; /*String object to store inputs read from the Serial Connection*/
 String coeffsString; /*String object to store speed model coefficients sent from MATLAB*/
 float coeffsArray; /*for parsing speed model coefficients*/
@@ -559,31 +560,31 @@ int checkDegree(int dir, int deg) {
   else { /* if accessing anything except the center LED */
     if (deg > 20) { /* if outside the section of LEDs in a strip that have 1 degree separation */
       if (deg == 25) { /* if degree offset from center LED is 25 */
-        deg = 20; /* change deg to 20 - that is the position in the strip assigned to LED with 25 degree offset */
+        ledNum = 20; /* change deg to 20 - that is the position in the strip assigned to LED with 25 degree offset */
         //Serial.println("Valid degree entry.");
       }
       else if (deg == 30) { /* if degree offset is 30 */
-        deg = 21; /* change deg to 21 */
+        ledNum = 21; /* change deg to 21 */
         //Serial.println("Valid degree entry.");
       }
       else if (deg == 35) { /*if degree offset is 35 */
-        deg = 22; /* change deg to 22 */
+        ledNum = 22; /* change deg to 22 */
         //Serial.println("Valid degree entry.");
       }
       else if (deg > 35) { /* no LEDs beyond a 35 degree offset */
-        deg = -1; /* assign arbitrary placeholder deg of -1 */
+//        ledNum = -1; /* assign arbitrary placeholder deg of -1 */
         //Serial.println("Error. Inputs exceeds limits."); /* so invalid */
       }
-      else if ((deg > 20 && deg < 25) || (deg > 25 && deg < 30) || (deg > 30 && deg < 35)) { /* no LEDs between 25 and 30 or 30 and 35 degrees */
-        deg = -1; /* assign arbitrary placeholder deg of -1 */
+      else if ((deg > 20 && deg < 25) || (deg > 25 && deg < 30) || (deg > 30 && deg < 35)) { /* no LEDs between 20 and 25 or 25 and 30 or 30 and 35 degrees */
+        ledNum = -1; /* assign arbitrary placeholder deg of -1 so they won't light up */
         //Serial.println("Error. Degree entry not an option."); /* so invalid */
       }
     }
     else { /* in any other case */
-      deg = deg - 1; /* convert degree offset entry to positional number */
+      ledNum = deg - 1; /* convert degree offset entry to positional number */
       //Serial.println("Valid degree entry."); /* example: entry of deg = 1 refers to leds[0], entry of deg = 20 refers to leds[19] */
     }
-    return deg;
+    return ledNum;
   }
 }
 
@@ -796,7 +797,7 @@ double exp2(double coeffs[], double x) {
    Does the same in the y-direction
    Returns the number of steps in a 2-element array, x & y dimension
    Ends at (xMin, yMin)
-//*/
+  //*/
 int* findDimensions() {
   recalibrate(xMax); /*move to xMax*/
   int a = recalibrate(xMin); /*a = number of steps necessary to move from xMax to xMin*/
@@ -978,14 +979,14 @@ void setup()
 
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  //dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
+  //dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
 
   Serial.println("Ready");
   Blink(GREEN);
@@ -1009,356 +1010,372 @@ void loop() {
     switch ((int) *command ) { /* primary switch case based on 1st entry in command */
 
 
-        case 1: //oneLED:direction:color:degree offset from center:time on in seconds
-          {
-            int dir = *(command + 1); /* identifies direction strand */
-            int col = *(command + 2); /* identifies color */
-            int deg = *(command + 3); /* identifies degree offset from center LED */
-            int timeOn = *(command + 4) * 1000; /* identifies time between turning on and turning off LED */
-            /* entry will be in seconds, convert to milliseconds */
-            deg = checkDegree(dir, deg); /* checks the degree entered */
-            setColor(dir, col, deg); /* sets the color of LED (LED specified by dir and deg) */
-            turnOnLED(); /* turns on LED / displays any color changes made */
-            delay(timeOn); /* waits */
-            turnOff(dir, deg); /* turns off LED, specified by dir and deg */
-            break;
-          }
-        case 2: //saccade:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
-          {
-            switch ((int) * (command + 1)) { /* secondary switch case based on 2nd entry in command */
-              case 1: /* turn on fixation LED for given amount of time, turn off, turn on 2nd LED for given amount of time, turn off */
-                {
-                  int dir1 = *(command + 2); /* identifies direction strand of fixation point */
-                  int col1 = *(command + 3); /* identifies color of fixation point */
-                  int deg1 = *(command + 4); /* identifies degree offset of fixation point */
-                  int timeOn1 = *(command + 5) * 1000; /* identifies time between turning on and turning off fixation point */
-                  int dir2 = *(command + 6); /* assigns direction strand of 2nd LED */
-                  int col2 = *(command + 7); /* assigns color of 2nd LED */
-                  int deg2 = *(command + 8); /* assigns degree offset of 2nd LED */
-                  int timeOn2 = *(command + 9) * 1000; /* assigns time between turning on and off 2nd LED */
-                  deg1 = checkDegree(dir1, deg1); /* checks degree of fixation point */
-                  setColor(dir1, col1, deg1); /* sets color of fixation point */
-                  turnOnLED(); /* turns on fixation LED */
-                  delay(timeOn1); /* waits */
-                  turnOff(dir1, deg1); /* turn off fixation LED */
-                  deg2 = checkDegree(dir2, deg2); /* checks degree of 2nd LED */
-                  setColor(dir2, col2, deg2); /* sets color of 2nd LED */
-                  turnOnLED(); /* turns on 2nd LED */
-                  delay(timeOn2); /* waits */
-                  turnOff(dir2, deg2); /* turns off 2nd LED */
-                  break;
-                }
-              case 2:
-                {
-                  int dir1 = *(command + 2); /* identifies direction strand of fix point LED */
-                  int col1 = *(command + 3); /* identifies color of fix point LED */
-                  int deg1 = *(command + 4); /* identifies deg offset of fix point */
-                  int timeOn1 = *(command + 5) * 1000; /* identifies wait time before turning on 2nd LED */
-                  int dir2 = *(command + 6); /* identifies direction strand of 2nd LED */
-                  int col2 = *(command + 7); /* identifies color of 2nd LED */
-                  int deg2 = *(command + 8); /* idetifies deg offset of 2nd LED */
-                  int timeOn2 = *(command + 9) * 1000; /* identitifes wait time before turning off both fix and 2nd LED */
-                  deg1 = checkDegree(dir1, deg1); /* checks deg offset of fix LED */
-                  setColor(dir1, col1, deg1); /* sets color of fix LED */
-                  turnOnLED(); /* turns on fix LED */
-                  delay(timeOn1); /* waits */
-                  deg2 = checkDegree(dir2, deg2); /* checks deg of 2nd LED */
-                  setColor(dir2, col2, deg2); /* sets color of 2nd LED */
-                  turnOnLED(); /* turns on 2nd LED */
-                  delay(timeOn2); /* waits */
-                  turnOff(dir1, deg1); /* turns off fix LED */
-                  turnOff(dir2, deg2); /* turns off 2nd LED */
-                  break;
-                }
-            }
-          }
-          
-        case 3: {//smoothPursuit:dir:col:degInit:degFinal
-            /* moves light down a strip */
-            int dir = *(command + 1); /* identifies direction strand */
-            int col = *(command + 2); /* identifies LED color */
-            int degInit = *(command + 3); /* identifies deg offset of starting LED */
-            int degFinal = *(command + 4) + 1; /* identifies deg offset of ending LED */
-            for ( int i = degInit; i < degFinal; i++ ) { /* loops through LEDs from initial to final */
-              int deg = checkDegree(dir, i); /* checks each degree */
-              setColor(dir, col, deg); /* sets color */
-              turnOnLED(); /* turns on LED */
-              FastLED.delay(60); /* delays for 60 ms */
-              turnOff(dir, deg); /* turns off LED */
-            }
-          }
+      case 1: //oneLED:direction:color:degree offset from center:time on in seconds
+        {
+          int dir = *(command + 1); /* identifies direction strand */
+          int col = *(command + 2); /* identifies color */
+          int deg = *(command + 3); /* identifies degree offset from center LED */
+          int timeOn = *(command + 4) * 1000; /* identifies time between turning on and turning off LED */
+          /* entry will be in seconds, convert to milliseconds */
+          deg = checkDegree(dir, deg); /* checks the degree entered */
+          setColor(dir, col, deg); /* sets the color of LED (LED specified by dir and deg) */
+          turnOnLED(); /* turns on LED / displays any color changes made */
+          delay(timeOn); /* waits */
+          turnOff(dir, deg); /* turns off LED, specified by dir and deg */
           break;
-
-        case 4: // calibrate
-          //GREEN
-          {
-            /* Calibrates to xMin and yMin and updates location to (0,0) */
-            analogWrite(GREEN, ledOn); /*turn on green*/
-            int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-            int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
-            location[0] = 0;
-            location[1] = 0;
-            Serial.println("Done");
-            delay(1000);
-            analogWrite(GREEN, ledOff); /*turn off green*/
+        }
+      case 2: //saccade:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
+        {
+          switch ((int) * (command + 1)) { /* secondary switch case based on 2nd entry in command */
+            case 1: /* turn on fixation LED for given amount of time, turn off, turn on 2nd LED for given amount of time, turn off */
+              {
+                int dir1 = *(command + 2); /* identifies direction strand of fixation point */
+                int col1 = *(command + 3); /* identifies color of fixation point */
+                int deg1 = *(command + 4); /* identifies degree offset of fixation point */
+                int timeOn1 = *(command + 5) * 1000; /* identifies time between turning on and turning off fixation point */
+                int dir2 = *(command + 6); /* assigns direction strand of 2nd LED */
+                int col2 = *(command + 7); /* assigns color of 2nd LED */
+                int deg2 = *(command + 8); /* assigns degree offset of 2nd LED */
+                int timeOn2 = *(command + 9) * 1000; /* assigns time between turning on and off 2nd LED */
+                deg1 = checkDegree(dir1, deg1); /* checks degree of fixation point */
+                setColor(dir1, col1, deg1); /* sets color of fixation point */
+                turnOnLED(); /* turns on fixation LED */
+                delay(timeOn1); /* waits */
+                turnOff(dir1, deg1); /* turn off fixation LED */
+                deg2 = checkDegree(dir2, deg2); /* checks degree of 2nd LED */
+                setColor(dir2, col2, deg2); /* sets color of 2nd LED */
+                turnOnLED(); /* turns on 2nd LED */
+                delay(timeOn2); /* waits */
+                turnOff(dir2, deg2); /* turns off 2nd LED */
+                break;
+              }
+            case 2:
+              {
+                int dir1 = *(command + 2); /* identifies direction strand of fix point LED */
+                int col1 = *(command + 3); /* identifies color of fix point LED */
+                int deg1 = *(command + 4); /* identifies deg offset of fix point */
+                int timeOn1 = *(command + 5) * 1000; /* identifies wait time before turning on 2nd LED */
+                int dir2 = *(command + 6); /* identifies direction strand of 2nd LED */
+                int col2 = *(command + 7); /* identifies color of 2nd LED */
+                int deg2 = *(command + 8); /* idetifies deg offset of 2nd LED */
+                int timeOn2 = *(command + 9) * 1000; /* identitifes wait time before turning off both fix and 2nd LED */
+                deg1 = checkDegree(dir1, deg1); /* checks deg offset of fix LED */
+                setColor(dir1, col1, deg1); /* sets color of fix LED */
+                turnOnLED(); /* turns on fix LED */
+                delay(timeOn1); /* waits */
+                deg2 = checkDegree(dir2, deg2); /* checks deg of 2nd LED */
+                setColor(dir2, col2, deg2); /* sets color of 2nd LED */
+                turnOnLED(); /* turns on 2nd LED */
+                delay(timeOn2); /* waits */
+                turnOff(dir1, deg1); /* turns off fix LED */
+                turnOff(dir2, deg2); /* turns off 2nd LED */
+                break;
+              }
           }
-          break;
-        case 5: // moveTo:x0:y0:hold duration
-          //BLUE
-          {
-            /* Simple move to designated location and holds for a certain time
-            */
-            long desiredXLoc = *(command + 1); //cm
-            long desiredYLoc = *(command + 2); //cm
-            int holdTime = *(command + 3); //ms
+        }
 
-            long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
-            long yLocinuSteps = (long) ((desiredYLoc / Circ) * stepsPerRev * microstepsPerStep);
-            /*safety check, if the desired location is negative, move to (0,0)*/
-            if (xLocinuSteps < 0) {
-              xLocinuSteps = 0;
-            }
-            if (yLocinuSteps < 0) {
-              yLocinuSteps = 0;
-            }
-            /*safety check, if the desired location is outside bounds of robot, constrain to boundaries*/
-            if (xLocinuSteps > dimensions[0]) {
-              xLocinuSteps = dimensions[0];
-            };
-            if (yLocinuSteps > dimensions[1]) {
-              yLocinuSteps = dimensions[1];
-            };
-            /* displacement in scale of microsteps*/
-            xDisp = xLocinuSteps - location[0]; /* Converting inputs from cm to microsteps*/
-            yDisp = yLocinuSteps - location[1];
+      case 3: {//smoothPursuit:dir:col:degInit:degFinal
+          /* moves light down a strip */
+          int dir = *(command + 1); /* identifies direction strand */
+          int col = *(command + 2); /* identifies LED color */
+          int degInit = *(command + 3); /* identifies deg offset of starting LED */
+          int degFinal = *(command + 4) + 1; /* identifies deg offset of ending LED */
+          int degchecked [23] = {};    /* creating an array degchecked of size 23, which is the maximum possible number of LEDs */
 
-            /*move by designated vector displacement*/
-            analogWrite(BLUE, ledOn);/*turn on blue*/
-            line(xDisp, yDisp, Delay);
-            Serial.println("Done");
-            delay(holdTime); /*delay by the specified hold duration*/
-            analogWrite(BLUE, ledOff);/*turn off blue*/
+          for ( int i = degInit; i < degFinal; i++ ) {  /* loops through LEDs from initial to final */
+            int ledNum = checkDegree(dir, i); /* checks each degree via checkDegree function */
+            if (ledNum > -1) {  /* makes sure that only valid ledNums are added to the degchecked array */
+              degchecked [ledNum] = ledNum;
+            }
           }
-          break;
+    
 
-        case 6: // linearOscillate:x0:y0:x1:y1:speed:repetitions
-          //RED
-          {
-            /* Linear Oscillate
-               Moves to first coordinate and oscillates between that and second coordinate
-            */
-            long x0 = *(command + 1); //cm
-            long y0 = *(command + 2); //cm
-            long x1 = *(command + 3); //cm
-            long y1 = *(command + 4); //cm
-            int targetDelay = *(command + 5); //us
-            int numReps = *(command + 6); //number of repetitions/oscillations
-
-            /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
-            long xInit = (long) ((x0 / Circ) * stepsPerRev * microstepsPerStep);
-            long yInit = (long) ((y0 / Circ) * stepsPerRev * microstepsPerStep);
-            long xFinal = (long) ((x1 / Circ) * stepsPerRev * microstepsPerStep);
-            long yFinal = (long) ((y1 / Circ) * stepsPerRev * microstepsPerStep);
-            //Serial.println(x1); Serial.println(y1);
-            //Serial.println(xFinal); Serial.println(yFinal);
-            //Serial.println(dimensions[0]); Serial.println(dimensions[1]);
-
-            /*safety check, if the starting location is negative, move to (0,0)*/
-            if (xInit < 0) {
-              xInit = 0;
-            }
-            if (yInit < 0) {
-              yInit = 0;
-            }
-            /*safety check, if starting location is outside bounds of bot, set to the boundary*/
-            if (xInit > dimensions[0]) {
-              xInit = dimensions[0];
-              x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
-            };
-            if (yInit > dimensions[1]) {
-              yInit = dimensions[1];
-              y0 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
-            };
-            /*safety check, if the ending location is negative, move to (0,0)*/
-            if (xFinal < 0) {
-              xFinal = 0;
-            }
-            if (yFinal < 0) {
-              yFinal = 0;
-            }
-            /*safety check, if ending location is outside bounds of bot, set to the boundary*/
-            if (xFinal > dimensions[0]) {
-              xFinal = dimensions[0];
-              x1 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
-            };
-            if (yFinal > dimensions[1]) {
-              yFinal = dimensions[1];
-              y1 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
-            };
-            //Serial.println(x1); Serial.println(y1);
-            //Serial.println(xInit); Serial.println(yInit);
-            //Serial.println(xFinal); Serial.println(yFinal);
-            /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
-            long dx = (long) (((x1 - x0) / Circ) * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
-            long dy = (long) (((y1 - y0) / Circ) * stepsPerRev * microstepsPerStep);
-            xDisp = (long) xInit - location[0];
-            yDisp = (long) yInit - location[1];
-
-            /*move along calculated displacement vector from current location to desired starting point*/
-            analogWrite(RED, ledOn);/*turn on red*/
-            line(xDisp, yDisp, Delay);
-            delay(1000);
-            long store_a = -dx / 2; /*ditto*/
-            long store_b = -dy / 2; /*ditto*/
-            int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
-            int dv = startDelay - targetDelay;
-            /*vector from initial to final location scaled for...*/
-            long dtx = (long) dx / (10 * dv / 2);
-            long dty = (long) dy / (10 * dv / 2);
-
-            for (int j = 1; j <= numReps; j++) { /*implemented number of times specified by repetitions input*/
-              /* Speeds up in first 10% with intervals of 2 microseconds from min speed to max speed*/
-              for (int i = 0; i < (int)dv / 2; i++) {
-                int a = startDelay - i * 2;
-                line(dtx, dty, a);
-              }
-
-              /* Moves middle 80% at max speed*/
-              line((long) dx * 0.8, (long) dy * 0.8, targetDelay);
-
-              /* Slows down end 10% */
-              for (int i = 0; i < (int)dv / 2; i++) {
-                int a = targetDelay + i * 2;
-                line(dtx, dty, a);
-              }
-
-              /* Speeds up end 10% back */
-              for (int i = 0; i < (int)dv / 2; i++) {
-                int a = startDelay - i * 2;
-                line(-dtx, -dty, a);
-              }
-
-              /* Moves middle 80% back at max speed*/
-              line((long) - dx * 0.8, (long) - dy * 0.8, targetDelay);
-
-              /* Slows down end 10% back*/
-              for (int i = 0; i < (int) dv / 2; i++) {
-                int a = targetDelay + i * 2;
-                line(-dtx, -dty, a);
-              }
-            }
-            analogWrite(RED, ledOff);/*turn off red*/
-            Serial.println("Done");
-            delay(1000);
+          for ( int j = 0; j <= ledNum; j++) {   /* goes through each element in the degchecked array*/
+                          setColor(dir, col, j); /* sets color */
+                          turnOnLED(); /* turns on LED */
+                          FastLED.delay(60); /* delays for 60 ms */
+                          turnOff(dir, j); /* turns off LED */
           }
-          break;
-        case 7: // arcMove:diameter:angInit:angFinal:delayArc/speed:numLines
-          // 1:1 ratio between arcRes and number of lines used to draw the arc
-          // TESTING - conversion from speed to delay
-          // model only incorporates angles between 0 and 45 degrees using origin of (xMin, yMin)
-          //RED & BLUE
-          {
-            int d = *(command + 1); //diameter in cm
-            float Rcm = d / 2; //radius in cm
-            float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps
-            int angInit = *(command + 2); //starting angle in degrees
-            int angFinal = *(command + 3); //final angle in degrees
-            double Speed = *(command + 4);
-            int numLines = *(command + 5);
-            float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
 
-            if ( Rsteps > dimensions[0] ) {
-              Rsteps = dimensions[0];
-            }
+/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to zero which won't work */
 
-            float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
-            float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
-            float angInit_res = angInit_rad * arcRes;
-            float angFinal_res = angFinal_rad * arcRes;
-            long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
-            long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
+                      Serial.println("degchecked");
+                      for (int count = 0; count < 23; count++) {
+                        Serial.print("increment: "); Serial.println(count);
+                        Serial.print("array: "); Serial.println(degchecked[count]);
+                      }
+        }
+        break;
+      case 4: // calibrate
+        //GREEN
+        {
+          /* Calibrates to xMin and yMin and updates location to (0,0) */
+          analogWrite(GREEN, ledOn); /*turn on green*/
+          int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
+          int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
+          location[0] = 0;
+          location[1] = 0;
+          Serial.println("Done");
+          delay(1000);
+          analogWrite(GREEN, ledOff); /*turn off green*/
+        }
+        break;
+      case 5: // moveTo:x0:y0:hold duration
+        //BLUE
+        {
+          /* Simple move to designated location and holds for a certain time
+          */
+          long desiredXLoc = *(command + 1); //cm
+          long desiredYLoc = *(command + 2); //cm
+          int holdTime = *(command + 3); //ms
 
-            analogWrite(RED, ledOn);
-            analogWrite(BLUE, ledOn);
-
-            //The following code accomplishes arc movement, but at inconsistent speeds.
-            line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
-            for (int i = angInit_res; i <= angFinal_res; i++) {
-              int dx = round(-Rsteps / arcRes * sin((float)i / arcRes));
-              int dy = round(Rsteps / arcRes * cos((float)i / arcRes));
-              line(dx, dy, Delay);
-            }
-
-            analogWrite(RED, ledOn);
-            analogWrite(BLUE, ledOff);
-            Serial.println("Done");
+          long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
+          long yLocinuSteps = (long) ((desiredYLoc / Circ) * stepsPerRev * microstepsPerStep);
+          /*safety check, if the desired location is negative, move to (0,0)*/
+          if (xLocinuSteps < 0) {
+            xLocinuSteps = 0;
           }
-          break;
-        case 8: //speedModelFit:delayi:delayf:ddelay:angleTrials
-          {
-            /* Speed Trials
-               Still needs testing
-            */
-            int delayi, delayf, ddelay, angleTrials;
-            /*assign commands to variables*/
-            delayi = (int) * (command + 1);
-            delayf = (int) * (command + 2);
-            ddelay = (int) * (command + 3);
-            angleTrials = (int) * (command + 4);
-
-            /*determine smallest dimension between x and y*/
-            long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
-            /*determine divisions of 90% of min dimension, based on the number of angle trials*/
-            int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
-            /*maxDistance = 0.9*minDim, or 90% of the length of the smallest dimension*/
-            int maxDistance = ddistance * (angleTrials - 1);
-            Serial.println("Beginning");
-            Serial.println(ddistance);
-            /* Number of loops for speed and angles*/
-            int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*currently does nothing*/
-            /* Intialize loop arrays that will be sent over*/
-            unsigned long speedRuns[angleTrials];
-            int xDistance[angleTrials];
-            int yDistance[angleTrials];
-            int trialNum;
-
-            /* Delay Loop */
-            for (int j = delayi; j <= delayf; j += ddelay) {
-              int targetDelay = j;
-              Serial.println("Delay");
-              /* Angle Loop */
-              /*origin of xMin,yMin ; 0 to 45 degrees*/
-              for (int i = 0; i <= maxDistance; i += ddistance) {
-                recalibrate(xMin);
-                recalibrate(yMin);
-                delay(300);
-                int x = maxDistance; // Steps
-                int y = i;
-                /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
-                long startTime = millis();
-                line((long) x * microstepsPerStep, (long) y * microstepsPerStep, targetDelay);
-                long endTime = millis();
-                long timed = endTime - startTime;
-                /* Saving information in appropriate arrays*/
-                speedRuns[trialNum] = timed;
-                xDistance[trialNum] = x;
-                yDistance[trialNum] = y;
-                trialNum++;
-                delay(300);
-              }
-
-              /*Send x and y distances and time after each delay trial
-                used to calculate Euclidean speed in MATLAB*/
-              Serial.println("Sending");
-              for (int i = 0; i < angleTrials; i++) {
-                Serial.println(speedRuns[i]);
-                Serial.println(xDistance[i]);
-                Serial.println(yDistance[i]);
-              }
-              trialNum = 0;
-            }
-            Serial.println("Done");
+          if (yLocinuSteps < 0) {
+            yLocinuSteps = 0;
           }
-      }
+          /*safety check, if the desired location is outside bounds of robot, constrain to boundaries*/
+          if (xLocinuSteps > dimensions[0]) {
+            xLocinuSteps = dimensions[0];
+          };
+          if (yLocinuSteps > dimensions[1]) {
+            yLocinuSteps = dimensions[1];
+          };
+          /* displacement in scale of microsteps*/
+          xDisp = xLocinuSteps - location[0]; /* Converting inputs from cm to microsteps*/
+          yDisp = yLocinuSteps - location[1];
+
+          /*move by designated vector displacement*/
+          analogWrite(BLUE, ledOn);/*turn on blue*/
+          line(xDisp, yDisp, Delay);
+          Serial.println("Done");
+          delay(holdTime); /*delay by the specified hold duration*/
+          analogWrite(BLUE, ledOff);/*turn off blue*/
+        }
+        break;
+
+      case 6: // linearOscillate:x0:y0:x1:y1:speed:repetitions
+        //RED
+        {
+          /* Linear Oscillate
+             Moves to first coordinate and oscillates between that and second coordinate
+          */
+          long x0 = *(command + 1); //cm
+          long y0 = *(command + 2); //cm
+          long x1 = *(command + 3); //cm
+          long y1 = *(command + 4); //cm
+          int targetDelay = *(command + 5); //us
+          int numReps = *(command + 6); //number of repetitions/oscillations
+
+          /*calculating x/y displacement, difference between desired initial x/y and current x/y*/
+          long xInit = (long) ((x0 / Circ) * stepsPerRev * microstepsPerStep);
+          long yInit = (long) ((y0 / Circ) * stepsPerRev * microstepsPerStep);
+          long xFinal = (long) ((x1 / Circ) * stepsPerRev * microstepsPerStep);
+          long yFinal = (long) ((y1 / Circ) * stepsPerRev * microstepsPerStep);
+          //Serial.println(x1); Serial.println(y1);
+          //Serial.println(xFinal); Serial.println(yFinal);
+          //Serial.println(dimensions[0]); Serial.println(dimensions[1]);
+
+          /*safety check, if the starting location is negative, move to (0,0)*/
+          if (xInit < 0) {
+            xInit = 0;
+          }
+          if (yInit < 0) {
+            yInit = 0;
+          }
+          /*safety check, if starting location is outside bounds of bot, set to the boundary*/
+          if (xInit > dimensions[0]) {
+            xInit = dimensions[0];
+            x0 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
+          };
+          if (yInit > dimensions[1]) {
+            yInit = dimensions[1];
+            y0 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
+          };
+          /*safety check, if the ending location is negative, move to (0,0)*/
+          if (xFinal < 0) {
+            xFinal = 0;
+          }
+          if (yFinal < 0) {
+            yFinal = 0;
+          }
+          /*safety check, if ending location is outside bounds of bot, set to the boundary*/
+          if (xFinal > dimensions[0]) {
+            xFinal = dimensions[0];
+            x1 = (dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep);
+          };
+          if (yFinal > dimensions[1]) {
+            yFinal = dimensions[1];
+            y1 = (dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep);
+          };
+          //Serial.println(x1); Serial.println(y1);
+          //Serial.println(xInit); Serial.println(yInit);
+          //Serial.println(xFinal); Serial.println(yFinal);
+          /*change in x/y, difference between initial x/y and final x/y adjusted for virtual dimension and size of system*/
+          long dx = (long) (((x1 - x0) / Circ) * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
+          long dy = (long) (((y1 - y0) / Circ) * stepsPerRev * microstepsPerStep);
+          xDisp = (long) xInit - location[0];
+          yDisp = (long) yInit - location[1];
+
+          /*move along calculated displacement vector from current location to desired starting point*/
+          analogWrite(RED, ledOn);/*turn on red*/
+          line(xDisp, yDisp, Delay);
+          delay(1000);
+          long store_a = -dx / 2; /*ditto*/
+          long store_b = -dy / 2; /*ditto*/
+          int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
+          int dv = startDelay - targetDelay;
+          /*vector from initial to final location scaled for...*/
+          long dtx = (long) dx / (10 * dv / 2);
+          long dty = (long) dy / (10 * dv / 2);
+
+          for (int j = 1; j <= numReps; j++) { /*implemented number of times specified by repetitions input*/
+            /* Speeds up in first 10% with intervals of 2 microseconds from min speed to max speed*/
+            for (int i = 0; i < (int)dv / 2; i++) {
+              int a = startDelay - i * 2;
+              line(dtx, dty, a);
+            }
+
+            /* Moves middle 80% at max speed*/
+            line((long) dx * 0.8, (long) dy * 0.8, targetDelay);
+
+            /* Slows down end 10% */
+            for (int i = 0; i < (int)dv / 2; i++) {
+              int a = targetDelay + i * 2;
+              line(dtx, dty, a);
+            }
+
+            /* Speeds up end 10% back */
+            for (int i = 0; i < (int)dv / 2; i++) {
+              int a = startDelay - i * 2;
+              line(-dtx, -dty, a);
+            }
+
+            /* Moves middle 80% back at max speed*/
+            line((long) - dx * 0.8, (long) - dy * 0.8, targetDelay);
+
+            /* Slows down end 10% back*/
+            for (int i = 0; i < (int) dv / 2; i++) {
+              int a = targetDelay + i * 2;
+              line(-dtx, -dty, a);
+            }
+          }
+          analogWrite(RED, ledOff);/*turn off red*/
+          Serial.println("Done");
+          delay(1000);
+        }
+        break;
+      case 7: // arcMove:diameter:angInit:angFinal:delayArc/speed:numLines
+        // 1:1 ratio between arcRes and number of lines used to draw the arc
+        // TESTING - conversion from speed to delay
+        // model only incorporates angles between 0 and 45 degrees using origin of (xMin, yMin)
+        //RED & BLUE
+        {
+          int d = *(command + 1); //diameter in cm
+          float Rcm = d / 2; //radius in cm
+          float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps
+          int angInit = *(command + 2); //starting angle in degrees
+          int angFinal = *(command + 3); //final angle in degrees
+          double Speed = *(command + 4);
+          int numLines = *(command + 5);
+          float arcRes = (numLines - 1) / 3; /*adjustment of number of lines for calculation*/
+
+          if ( Rsteps > dimensions[0] ) {
+            Rsteps = dimensions[0];
+          }
+
+          float angInit_rad = (pi / 180) * (-(angInit) + 90); /*convert initial angle from degrees to radians*/
+          float angFinal_rad = (pi / 180) * (-(angFinal) + 90); /*convert final angle from degrees to radians then adjust by input resolution*/
+          float angInit_res = angInit_rad * arcRes;
+          float angFinal_res = angFinal_rad * arcRes;
+          long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
+          long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
+
+          analogWrite(RED, ledOn);
+          analogWrite(BLUE, ledOn);
+
+          //The following code accomplishes arc movement, but at inconsistent speeds.
+          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          for (int i = angInit_res; i <= angFinal_res; i++) {
+            int dx = round(-Rsteps / arcRes * sin((float)i / arcRes));
+            int dy = round(Rsteps / arcRes * cos((float)i / arcRes));
+            line(dx, dy, Delay);
+          }
+
+          analogWrite(RED, ledOn);
+          analogWrite(BLUE, ledOff);
+          Serial.println("Done");
+        }
+        break;
+      case 8: //speedModelFit:delayi:delayf:ddelay:angleTrials
+        {
+          /* Speed Trials
+             Still needs testing
+          */
+          int delayi, delayf, ddelay, angleTrials;
+          /*assign commands to variables*/
+          delayi = (int) * (command + 1);
+          delayf = (int) * (command + 2);
+          ddelay = (int) * (command + 3);
+          angleTrials = (int) * (command + 4);
+
+          /*determine smallest dimension between x and y*/
+          long minDim = min((long)(dimensions[0] / microstepsPerStep), (long)(dimensions[1] / microstepsPerStep));
+          /*determine divisions of 90% of min dimension, based on the number of angle trials*/
+          int ddistance = (int) (0.9 * minDim / (angleTrials - 1));
+          /*maxDistance = 0.9*minDim, or 90% of the length of the smallest dimension*/
+          int maxDistance = ddistance * (angleTrials - 1);
+          Serial.println("Beginning");
+          Serial.println(ddistance);
+          /* Number of loops for speed and angles*/
+          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*currently does nothing*/
+          /* Intialize loop arrays that will be sent over*/
+          unsigned long speedRuns[angleTrials];
+          int xDistance[angleTrials];
+          int yDistance[angleTrials];
+          int trialNum;
+
+          /* Delay Loop */
+          for (int j = delayi; j <= delayf; j += ddelay) {
+            int targetDelay = j;
+            Serial.println("Delay");
+            /* Angle Loop */
+            /*origin of xMin,yMin ; 0 to 45 degrees*/
+            for (int i = 0; i <= maxDistance; i += ddistance) {
+              recalibrate(xMin);
+              recalibrate(yMin);
+              delay(300);
+              int x = maxDistance; // Steps
+              int y = i;
+              /* Calculate how long it takes to move to specified position at specified delayMicroseconds */
+              long startTime = millis();
+              line((long) x * microstepsPerStep, (long) y * microstepsPerStep, targetDelay);
+              long endTime = millis();
+              long timed = endTime - startTime;
+              /* Saving information in appropriate arrays*/
+              speedRuns[trialNum] = timed;
+              xDistance[trialNum] = x;
+              yDistance[trialNum] = y;
+              trialNum++;
+              delay(300);
+            }
+
+            /*Send x and y distances and time after each delay trial
+              used to calculate Euclidean speed in MATLAB*/
+            Serial.println("Sending");
+            for (int i = 0; i < angleTrials; i++) {
+              Serial.println(speedRuns[i]);
+              Serial.println(xDistance[i]);
+              Serial.println(yDistance[i]);
+            }
+            trialNum = 0;
+          }
+          Serial.println("Done");
+        }
     }
   }
+}
