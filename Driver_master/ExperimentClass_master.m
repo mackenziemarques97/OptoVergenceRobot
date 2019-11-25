@@ -407,7 +407,7 @@ classdef ExperimentClass_master < handle %define handle class
                strToSend = [str strList];
                str = strToSend;
             end
-            strToSend
+            %strToSend
             fprintf(obj.connection, strToSend);
         end
         

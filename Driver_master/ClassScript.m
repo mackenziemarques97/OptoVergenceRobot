@@ -21,7 +21,8 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 %% Test specifications
 
 a.linearOscillate(20,20,5,5,30,1);
-%a.arcMove(30,90,-90,20,36);
+a.arcMove(30,90,-90,20,36);
+a.calibrate();
 %a.speedModelFit(15,70,5,12);
 
 %a.calibrate();

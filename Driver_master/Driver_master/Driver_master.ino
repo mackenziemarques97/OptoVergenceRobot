@@ -853,6 +853,8 @@ void loop()
           delay(2000); /*2 second pause*/
           
           //The following code accomplishes arc move with constant delay throughout arc.
+          dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
+          dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           for (int counter = 0; counter < numLines; counter++) {
             line(dx_array[counter], dy_array[counter], Delay);
