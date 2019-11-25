@@ -2,8 +2,6 @@
 %% System setup
 system = computer(); %store computer-t4ype MATLAB is running on
 %In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
-%to find COM port you are connected to. Update string stored in serialPort
-%accordingly.
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem1421'; %format string stored in serialPort like is
 else %otherwise
