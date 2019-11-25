@@ -97,9 +97,9 @@ String str;
 #define yMin 4
 #define yMax 5
 /*pins for RGB LED*/
-#define RED 48
-#define GREEN 49
-#define BLUE 50
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 
 /* Define initial variables and arrays */
 int ledOff = 255;
@@ -502,7 +502,7 @@ double* parsecommand(char strCommand[]) {
        speedModelFit:delayi:delayf:ddelay:angleTrials
     */
     static double command[8];
-    command[0] = 5;
+    command[0] = 8;
     int i = 1;
     while (token != NULL) {
       token = strtok(NULL, delim);
@@ -979,14 +979,14 @@ void setup()
 
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  //dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  //dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
+  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
 
   Serial.println("Ready");
   Blink(GREEN);
@@ -1022,8 +1022,10 @@ void loop() {
           turnOnLED(); /* turns on LED / displays any color changes made */
           delay(timeOn); /* waits */
           turnOff(dir, deg); /* turns off LED, specified by dir and deg */
-          break;
+          Serial.println("Done");  
         }
+        break;
+        
       case 2: //saccade:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
         {
           switch ((int) * (command + 1)) { /* secondary switch case based on 2nd entry in command */
@@ -1047,8 +1049,10 @@ void loop() {
                 turnOnLED(); /* turns on 2nd LED */
                 delay(timeOn2); /* waits */
                 turnOff(dir2, deg2); /* turns off 2nd LED */
-                break;
+                Serial.println("Done");   
               }
+              break;
+              
             case 2:
               {
                 int dir1 = *(command + 2); /* identifies direction strand of fix point LED */
@@ -1069,8 +1073,9 @@ void loop() {
                 delay(timeOn2); /* waits */
                 turnOff(dir1, deg1); /* turns off fix LED */
                 turnOff(dir2, deg2); /* turns off 2nd LED */
-                break;
+                Serial.println("Done");
               }
+              break;
           }
         }
 
@@ -1097,13 +1102,8 @@ void loop() {
                           turnOff(dir, j); /* turns off LED */
           }
 
-/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to zero which won't work */
-
-                      Serial.println("degchecked");
-                      for (int count = 0; count < 23; count++) {
-                        Serial.print("increment: "); Serial.println(count);
-                        Serial.print("array: "); Serial.println(degchecked[count]);
-                      }
+/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to zero which won't enter the for loop */
+        Serial.println("Done");
         }
         break;
       case 4: // calibrate
