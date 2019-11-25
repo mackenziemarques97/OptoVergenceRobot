@@ -87,27 +87,24 @@ classdef ExperimentClass_master < handle %define handle class
         %% SACCADE
         function saccade(obj,switchcase,dir1,col1,deg1,timeOn1,dir2,col2,deg2,timeOn2)
             
-            p = sprintf('saccade:%d',[switchcase]);
-            q = sprintf('%s:%s:',[dir1,col1]);
-            r = sprintf('%d:%d:',[deg1, timeOn1]);
-            s = sprintf('%s:%s:',[dir2,col2]);
-            t = sprintf('%d:%d:',[deg2,timeOn2]);
+            p = sprintf('saccade:%d',[dir,col]);
+            q = sprintf('%s:%s:',[dir,col]);
+            r = sprintf('%d:%d:',[dir,col]);
+            s = sprintf('oneLED:%s:%s:',[dir,col]);
+            t = sprintf('oneLED:%s:%s:',[dir,col]);
             sendsaccade = [p q r s t];
         
-        fprintf(obj.connection,sendsaccade); 
+        fprintf(obj.connection,('saccade:%d:%s:%s:%d:%d:%s:%s:%d:%d'),...
+                [switchcase,dir1,col1,deg1,timeOn1,dir2,col2,deg2,timeOn2]); 
             %check that "Done" is received at end of movement
             checkForActionEnd(obj, 'Saccade Trial'); 
         end
         
         %%  %% SMOOTH PURSUIT
         function smoothPursuit(obj,dir,col,degInit,degFinal)
-            
-            x = sprintf('oneLED:%s:%s:',[dir,col]);
-            y = sprintf('%d:%d', [degInit, degFinal]);
-            sendsmoothpursuit = [x y];
-
         
-        fprintf(obj.connection,sendsmoothpursuit); 
+        fprintf(obj.connection,('smoothPursuit:%s:%s:%d:%d'),...
+                [dir,col,degInit,degFinal]); 
             %check that "Done" is received at end of movement
             checkForActionEnd(obj, 'Smooth Pursuit Trial'); 
         end
