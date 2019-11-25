@@ -1,27 +1,3 @@
-/*Note: Do you want the robot to determine the dimensions at the start of the run?
-   If so, make sure is uncommented in findDimensions() in setup.
-   If not, comment out findDimensions() and manually enter dimensions noted in the comments.
-*/
-
-/*Explanations of common Arduino functions:
-  ~Serial.print()/Serial.println() prints/sends to serial port
-  which is then either read by MATLAB or printed in Serial Monitor
-  depending on what serial port is connected to.
-*/
-
-/*Current troubleshooting concerns:
-   attempting to make speed constant throughout arc movement
-   currently not smoother than using the same delay for all of the lines in the arc
-   might need to change some of ints for speed and delay to longs, floats, etc. for preceision's sake
-   WHY? - cannot send array of delays followed by dx, dy, but can send just the array of delays
-   37 numLines for dx and dy too many individually, but 36 works - should be smooth enough to seem like an arc
-   don't need to send the coefficients since delayToSpeed occurs in MATLAB
-   arcMove works when I manually enter Delays, dx, dy, but not when I try to interface with MATLAB
-   --> something wrong with dx being stored, dy Delays seems correct
-   **I THINK, since I use something similar to the parseCommand function to send delays&dx&dy from MATLAB to Arduino,
-    then each value should be accessed using *command+1 format (pointer variables).
-*/
-
 /*Serial.print()/Serial.println() prints/sends to serial port,
   which is then either read by MATLAB or printed in Serial Monitor
   depending on what serial port is connected to.
@@ -77,6 +53,15 @@ double reverse_coeffs[16]; /*used in speedToDelay function*/
 */
 float motor_radius = 0.65; //cm
 float Circ = 2 * pi * motor_radius; /*circumference of pulley*/
+
+/*TESTING
+  arrays for storing movements and Delays from speedToDelay
+  using 27 lines for small robot
+  will likley increase to 55 to large robot
+*/
+double dx[38] = {0};
+double dy[38] = {0};
+double Delays[38] = {0};
 
 /*Blink an LED twice
    input: specific LED pin
@@ -301,7 +286,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      //Delays[i] = coeffsArray[i + 1];
+      Delays[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -314,7 +299,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      //dx[i] = coeffsArray[i + 1];
+      dx[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -327,7 +312,7 @@ float* parseDelays(char strInput[]) {
       coeffsArray[i++] = atof(strtokIn);
     }
     for (i = 0; i < 38; i++) {
-      //dy[i] = coeffsArray[i + 1];
+      dy[i] = coeffsArray[i + 1];
     }
     return coeffsArray;
   }
@@ -344,7 +329,7 @@ double speedToDelay(double reverse_coeffs[], double Speed, double angle) {
     double temp_coeff[4] = {reverse_coeffs[0 + i * 4], reverse_coeffs[1 + i * 4], reverse_coeffs[2 + i * 4], reverse_coeffs[3 + i * 4]};
     complex_coeffs[i] = poly3(temp_coeff, angle);
   }
-  double Delay = exp2(complex_coeffs, Speed);
+  int Delay = exp2(complex_coeffs, Speed);
   return Delay;
 }
 
@@ -418,7 +403,6 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
     }
     steps += 10; /*add 10 to steps counter*/
 
-
     if (steps > (long) dimensions[1] * 1.2) { /*if the number of steps is greater than 120% of the number of steps of the y-dimension*/
       Serial.end(); /*end the serial connection*/
       break; /*break put of the loop*/
@@ -459,15 +443,15 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
    Input vector (in number of steps) along with pulse width (delay, which determines speed)
    Proprioceptive location
 */
-void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
+void line(int x1, int y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
   location[0] += x1; /*add x1 to current x-coordinate location*/
   location[1] += y1; /*add y1 to current y-coordinate location*/
-  long x0 = 0, y0 = 0;
-  long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
+  int x0 = 0, y0 = 0;
+  int dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
   /*if x0 is less than x1, set signx equal to 1; if x0 is not less than x1, set signx equal to -1*/
   /*if x-component of vector (desired x displacement) is positive, signx = 1 (clockwise rotation of motor)*/
-  long dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
-  long err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
+  int dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
+  int err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
   digitalWrite(xDir, (signx + 1) / 2); /*setup x motor rotation direction, if signx = 1, rotate counterclockwise; if signx = -1, don't move*/
   digitalWrite(yDir, (signy + 1) / 2); /*setup y motor rotation direction*/
   for (;;) { /*infinite loop (;;)*/
@@ -541,7 +525,7 @@ void setup()
   /* Communicates with Serial connection to verify */
   initialize();
   /* Sends coefficients for speed model */
-  //loadInfo();
+  loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
   int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
@@ -553,12 +537,10 @@ void setup()
   dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
   dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
 
-  Serial.print("x-dim usteps: "); Serial.println(dimensions[0]);
-  Serial.print("y-dim usteps: "); Serial.println(dimensions[1]);
-  Serial.print("x-dim cm: "); Serial.println((dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
-  Serial.print("y-dim cm: "); Serial.println((dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
-  
+  /*To signal timing of message sending, blink blue LED before sending "Ready"*/
+  Blink(BLUE);
   Serial.println("Ready");
+  /*blink green LED after sending "Ready"*/
   Blink(GREEN);
 }
 
@@ -586,8 +568,8 @@ void loop()
         {
           /* Calibrates to xMin and yMin and updates location to (0,0) */
           analogWrite(GREEN, ledOn); /*turn on green*/
-          long xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-          long yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
+          int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
+          int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
           location[0] = 0;
           location[1] = 0;
           Serial.println("Done");
@@ -602,8 +584,7 @@ void loop()
           */
           long desiredXLoc = *(command + 1); //cm
           long desiredYLoc = *(command + 2); //cm
-          double Speed = *(command + 3); //cm/s
-          Speed = (Speed / Circ) * stepsPerRev; //covert speed from cm/s to steps/s for input into speedToDelay model
+          int Delay = *(command + 3); //ms
 
           /*Converting inputs from cm to microsteps*/
           long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
@@ -626,13 +607,12 @@ void loop()
           xDisp = xLocinuSteps - location[0];
           yDisp = yLocinuSteps - location[1];
 
-          double angle = abs(atan2(yDisp, xDisp) * (180 / pi));
-
           /*move by designated vector displacement*/
           analogWrite(BLUE, ledOn);/*turn on blue*/
-          double Delay = speedToDelay(reverse_coeffs, Speed, angle);
+          Serial.print("xLocinuSteps: "); Serial.print(xLocinuSteps);
+          Serial.print("yLocinuSteps: "); Serial.print(yLocinuSteps);
+          
           line(xDisp, yDisp, Delay);
-          Serial.println(xDisp); Serial.println(yDisp); Serial.println(angle); Serial.println(Delay);
           Serial.println("Done");
           analogWrite(BLUE, ledOff);/*turn off blue*/
         }
@@ -753,6 +733,11 @@ void loop()
         //RED & BLUE
         {
           int dcm = *(command + 1); //diameter in cm
+          //safety check: diameter of arc
+          if ( dcm > 35  ) { //diameter is greater than max limit of x-dim
+            Serial.println("EntryError");
+            break;
+          }
           float dsteps = (dcm / Circ) * stepsPerRev * microstepsPerStep; //diameter in microsteps
           float Rcm = dcm / 2; //radius in cm
           float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps

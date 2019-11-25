@@ -1,5 +1,3 @@
-
-
 /*SAMPLE COMMANDS
 
    oneLED:N:green:4:3 - in the N strip, the 4th LED counting away from center
