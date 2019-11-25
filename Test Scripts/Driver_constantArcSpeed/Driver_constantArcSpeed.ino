@@ -553,6 +553,11 @@ void setup()
   dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
   dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
 
+  Serial.print("x-dim usteps: "); Serial.println(dimensions[0]);
+  Serial.print("y-dim usteps: "); Serial.println(dimensions[1]);
+  Serial.print("x-dim cm: "); Serial.println((dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
+  Serial.print("y-dim cm: "); Serial.println((dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
+  
   Serial.println("Ready");
   Blink(GREEN);
 }
