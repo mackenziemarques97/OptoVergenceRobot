@@ -2,7 +2,7 @@
 %% System setup
 system = computer(); %store computer-t4ype MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
-    serialPort = '/dev/tty.usbmodem14201'; %format string stored in serialPort like is
+    serialPort = '/dev/tty.usbmodem1421'; %format string stored in serialPort like is
 else %otherwise
     serialPort = 'COM5'; %format like this
 end
@@ -17,9 +17,10 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
 %% Test specifications
 
-a.linearOscillate(20,20,5,5,30,1);
-a.arcMove(30,90,-90,20,36);
-a.speedModelFit(15,70,5,12);
+% a.linearOscillate(20,20,5,5,30,1);
+% a.arcMove(30,90,-90,20,36);
+a.oneLED("SE", "blue", 10, 4);
+% a.speedModelFit(15,70,5,12);
 
 %a.calibrate();
 %a.moveTo(0,30,100); 
