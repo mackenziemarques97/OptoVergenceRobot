@@ -611,7 +611,7 @@ void loop()
           analogWrite(BLUE, ledOn);/*turn on blue*/
           Serial.print("xLocinuSteps: "); Serial.print(xLocinuSteps);
           Serial.print("yLocinuSteps: "); Serial.print(yLocinuSteps);
-          
+
           line(xDisp, yDisp, Delay);
           Serial.println("Done");
           analogWrite(BLUE, ledOff);/*turn off blue*/
@@ -726,7 +726,7 @@ void loop()
           delay(1000);
         }
         break;
-        case 4: // arcMove:diameter:angInit:angFinal:delayArc/speed:numLines
+      case 4: // arcMove:diameter:angInit:angFinal:delayArc/speed:numLines
         // 1:1 ratio between arcRes and number of lines used to draw the arc
         // TESTING - conversion from speed to delay
         // model only incorporates angles between 0 and 45 degrees using origin of (xMin, yMin)
@@ -738,7 +738,7 @@ void loop()
           /*if ( dcm > 35  ) { //diameter is greater than max limit of x-dim
             Serial.println("EntryError");
             break;
-          }*/
+            }*/
           float dsteps = (dcm / Circ) * stepsPerRev * microstepsPerStep; //diameter in microsteps
           float Rcm = dcm / 2; //radius in cm
           float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps
@@ -844,14 +844,14 @@ void loop()
               line(dx, dy, Delay);
             }
             }*/
-            
+
           //The following code accomplishes arc move with an attempt at constant speed throughout arc.
           for (int counter = 0; counter < numLines; counter++) {
             line(dx_array[counter], dy_array[counter], delays_array[counter]);
           }
 
           delay(2000); /*2 second pause*/
-          
+
           //The following code accomplishes arc move with constant delay throughout arc.
           dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
           dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
