@@ -1098,6 +1098,7 @@ void loop() {
                           turnOnLED(); /* turns on LED */
                           FastLED.delay(60); /* delays for 60 ms */
                           turnOff(dir, j); /* turns off LED */
+                          ;
           }
 
 /* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to zero which won't enter the for loop */
