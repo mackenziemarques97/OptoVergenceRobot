@@ -73,11 +73,10 @@ classdef ExperimentClass_master < handle %define handle class
         
         
         %% ONELED 
-        function oneLED(obj,dir,col,deg,timeOn)
-            
-            a = sprintf('oneLED:%s:%s:',[dir,col]);
-            b = sprintf('%d:%d', [deg, timeOn]);
-            sendoneled = [a b];
+        function oneLED(obj,dir,col,deg,timeOn)   
+            str1 = sprintf('oneLED:%s:%s:',[dir,col]);
+            str2 = sprintf('%d:%d', [deg, timeOn]);
+            sendoneled = [str1 str2];
             
             fprintf(obj.connection,sendoneled); 
             %check that "Done" is received at end of movement
@@ -86,13 +85,12 @@ classdef ExperimentClass_master < handle %define handle class
         
         %% SACCADE
         function saccade(obj,switchcase,dir1,col1,deg1,timeOn1,dir2,col2,deg2,timeOn2)
-            
-            p = sprintf('saccade:%d:',switchcase);
-            q = sprintf('%s:%s:',[dir1,col1]);
-            r = sprintf('%d:%d:',[deg1,timeOn1]);
-            s = sprintf('%s:%s:',[dir2,col2]);
-            t = sprintf('%d:%d',[deg2,timeOn2]);
-            sendsaccade = [p q r s t];
+            str1 = sprintf('saccade:%d:',switchcase);
+            str2 = sprintf('%s:%s:',[dir1,col1]);
+            str3 = sprintf('%d:%d:',[deg1,timeOn1]);
+            str4 = sprintf('%s:%s:',[dir2,col2]);
+            str5 = sprintf('%d:%d',[deg2,timeOn2]);
+            sendsaccade = [str1 str2 str3 str4 str5];
         
             fprintf(obj.connection,sendsaccade); 
             %check that "Done" is received at end of movement
@@ -101,12 +99,10 @@ classdef ExperimentClass_master < handle %define handle class
         
         %%  %% SMOOTH PURSUIT
         function smoothPursuit(obj,dir,col,degInit,degFinal)
-            
-            x = sprintf('smoothPursuit:%s:%s:',[dir,col]);
-            y = sprintf('%d:%d', [degInit,degFinal]);
-            sendsmoothpursuit = [x y];
+            str1 = sprintf('smoothPursuit:%s:%s:',[dir,col]);
+            str2 = sprintf('%d:%d', [degInit,degFinal]);
+            sendsmoothpursuit = [str1 str2];
 
-        
             fprintf(obj.connection,sendsmoothpursuit); 
             %check that "Done" is received at end of movement
             checkForActionEnd(obj, 'Smooth Pursuit Trial'); 

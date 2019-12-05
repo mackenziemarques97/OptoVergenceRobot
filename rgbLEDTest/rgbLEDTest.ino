@@ -1,9 +1,9 @@
 int ledDelay = 1000; // how long LED is on for in each flash, 1000 ms, 1 s
 
 // set LED pins
-#define RED 48
-#define GREEN 49
-#define BLUE 50
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 // set brightness of LED between 0 and 255
 // entry of 127 results in visible light, 128 does not
 int onBrightness = 127;

@@ -20,11 +20,11 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
 %% Test specifications
 a.saccade(2, "SE", "green", 5, 3, "SE", "blue", 20, 1);
-a.linearOscillate(20,20,5,5,30,1);
-a.arcMove(30,90,-90,20,36);
-a.saccade(1, "SE", "red", 5, 3, "SE", "green", 20, 1);
-a.smoothPursuit("SE", "blue", 1, 20);
-a.oneLED("SE", "blue", 10, 4);
+% a.linearOscillate(20,20,5,5,30,1);
+% a.arcMove(30,90,-90,20,36);
+% a.saccade(1, "SE", "red", 5, 3, "SE", "green", 20, 1);
+% a.smoothPursuit("SE", "blue", 1, 20);
+% a.oneLED("SE", "blue", 10, 4);
 
 % a.speedModelFit(15,70,5,12);
 

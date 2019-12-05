@@ -9,7 +9,7 @@ if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
 else %otherwise
     serialPort = 'COM4'; %format like this
 end
-a = ExperimentClass_master_woLED(serialPort); %create an object of the class to use it
+a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
 %% Command formats
 % a.calibrate();
@@ -19,13 +19,17 @@ a = ExperimentClass_master_woLED(serialPort); %create an object of the class to 
 % a.speedModelFit(obj,delayi,delayf,ddelay,angleTrials);
 
 %% Test specifications
-
-a.linearOscillate(20,20,5,5,30,1);
+%a.linearOscillate(20,20,5,5,30,1);
 %a.arcMove(30,90,-90,20,36);
-a.calibrate();
-%a.speedModelFit(15,70,5,12);
+a.oneLED("SE", "blue", 10, 4);
+a.saccade(1, "SE", "red", 5, 3, "SE", "green", 20, 1);
+a.saccade(2, "SE", "green", 5, 3, "SE", "blue", 20, 1);
+a.smoothPursuit("SE", "blue", 1, 35);
 
-%a.calibrate();
+% a.speedModelFit(15,70,5,12);
+
+
+%a.calibrate(); 
 %a.moveTo(0,30,100); 
 %a.calibrate();
 %a.moveTo(10,5,100); % x cm, y cm, hold ms

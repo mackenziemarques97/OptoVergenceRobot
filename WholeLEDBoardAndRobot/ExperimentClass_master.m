@@ -60,45 +60,54 @@ classdef ExperimentClass_master < handle %define handle class
             
             % Communicate with Arduino and send speed model coefficients
             %should receive and print in command window "ReadyToReceiveCoeffs"
-            waitSignal = check(obj) 
-            sendInfo(obj, forward_coeffs);
+            %waitSignal = check(obj) 
+            %sendInfo(obj, forward_coeffs);
             %should receive "ForwardCoeffsReceived"
-            waitSignal = check(obj) 
-            sendInfo(obj, reverse_coeffs);
+            %waitSignal = check(obj) 
+            %sendInfo(obj, reverse_coeffs);
             %should receive "ReverseCoeffsReceived"
-            waitSignal = check(obj) 
+            %waitSignal = check(obj) 
             %read from Arduino; should receive "Ready"
             waitSignal = check(obj) 
         end
         
         
-%         %% ONELED 
-%         function oneLED(obj:direction:color:degree offset from center:time on in seconds)
-%             
-%             fprintf(obj.connection,('obj:%s:%s:%d:%d'),...
-%                 [dir:col:deg:timeOn]); 
-%             %check that "Done" is received at end of movement
-%             checkForLighting(obj, 'OneLED Trial'); 
-%         end
-%         
-%         %% SACCADE
-%         function saccade(obj:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon)
-%         
-%         fprintf(obj.connection,('oneLED:%d:%s:%s:%d:%d:%s:%s:%d:%d'),...
-%                 [dir1:2ndswitchcase:col1:deg1:timeOn1:dir2:col2:deg2:timeOn2]); 
-%             %check that "Done" is received at end of movement
-%             checkForLighting(obj, 'Saccade Trial'); 
-%         end
+        %% ONELED 
+        function oneLED(obj,dir,col,deg,timeOn)   
+            str1 = sprintf('oneLED:%s:%s:',[dir,col]);
+            str2 = sprintf('%d:%d', [deg, timeOn]);
+            sendoneled = [str1 str2];
+            
+            fprintf(obj.connection,sendoneled); 
+            %check that "Done" is received at end of movement
+            checkForActionEnd(obj, 'OneLED Trial'); 
+        end
         
-%         %%  %% SMOOTH PURSUIT
-%         function smoothPursuit(obj:dir:col:degInit:degFinal)
-%         
-%         fprintf(obj.connection,('oneLED:%s:%s:%d:%d'),...
-%                 [dir:col:degInit:degFinal]); 
-%             %check that "Done" is received at end of movement
-%             checkForLighting(obj, 'Smooth Pursuit Trial'); 
-%         end
-%                 
+        %% SACCADE
+        function saccade(obj,switchcase,dir1,col1,deg1,timeOn1,dir2,col2,deg2,timeOn2)
+            str1 = sprintf('saccade:%d:',switchcase);
+            str2 = sprintf('%s:%s:',[dir1,col1]);
+            str3 = sprintf('%d:%d:',[deg1,timeOn1]);
+            str4 = sprintf('%s:%s:',[dir2,col2]);
+            str5 = sprintf('%d:%d',[deg2,timeOn2]);
+            sendsaccade = [str1 str2 str3 str4 str5];
+        
+            fprintf(obj.connection,sendsaccade); 
+            %check that "Done" is received at end of movement
+            checkForActionEnd(obj, 'Saccade Trial'); 
+        end
+        
+        %%  %% SMOOTH PURSUIT
+        function smoothPursuit(obj,dir,col,degInit,degFinal)
+            str1 = sprintf('smoothPursuit:%s:%s:',[dir,col]);
+            str2 = sprintf('%d:%d', [degInit,degFinal]);
+            sendsmoothpursuit = [str1 str2];
+
+            fprintf(obj.connection,sendsmoothpursuit); 
+            %check that "Done" is received at end of movement
+            checkForActionEnd(obj, 'Smooth Pursuit Trial'); 
+        end
+                
         %% CALIBRATION - robot movement method
         function calibrate(obj)
             % Returns target to xMin and yMin at the bottom-left corner
@@ -106,7 +115,7 @@ classdef ExperimentClass_master < handle %define handle class
             %send string in this format with colon delimiter to Arduino
             fprintf(obj.connection,'calibrate:'); 
             %check that "Done" is received at end of movement
-            checkForMovementEnd(obj, 'Calibrate'); 
+            checkForActionEnd(obj, 'Calibrate'); 
         end
         
         %% Move To - robot movement method
@@ -116,7 +125,7 @@ classdef ExperimentClass_master < handle %define handle class
             %send string in this format with colon delimiter to Arduino
             fprintf(obj.connection,('moveTo:%f:%f:%d'),[x,y,hold]); 
             %check that "Done" is received at end of movement
-            checkForMovementEnd(obj, 'Linear Move Trial'); 
+            checkForActionEnd(obj, 'Linear Move Trial'); 
         end
         
         %% LINEAR OSCILLATION - robot movement method
@@ -132,7 +141,7 @@ classdef ExperimentClass_master < handle %define handle class
             fprintf(obj.connection,('linearOscillate:%d:%d:%d:%d:%d:%d'),...
                 [x0,y0,x1,y1,speed,repetitions]); 
             %check that "Done" is received at end of movement
-            checkForMovementEnd(obj, 'Linear Oscillate Trial'); 
+            checkForActionEnd(obj, 'Linear Oscillate Trial'); 
         end
         
         %% Arc - robot movement method
@@ -188,7 +197,7 @@ classdef ExperimentClass_master < handle %define handle class
             %otherwise
             else 
                 %check that "Done" is received at end of movement
-                checkForMovementEnd(obj,...
+                checkForActionEnd(obj,...
                     'Arc Movement/Smooth Pursuit Trial'); 
             end 
         end
@@ -435,7 +444,7 @@ classdef ExperimentClass_master < handle %define handle class
                strToSend = [str strList];
                str = strToSend;
             end
-            strToSend
+            %strToSend %display string being sent in command window
             fprintf(obj.connection, strToSend);
         end
         
@@ -444,7 +453,7 @@ classdef ExperimentClass_master < handle %define handle class
         % received to print in MATLAB's command window
         %
         % reads info in serial buffer
-        % contiues reading if nothing received
+        % continues reading if nothing received
         % if something is received
         % prints in command window
         function waitSignal = check(obj)
@@ -464,11 +473,11 @@ classdef ExperimentClass_master < handle %define handle class
             end
         end
         
-        %% checkForMovementEnd - communication function
+        %% checkForActionEnd - communication function
         % similar to waitSignal function
         % waits for message from Arduino that an LED/robot has finished
         % then prints it
-        function checkForMovementEnd(obj, message)
+        function checkForActionEnd(obj, message)
             endSignal = '';
             while(1)
                 endSignal = fscanf(obj.connection, '%s');

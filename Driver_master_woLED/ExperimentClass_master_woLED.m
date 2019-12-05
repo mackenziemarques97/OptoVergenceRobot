@@ -17,7 +17,7 @@ classdef ExperimentClass_master_woLED < handle %define handle class
         % ExperimentClass_master
         
         %comPort is "COM#" from USB serial connection; AKA serial port
-        function obj = ExperimentClass_master(serialPort) 
+        function obj = ExperimentClass_master_woLED(serialPort) 
             %creates serial port object associated with the serial port
             obj.connection = serial(serialPort); 
             %next 4 lines characterize communication port connection
@@ -60,15 +60,15 @@ classdef ExperimentClass_master_woLED < handle %define handle class
             
             % Communicate with Arduino and send speed model coefficients
             %should receive and print in command window "ReadyToReceiveCoeffs"
-            waitSignal = check(obj) 
-            sendInfo(obj, forward_coeffs);
+            %waitSignal = check(obj) 
+            %sendInfo(obj, forward_coeffs);
             %should receive "ForwardCoeffsReceived"
-            waitSignal = check(obj) 
-            sendInfo(obj, reverse_coeffs);
+            %waitSignal = check(obj) 
+            %sendInfo(obj, reverse_coeffs);
             %should receive "ReverseCoeffsReceived"
-            waitSignal = check(obj) 
+            %waitSignal = check(obj) 
             %read from Arduino; should receive "Ready"
-            waitSignal = check(obj) 
+            %waitSignal = check(obj) 
         end
         
         %% CALIBRATION - robot movement method

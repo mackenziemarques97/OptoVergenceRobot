@@ -499,7 +499,7 @@ double* parsecommand(char strCommand[]) {
     /*switch case
        speedModelFit:delayi:delayf:ddelay:angleTrials
     */
-    static double command[8];
+    static double command[6];
     command[0] = 8;
     int i = 1;
     while (token != NULL) {
@@ -926,7 +926,7 @@ void setup()
 
 {
 
-  Serial.begin(9600); 
+  Serial.begin(9600);
   delay( 3000 ); /* power-up safety delay */
 
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -977,14 +977,14 @@ void setup()
 
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = 106528;//*i * microstepsPerStep; /*x-dimension*/
+  dimensions[1] = 54624;//*(i + 1) * microstepsPerStep; /*y-dimension*/
 
   Serial.println("Ready");
   Blink(GREEN);
@@ -1020,10 +1020,10 @@ void loop() {
           turnOnLED(); /* turns on LED / displays any color changes made */
           delay(timeOn); /* waits */
           turnOff(dir, deg); /* turns off LED, specified by dir and deg */
-          Serial.println("Done");  
+          Serial.println("Done");
         }
         break;
-        
+
       case 2: //saccade:2ndswitchcase:LED1dir:LED1color:LED1degree:LED1timeon:LED2dir:LED2color:LED2degree:LED2timeon
         {
           switch ((int) * (command + 1)) { /* secondary switch case based on 2nd entry in command */
@@ -1047,10 +1047,10 @@ void loop() {
                 turnOnLED(); /* turns on 2nd LED */
                 delay(timeOn2); /* waits */
                 turnOff(dir2, deg2); /* turns off 2nd LED */
-                Serial.println("Done");   
+                Serial.println("Done");
               }
               break;
-              
+
             case 2:
               {
                 int dir1 = *(command + 2); /* identifies direction strand of fix point LED */
@@ -1092,18 +1092,18 @@ void loop() {
               degchecked [ledNum] = ledNum;
             }
           }
-    
+
           Serial.println (ledNum);
           for ( int j = 0; j <= ledNum; j++) {   /* goes through each element in the degchecked array*/
-                          setColor(dir, col, j); /* sets color */
-                          turnOnLED(); /* turns on LED */
-                          FastLED.delay(60); /* delays for 60 ms */
-                          turnOff(dir, j); /* turns off LED */
-                          
+            setColor(dir, col, j); /* sets color */
+            turnOnLED(); /* turns on LED */
+            FastLED.delay(60); /* delays for 60 ms */
+            turnOff(dir, j); /* turns off LED */
+
           }
 
-/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to -1 which won't be possible */
-        Serial.println("Done");
+          /* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to -1 which won't be possible */
+          Serial.println("Done");
         }
         break;
       case 4: // calibrate
@@ -1146,7 +1146,7 @@ void loop() {
             yLocinuSteps = dimensions[1];
           };
           /* displacement in scale of microsteps*/
-          xDisp = xLocinuSteps - location[0]; 
+          xDisp = xLocinuSteps - location[0];
           yDisp = yLocinuSteps - location[1];
 
           /*move by designated vector displacement*/
