@@ -570,7 +570,7 @@ int checkDegree(int dir, int deg) {
         //Serial.println("Valid degree entry.");
       }
       else if (deg > 35) { /* no LEDs beyond a 35 degree offset */
-//        ledNum = -1; /* assign arbitrary placeholder deg of -1 */
+        ledNum = -1; /* assign arbitrary placeholder deg of -1 */
         //Serial.println("Error. Inputs exceeds limits."); /* so invalid */
       }
       else if ((deg > 20 && deg < 25) || (deg > 25 && deg < 30) || (deg > 30 && deg < 35)) { /* no LEDs between 20 and 25 or 25 and 30 or 30 and 35 degrees */
@@ -926,7 +926,7 @@ void setup()
 
 {
 
-  Serial.begin(9600);
+  Serial.begin(9600); 
   delay( 3000 ); /* power-up safety delay */
 
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -1059,7 +1059,7 @@ void loop() {
                 int timeOn1 = *(command + 5) * 1000; /* identifies wait time before turning on 2nd LED */
                 int dir2 = *(command + 6); /* identifies direction strand of 2nd LED */
                 int col2 = *(command + 7); /* identifies color of 2nd LED */
-                int deg2 = *(command + 8); /* idetifies deg offset of 2nd LED */
+                int deg2 = *(command + 8); /* identifies deg offset of 2nd LED */
                 int timeOn2 = *(command + 9) * 1000; /* identitifes wait time before turning off both fix and 2nd LED */
                 deg1 = checkDegree(dir1, deg1); /* checks deg offset of fix LED */
                 setColor(dir1, col1, deg1); /* sets color of fix LED */
@@ -1076,6 +1076,7 @@ void loop() {
               break;
           }
         }
+        break;
 
       case 3: {//smoothPursuit:dir:col:degInit:degFinal
           /* moves light down a strip */
@@ -1092,16 +1093,16 @@ void loop() {
             }
           }
     
-
+          Serial.println (ledNum);
           for ( int j = 0; j <= ledNum; j++) {   /* goes through each element in the degchecked array*/
                           setColor(dir, col, j); /* sets color */
                           turnOnLED(); /* turns on LED */
                           FastLED.delay(60); /* delays for 60 ms */
                           turnOff(dir, j); /* turns off LED */
-                          ;
+                          
           }
 
-/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to zero which won't enter the for loop */
+/* note that none of the LEDs will light up if an invalid input is entered, for example, 34. This is because both the first and the last value in the degchecked array will be a zero so 'j' will essentially be trying to go from zero to -1 which won't be possible */
         Serial.println("Done");
         }
         break;
@@ -1128,7 +1129,7 @@ void loop() {
           long desiredYLoc = *(command + 2); //cm
           int holdTime = *(command + 3); //ms
 
-          long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep);
+          long xLocinuSteps = (long) ((desiredXLoc / Circ) * stepsPerRev * microstepsPerStep); /* Converting inputs from cm to microsteps*/
           long yLocinuSteps = (long) ((desiredYLoc / Circ) * stepsPerRev * microstepsPerStep);
           /*safety check, if the desired location is negative, move to (0,0)*/
           if (xLocinuSteps < 0) {
@@ -1145,7 +1146,7 @@ void loop() {
             yLocinuSteps = dimensions[1];
           };
           /* displacement in scale of microsteps*/
-          xDisp = xLocinuSteps - location[0]; /* Converting inputs from cm to microsteps*/
+          xDisp = xLocinuSteps - location[0]; 
           yDisp = yLocinuSteps - location[1];
 
           /*move by designated vector displacement*/
@@ -1224,8 +1225,6 @@ void loop() {
           analogWrite(RED, ledOn);/*turn on red*/
           line(xDisp, yDisp, Delay);
           delay(1000);
-          long store_a = -dx / 2; /*ditto*/
-          long store_b = -dy / 2; /*ditto*/
           int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
           int dv = startDelay - targetDelay;
           /*vector from initial to final location scaled for...*/
@@ -1330,9 +1329,7 @@ void loop() {
           int maxDistance = ddistance * (angleTrials - 1);
           Serial.println("Beginning");
           Serial.println(ddistance);
-          /* Number of loops for speed and angles*/
-          int delaytrials = (int) ((delayf - delayi) / ddelay + 1); /*currently does nothing*/
-          /* Intialize loop arrays that will be sent over*/
+          /* Initialize loop arrays that will be sent over*/
           unsigned long speedRuns[angleTrials];
           int xDistance[angleTrials];
           int yDistance[angleTrials];
