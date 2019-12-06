@@ -25,6 +25,7 @@ classdef ExperimentClass_master < handle %define handle class
             set(obj.connection,'StopBits',1);
             set(obj.connection,'BaudRate',9600);
             set(obj.connection,'Parity','none');
+            set(obj.connection,'Timeout',60);
             
             %start serial connection/open serial port object
             fopen(obj.connection); 
@@ -60,13 +61,13 @@ classdef ExperimentClass_master < handle %define handle class
             
             % Communicate with Arduino and send speed model coefficients
             %should receive and print in command window "ReadyToReceiveCoeffs"
-            %waitSignal = check(obj) 
-            %sendInfo(obj, forward_coeffs);
+            waitSignal = check(obj) 
+            sendInfo(obj, forward_coeffs);
             %should receive "ForwardCoeffsReceived"
-            %waitSignal = check(obj) 
-            %sendInfo(obj, reverse_coeffs);
+            waitSignal = check(obj) 
+            sendInfo(obj, reverse_coeffs);
             %should receive "ReverseCoeffsReceived"
-            %waitSignal = check(obj) 
+            waitSignal = check(obj) 
             %read from Arduino; should receive "Ready"
             waitSignal = check(obj) 
         end
