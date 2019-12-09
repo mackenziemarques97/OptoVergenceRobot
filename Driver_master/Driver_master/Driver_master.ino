@@ -1009,14 +1009,14 @@ void loop()
         //GREEN
         {
           /* Calibrates to xMin and yMin and updates location to (0,0) */
-          analogWrite(GREEN, ledOn); /*turn on green*/
+          //analogWrite(GREEN, ledOn); /*turn on green*/
           int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
           int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
           location[0] = 0;
           location[1] = 0;
           Serial.println("Done");
           delay(1000);
-          analogWrite(GREEN, ledOff); /*turn off green*/
+          //analogWrite(GREEN, ledOff); /*turn off green*/
         }
         break;
       case 5: // moveTo:x0:y0:delay/pulse width
@@ -1051,9 +1051,6 @@ void loop()
 
           /*move by designated vector displacement*/
           analogWrite(BLUE, ledOn);/*turn on blue*/
-          Serial.print("xLocinuSteps: "); Serial.print(xLocinuSteps);
-          Serial.print("yLocinuSteps: "); Serial.print(yLocinuSteps);
-
           line(xDisp, yDisp, Delay);
           Serial.println("Done");
           analogWrite(BLUE, ledOff);/*turn off blue*/
@@ -1121,7 +1118,6 @@ void loop()
           yDisp = (long) yInit - location[1];
 
           /*move along calculated displacement vector from current location to desired starting point*/
-          analogWrite(RED, ledOn);/*turn on red*/
           line(xDisp, yDisp, Delay);
           delay(1000);
           int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
@@ -1129,7 +1125,8 @@ void loop()
           /*vector from initial to final location scaled for...*/
           long dtx = (long) dx / (10 * dv / 2);
           long dty = (long) dy / (10 * dv / 2);
-
+          analogWrite(RED, ledOn);/*turn on red*/
+          
           for (int j = 1; j <= numReps; j++) { /*implemented number of times specified by repetitions input*/
             /* Speeds up in first 10% with intervals of 2 microseconds from min speed to max speed*/
             for (int i = 0; i < (int)dv / 2; i++) {
@@ -1205,8 +1202,7 @@ void loop()
 
           long dispInitx = dimensions[0] * 0.5 + ((float) Rsteps) * cos(angInit_rad) - location[0];
           long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
-          analogWrite(RED, ledOn);
-          analogWrite(BLUE, ledOn);
+
           line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
 
           int count = 0;
@@ -1284,7 +1280,9 @@ void loop()
               line(dx, dy, Delay);
             }
             }*/
-
+            
+          analogWrite(RED, ledOn);
+          analogWrite(BLUE, ledOn);
           //The following code accomplishes arc move with an attempt at constant speed throughout arc.
           for (int counter = 0; counter < numLines; counter++) {
             line(dx_array[counter], dy_array[counter], delays_array[counter]);
