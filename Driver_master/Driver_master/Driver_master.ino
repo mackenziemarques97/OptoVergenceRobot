@@ -1124,8 +1124,6 @@ void loop()
           analogWrite(RED, ledOn);/*turn on red*/
           line(xDisp, yDisp, Delay);
           delay(1000);
-          long store_a = -dx / 2; /*ditto*/
-          long store_b = -dy / 2; /*ditto*/
           int startDelay = 60; /*Minimum speed that target slows down to at edges of movement*/
           int dv = startDelay - targetDelay;
           /*vector from initial to final location scaled for...*/
