@@ -544,20 +544,20 @@ void setup()
   //loadInfo();
 
   /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-  int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
+  //int *i = findDimensions(); /*pointer of the array that contains the x & y-dimensions in terms of steps*/
   /* Scales dimensions to be in terms of microsteps (from steps)
       The following dimensions are to use when findDimensions() is commented out.
       big bot dimensions: x = 106528, y = 54624
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = *i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = *(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = 106528; //*i * microstepsPerStep; /*x-dimension*/
+  dimensions[1] = 54624; //*(i + 1) * microstepsPerStep; /*y-dimension*/
 
-  Serial.print("x-dim usteps: "); Serial.println(dimensions[0]);
-  Serial.print("y-dim usteps: "); Serial.println(dimensions[1]);
-  Serial.print("x-dim cm: "); Serial.println((dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
-  Serial.print("y-dim cm: "); Serial.println((dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
-  
+  //Serial.print("x-dim usteps: "); Serial.println(dimensions[0]);
+  //Serial.print("y-dim usteps: "); Serial.println(dimensions[1]);
+  //Serial.print("x-dim cm: "); Serial.println((dimensions[0] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
+  //Serial.print("y-dim cm: "); Serial.println((dimensions[1] * Circ) / (stepsPerRev * microstepsPerStep)); //set init loc in terms of cm to dimension limit converted to cm
+
   Serial.println("Ready");
   Blink(GREEN);
 }
@@ -759,11 +759,6 @@ void loop()
 
         {
           int dcm = *(command + 1); //diameter in cm
-          //safety check: diameter of arc
-          if ( dcm > 35  ) { //diameter is greater than max limit of x-dim
-            Serial.println("EntryError");
-            break;
-          }
           float dsteps = (dcm / Circ) * stepsPerRev * microstepsPerStep; //diameter in microsteps
           float Rcm = dcm / 2; //radius in cm
           float Rsteps = (Rcm / Circ) * stepsPerRev * microstepsPerStep; //radius is calculated from diameter (R = d/2) and converted from cm to microsteps
@@ -792,7 +787,7 @@ void loop()
           long dispInity = ((float) Rsteps) * sin(angInit_rad) - location[1];
           analogWrite(RED, ledOn);
           analogWrite(BLUE, ledOn);
-          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          //line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
 
           //TESTING
 
@@ -882,14 +877,17 @@ void loop()
             }
             }*/
           //constant speed throughout arc
-          for (int counter = 0; counter < numLines; counter++) {
-            line(dx_array[counter], dy_array[counter], delays_array[counter]);
-          }
+          //for (int counter = 0; counter < numLines; counter++) {
+          //line(dx_array[counter], dy_array[counter], delays_array[counter]);
+          //}
 
           delay(2000);
-          
+
+          for (int counter = 0; counter < numLines; counter++) {
+            Serial.print(dx_array[counter]); Serial.print(", "); Serial.println(dy_array[counter]);
+          }
           //constant delay throughout arc
-          line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
+          //line(dispInitx, dispInity, Delay); /*move to initial position, x-direction: center + rcos(angInit), y-direction: 0 + rsin(angInit)*/
           for (int counter = 0; counter < numLines; counter++) {
             line(dx_array[counter], dy_array[counter], Delay);
           }

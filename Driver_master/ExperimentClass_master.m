@@ -61,14 +61,14 @@ classdef ExperimentClass_master < handle %define handle class
             
             % Communicate with Arduino and send speed model coefficients
             %should receive and print in command window "ReadyToReceiveCoeffs"
-            waitSignal = check(obj) 
-            sendInfo(obj, forward_coeffs);
-            %should receive "ForwardCoeffsReceived"
-            waitSignal = check(obj) 
-            sendInfo(obj, reverse_coeffs);
-            %should receive "ReverseCoeffsReceived"
-            waitSignal = check(obj) 
-            %read from Arduino; should receive "Ready"
+%             waitSignal = check(obj) 
+%             sendInfo(obj, forward_coeffs);
+%             %should receive "ForwardCoeffsReceived"
+%             waitSignal = check(obj) 
+%             sendInfo(obj, reverse_coeffs);
+%             %should receive "ReverseCoeffsReceived"
+%             waitSignal = check(obj) 
+%             %read from Arduino; should receive "Ready"
             waitSignal = check(obj) 
         end
         
@@ -191,16 +191,9 @@ classdef ExperimentClass_master < handle %define handle class
 %             % should receive "dyReceived"
 %             waitSignal = check(obj) 
             
-            %for small bot, if diameter entered is greater than 35 cm
-            if (diameter > 35)
-                %wait for error message from Arduino
-                waitsignal = check(obj) 
-            %otherwise
-            else 
-                %check that "Done" is received at end of movement
-                checkForActionEnd(obj,...
-                    'Arc Movement/Smooth Pursuit Trial'); 
-            end 
+              %check that "Done" is received at end of movement
+              checkForActionEnd(obj,...
+              'Arc Movement/Smooth Pursuit Trial');  
         end
         
         %% Close Serial Connection
@@ -265,9 +258,9 @@ classdef ExperimentClass_master < handle %define handle class
             speedArray_steps_s = (sqrt(x.^2+y.^2)./(time./1000)); 
             %conversion factor is 1 revolution = 2*pi*0.65 cm = 200 steps
             %speedArray converted to cm/s
-            %speedArray_cm_s = speedArray_steps_s.*((2*pi*0.65)./200); 
+            speedArray_cm_s = speedArray_steps_s.*((2*pi*0.65)./200); 
             save('speed_step','speedArray_steps_s');
-            %save('speed_cm','speedArray_cm_s');
+            save('speed_cm','speedArray_cm_s');
             
             % Convert x and y distance to angle in degrees
             angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
