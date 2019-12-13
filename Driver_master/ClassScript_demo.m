@@ -23,6 +23,6 @@ a.calibrate();
 a.arcMove(65,90,-90,20,100);
 a.linearOscillate(65,0,65,60,30,2);
 a.linearOscillate(40,5,80,50,30,2);
-calibrate();
+a.calibrate();
 
 a.endSerial();

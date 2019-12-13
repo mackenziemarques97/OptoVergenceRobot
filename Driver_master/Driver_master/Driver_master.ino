@@ -884,8 +884,8 @@ void setup()
       big bot dimensions: x = 107488, y = 55296
       small bot dimensions: x = 28640, y = 31984
   */
-  dimensions[0] = 28640;//*i * microstepsPerStep; /*x-dimension*/
-  dimensions[1] = 31984;//*(i + 1) * microstepsPerStep; /*y-dimension*/
+  dimensions[0] = 107488;//*i * microstepsPerStep; /*x-dimension*/
+  dimensions[1] = 55296;//*(i + 1) * microstepsPerStep; /*y-dimension*/
 
   Serial.println("Ready");
 }

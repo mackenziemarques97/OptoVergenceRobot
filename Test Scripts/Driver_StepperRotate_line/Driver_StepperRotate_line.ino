@@ -76,8 +76,8 @@ digitalWrite(yDir, direction);
 }
 
 void loop() {
- line(0, 20000, 30);
+ line(0, 20000, 15);
  delay(1000);
- line(0, -20000, 30);
+ line(0, -20000, 15);
  delay(1000);
 }
