@@ -22,23 +22,23 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 % a.calibrate();
 % a.speedModelFit(15,65,5,12);
 
-a.moveTo(63,63,10);
-a.calibrate();
-a.moveTo(63,0,15);
-a.calibrate();
-a.moveTo(0,63,10);
+% a.moveTo(63,63,10);
+% a.calibrate();
+% a.moveTo(63,0,15);
+% a.calibrate();
+% a.moveTo(0,63,10);
 
 % a.moveTo(69,35,30);
 % a.linearOscillate(20,60,100,20,30,1);
 % a.oneLED("SE", "blue", 10, 4);
 % a.oneLED("center","red",0,3);
 % a.moveTo(100,60,30);
-% a.saccade(1, "N", "red", 5, 3, "NW", "green", 20, 1);
-% a.saccade(1, "W", "green", 5, 3, "E", "blue", 2, 2);
+a.saccade(1, "SW", "red", 5, 3, "NE", "green", 20, 1);
+a.saccade(1, "W", "green", 5, 3, "E", "blue", 2, 2);
 % a.calibrate();
 % a.arcMove(65,90,-90,20,50);
 % a.saccade(2, "SW", "green", 5, 3, "S", "blue", 20, 1);
-% a.smoothPursuit("N", "blue", 1, 35);
+a.smoothPursuit("N", "blue", 1, 35);
 
 % a.speedModelFit(15,70,5,12);
 %a.calibrate(); 
