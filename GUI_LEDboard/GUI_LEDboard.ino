@@ -124,7 +124,7 @@ double* parseCommand(char strCommand[]) {
 }
 
 /* function to set the color of the specified LED based on number in command[] */
-void setColor(int dir, int col, int deg) { /* dir, col, deg are all integers stored in command []; re-stored in named variables at start of each switch case */
+void setColor(int dir, int col, int ledNum) { /* dir, col, deg are all integers stored in command []; re-stored in named variables at start of each switch case */
   /* if turning on center LED */
 
   if (dir == 8) {
@@ -141,13 +141,13 @@ void setColor(int dir, int col, int deg) { /* dir, col, deg are all integers sto
   /* if turning on LEDs in any of the strips */
   else {
     if (col == 1) {
-      leds_Strips[dir][deg] = CRGB::Red; /* leds_Strips is an array of arrays */
+      leds_Strips[dir][ledNum] = CRGB::Red; /* leds_Strips is an array of arrays */
     }
     else if (col == 2) {
-      leds_Strips[dir][deg] = CRGB::Green; /* outer array (dir) refers to each direction strip */
+      leds_Strips[dir][ledNum] = CRGB::Green; /* outer array (dir) refers to each direction strip */
     }
     else if (col == 3) {
-      leds_Strips[dir][deg] = CRGB::Blue; /* inner array (deg) refers to one of the 23 LEDs in each direction strip */
+      leds_Strips[dir][ledNum] = CRGB::Blue; /* inner array (deg) refers to one of the 23 LEDs in each direction strip */
     }
   }
 }
@@ -255,7 +255,7 @@ void loop() {
           timeOn = * (command + 4) * 1000;
 
           ledNum = checkDegree(dir, deg);
-          setColor(dir, color, deg);
+          setColor(dir, color, ledNum);
         }
         break;
       case 2: //showLEDs
