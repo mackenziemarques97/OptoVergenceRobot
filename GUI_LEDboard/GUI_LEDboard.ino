@@ -247,8 +247,6 @@ void loop() {
 
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
-
-          Serial.println(dir); Serial.println(color); Serial.println(deg); Serial.println(timeOn); Serial.println(ledNum);
         }
         break;
       /*displays any changes made to LEDs*/
