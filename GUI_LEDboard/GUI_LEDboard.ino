@@ -4,16 +4,16 @@
 #include <FastLED.h>
 
 /*LED pins on Arduino for each direction strip*/
-#define N_Strip 40 //bluewhite
-#define NW_Strip 41 //yellowblack
-#define NE_Strip 42 //black
-#define S_Strip 43 //purple
-#define SW_Strip 44 //greenwhite
-#define SE_Strip 45 //brown
-#define W_Strip 46 //white
-#define E_Strip 47 //blue
+#define N_Strip 30 //bluewhite
+#define NW_Strip 31 //yellowblack
+#define NE_Strip 32 //black
+#define S_Strip 33 //purple
+#define SW_Strip 34 //greenwhite
+#define SE_Strip 35 //brown
+#define W_Strip 36 //white
+#define E_Strip 37 //blue
 /*LED pin on Arduino for center LED*/
-#define Center 48 //brownblack
+#define Center 38 //brownblack
 
 #define BRIGHTNESS  100 /* valid values between 0 and 255 */
 #define LED_TYPE    WS2812B
