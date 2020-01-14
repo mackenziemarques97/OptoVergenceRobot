@@ -203,12 +203,12 @@ void turnOnLED() {
 /* function to turn off LEDs
   regardless of whether in leds_Center or leds_Strips
 */
-void turnOff(int dir, int deg) {
+void turnOff(int dir, int ledNum) {
   if (dir == 8) {
     leds_Center[0] = CRGB::Black; FastLED.show(); /* set LED to black, then display */
   }
   else {
-    leds_Strips[dir][deg] = CRGB::Black; FastLED.show();
+    leds_Strips[dir][ledNum] = CRGB::Black; FastLED.show();
   }
 }
 
@@ -251,8 +251,8 @@ void loop() {
         {
           dir = * (command + 1);
           color = * (command + 2);
-          int deg = *(command + 3);
-          timeOn = * (command + 4);
+          int deg = * (command + 3);
+          timeOn = * (command + 4) * 1000;
 
           ledNum = checkDegree(dir, deg);
           setColor(dir, color, deg);
