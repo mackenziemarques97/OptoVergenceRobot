@@ -10,7 +10,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         % ExperimentClass_master
         
         %comPort is "COM#" from USB serial connection; AKA serial port
-        function obj = ExperimentClass_master(serialPort) 
+        function obj = ExperimentClass_GUI_LEDboard(serialPort) 
             %creates serial port object associated with the serial port
             obj.connection = serial(serialPort); 
             %next 4 lines characterize communication port connection

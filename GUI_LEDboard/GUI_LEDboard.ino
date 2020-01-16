@@ -91,6 +91,18 @@ int setColorIndex(const char* token) {
   else if (strcmp(token, "blue") == 0) { /*if entry is "blue"*/
     colIndex = 3; /*save index as 3*/
   }
+  else if (strcmp(token, "yellow") == 0) { /*if entry is "blue"*/
+    colIndex = 4; /*save index as 4*/
+  }
+  else if (strcmp(token, "white") == 0) { /*if entry is "blue"*/
+    colIndex = 5; /*save index as 5*/
+  }
+  else if (strcmp(token, "purple") == 0) { /*if entry is "blue"*/
+    colIndex = 6; /*save index as 6*/
+  }
+  else if (strcmp(token, "orange") == 0) { /*if entry is "blue"*/
+    colIndex = 7; /*save index as 7*/
+  }
   else { /* otherwise */
     colIndex = -1; /*save index as arbitrary placeholder -1 ~ nothing execute in this case*/
   }
@@ -131,6 +143,12 @@ double* parseCommand(char strCommand[]) {
     command[0] = 2; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
+  if (strcmp(token, "clearLEDs") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 3; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    return command;
+  }
+
 }
 
 /*This function accepts degree entries and saves the equivalent position in the strip.*/
@@ -138,7 +156,7 @@ int checkDegree(int dir, int deg) {
   if (dir == 8) {
     ledNum = 0;
   }
-  else{
+  else {
     if (deg == 25) { /*if degree offset from center LED is 25*/
       ledNum = 20; /*save ledNum as 20 - that is the position in the strip assigned to LED with 25 degree offset*/
     }
@@ -174,6 +192,18 @@ void setColor(int dir, int col, int ledNum) { /*dir, col, ledNum are all integer
     else if (col == 3) {
       leds_Center[0] = CRGB::Blue;
     }
+    else if (col == 4) {
+      leds_Center[0] = CRGB::Yellow;
+    }
+    else if (col == 5) {
+      leds_Center[0] = CRGB::White;
+    }
+    else if (col == 6) {
+      leds_Center[0] = CRGB::Purple;
+    }
+    else if (col == 7) {
+      leds_Center[0] = CRGB::Orange;
+    }
   }
   /*if turning on LEDs in any of the strips*/
   else {
@@ -185,6 +215,18 @@ void setColor(int dir, int col, int ledNum) { /*dir, col, ledNum are all integer
     }
     else if (col == 3) {
       leds_Strips[dir][ledNum] = CRGB::Blue; /*inner array (ledNum) refers to one of the 23 LEDs in each direction strip*/
+    }
+    else if (col == 4) {
+      leds_Strips[dir][ledNum] = CRGB::Yellow; /*inner array (ledNum) refers to one of the 23 LEDs in each direction strip*/
+    }
+    else if (col == 5) {
+      leds_Strips[dir][ledNum] = CRGB::White; /*inner array (ledNum) refers to one of the 23 LEDs in each direction strip*/
+    }
+    else if (col == 6) {
+      leds_Strips[dir][ledNum] = CRGB::Purple; /*inner array (ledNum) refers to one of the 23 LEDs in each direction strip*/
+    }
+    else if (col == 7) {
+      leds_Strips[dir][ledNum] = CRGB::Orange; /*inner array (ledNum) refers to one of the 23 LEDs in each direction strip*/
     }
   }
 }
@@ -224,6 +266,15 @@ void setup() {
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(9600);
+
+  char serialInit = 'X';
+  Serial.println("A");
+  while (serialInit != 'A')
+  {
+    serialInit = Serial.read();
+  }
+
+  Serial.println("startSignalReceived");
 }
 
 void loop() {
@@ -247,6 +298,8 @@ void loop() {
 
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
+
+          Serial.println("paramsSent");
         }
         break;
       /*displays any changes made to LEDs*/
@@ -255,6 +308,17 @@ void loop() {
           turnOnLED(); /*turn on LED*/
           delay(timeOn); /*wait*/
           turnOff(dir, ledNum); /*turn off LED*/
+
+          Serial.println("LEDon");
+        }
+        break;
+      /* turns off all LEDs*/
+      case 3: //clearLEDs
+        {
+          FastLED.clear();
+          FastLED.show();
+
+          Serial.println("clearedLEDs");
         }
         break;
     }

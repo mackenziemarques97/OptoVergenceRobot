@@ -7,7 +7,7 @@ system = computer(); %store computer-type MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem1421'; %format string stored in serialPort like is
 else %otherwise
-    serialPort = 'COM4'; %format like this
+    serialPort = 'COM6'; %format like this
 end
 a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
@@ -33,8 +33,8 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 % a.oneLED("SE", "blue", 10, 4);
 % a.oneLED("center","red",0,3);
 % a.moveTo(100,60,30);
-a.saccade(1, "SW", "red", 5, 3, "NE", "green", 20, 1);
-a.saccade(1, "W", "green", 5, 3, "E", "blue", 2, 2);
+a.saccade(1, "N", "red", 5, 3, "N", "green", 20, 1);
+a.saccade(1, "N", "green", 5, 3, "N", "blue", 2, 2);
 % a.calibrate();
 % a.arcMove(65,90,-90,20,50);
 % a.saccade(2, "SW", "green", 5, 3, "S", "blue", 20, 1);
