@@ -1,4 +1,4 @@
-serialPort = 'COM6';
+serialPort = 'COM8';
 a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use ita = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
 
 % a.clearLEDs();
