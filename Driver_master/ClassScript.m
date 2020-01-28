@@ -7,7 +7,7 @@ system = computer(); %store computer-type MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem1421'; %format string stored in serialPort like is
 else %otherwise
-    serialPort = 'COM6'; %format like this
+    serialPort = 'COM8'; %format like this
 end
 a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
