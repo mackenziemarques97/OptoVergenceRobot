@@ -138,14 +138,19 @@ double* parseCommand(char strCommand[]) {
     return command;
   }
 
-  if (strcmp(token, "showLEDs") == 0) { /*switch case 2 - showLEDs*/
+  if (strcmp(token, "turnOnLED") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
     command[0] = 2; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
-  if (strcmp(token, "clearLEDs") == 0) { /*switch case 2 - showLEDs*/
+  if (strcmp(token, "turnOffLED") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
     command[0] = 3; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    return command;
+  }
+  if (strcmp(token, "clearLEDs") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 4; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
 
@@ -241,7 +246,7 @@ void turnOnLED() {
 /* This function turns off LED
   regardless of whether in leds_Center or leds_Strips
 */
-void turnOff(int dir, int ledNum) {
+void turnOffLED(int dir, int ledNum) {
   if (dir == 8) {
     leds_Center[0] = CRGB::Black; FastLED.show(); /* set LED to black, then display */
   }
@@ -251,7 +256,7 @@ void turnOff(int dir, int ledNum) {
 }
 
 
-void setup() {
+void setup() {  
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NW_Strip, COLOR_ORDER>(leds_Strips[1], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NE_Strip, COLOR_ORDER>(leds_Strips[2], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -266,6 +271,7 @@ void setup() {
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(9600);
+  Serial.setTimeout(10);
 
   char serialInit = 'X';
   Serial.println("A");
@@ -295,30 +301,32 @@ void loop() {
           color = * (command + 2); /*color*/
           int deg = * (command + 3); /*degree offset from center of LED*/
           timeOn = * (command + 4) * 1000; /*time LED is on, in seconds*/
-
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
-
-          Serial.println("paramsSent");
+          Serial.println("phaseParamsSent");
         }
         break;
       /*displays any changes made to LEDs*/
-      case 2: //showLEDs
+      case 2: //turnOnLED
         {
           turnOnLED(); /*turn on LED*/
-          delay(timeOn); /*wait*/
-          turnOff(dir, ledNum); /*turn off LED*/
-
           Serial.println("LEDon");
+          delay(timeOn); /*wait*/
+        }
+        break;
+      /*turns off specified LED*/
+      case 3: //turnOffLED
+        {
+          turnOffLED(dir, ledNum); /*turn off LED*/
+          Serial.println("LEDoff");
         }
         break;
       /* turns off all LEDs*/
-      case 3: //clearLEDs
+      case 4: //clearLEDs
         {
           FastLED.clear();
           FastLED.show();
-
-          Serial.println("clearedLEDs");
+          Serial.println("LEDsCleared");
         }
         break;
     }

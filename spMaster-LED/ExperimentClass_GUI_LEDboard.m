@@ -10,18 +10,12 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         % ExperimentClass_master
         
         %comPort is "COM#" from USB serial connection; AKA serial port
-        function obj = ExperimentClass_GUI_LEDboard(serialPort) 
+        function obj = ExperimentClass_GUI_LEDboard(COM) 
             %creates serial port object associated with the serial port
-            obj.connection = serial(serialPort); 
-            %next 4 lines characterize communication port connection
-            set(obj.connection,'DataBits',8); 
-            set(obj.connection,'StopBits',1);
-            set(obj.connection,'BaudRate',9600);
-            set(obj.connection,'Parity','none');
-            set(obj.connection,'Timeout',30);
-            
-            %start serial connection/open serial port object
-            fopen(obj.connection);
+            %set properties
+            %open connection
+            startTalk = tic;
+            obj.connection = serialport(COM,9600,"DataBits",8,"Timeout",60); 
             
             % Confirm serial connection
             % equivalent to initialize function in Driver_master.ino
@@ -29,7 +23,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             SerialInit = 'X'; %store string X in variable SerialInit
             while (SerialInit~='A') %while SerialInit not equal to string A
                 %read data from serial port
-                SerialInit=fread(obj.connection,1,'uchar'); 
+                SerialInit=read(obj.connection,1,'char'); 
             end
             %if something other than A received from Arduino
             if (SerialInit ~= 'A') 
@@ -38,12 +32,15 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
                 disp('Serial Read') %display message
             end
             
-            fprintf(obj.connection,'%c','A'); %MATLAB sends out 'A'
+            write(obj.connection,'A','char'); %MATLAB sends out 'A'
             %equivalent of typing 'A' into serial monitor on Arduino side
             %removes data from input buffer associated with serial port
-            flushinput(obj.connection); 
+            flush(obj.connection); 
             
-            waitSignal = check(obj)       
+            waitSignal = check(obj)
+            
+            %setupTime = toc(startTalk)
+            
         end
         
         %% sendPhaseParams 
@@ -52,35 +49,39 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             str1 = sprintf('sendPhaseParams:%s:%s:',[dir,color]);
             str2 = sprintf('%d:%d:',[deg,timeOn]);
             sendInfo = [str1 str2];       
-            fprintf(obj.connection, sendInfo); 
-            
-            waitSignal = check(obj)       
+            writeline(obj.connection, sendInfo); 
+            waitSignal = check(obj)
         end
         
-        %% showLEDs
+        %% turnOnLED
         % displays any changes of LED parameters since last call
-        function showLEDs(obj)            
+        function turnOnLED(obj)  
             %send string in this format with colon delimiter to Arduino
-            fprintf(obj.connection,'showLEDs:'); 
-            
-            waitSignal = check(obj)       
+            writeline(obj.connection,'turnOnLED:'); 
+            waitSignal = check(obj)
+        end
+        
+        %% turnOffLED
+        function turnOffLED(obj)  
+            %send string in this format with colon delimiter to Arduino
+            writeline(obj.connection,'turnOffLED:'); 
+            waitSignal = check(obj)
         end
         
         %% clearLEDs
         % clear all LEDs ~ set them to black
         function clearLEDs(obj)            
             %send string in this format with colon delimiter to Arduino
-            fprintf(obj.connection,'clearLEDs:'); 
-            
-            waitSignal = check(obj)       
+            writeline(obj.connection,'clearLEDs:');       
+            waitSignal = check(obj)
         end
         
         %% Close Serial Connection
         function endSerial(obj)
-            fclose(obj.connection); %close connection
+            delete(obj.connection); %close connection
         end
         
-                %% waitSignal - communication function  
+        %% waitSignal - communication function  
         % do not suppress "waitSignal = check(obj)" line if you want what's
         % received to print in MATLAB's command window
         %
@@ -92,9 +93,9 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             data = ''; % "data" variable starts out empty
             while(1)
                 % reads and stores data from serial buffer
-                data = fscanf(obj.connection, '%s');  
+                data = readline(obj.connection);  
                 if isempty(data) == 1 % if nothing is read
-                    data = fscanf(obj.connection, '%s');% continue reading
+                    data = readline(obj.connection);% continue reading
                     %1
                 elseif isempty(data) == 0 % if something is received
                     % print it
@@ -104,6 +105,6 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
                 end
             end
         end
-        
-   end
+    end
 end
+

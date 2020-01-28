@@ -50,4 +50,4 @@ a.smoothPursuit("N", "blue", 1, 35);
 %a.moveTo(20,20,500);
 %a.linearOscillate(0,0,20,20,30,2);
 
-a.endSerial();
+%a.endSerial();
