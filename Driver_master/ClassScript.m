@@ -7,7 +7,7 @@ system = computer(); %store computer-type MATLAB is running on
 if strcmp(system, "MACI64") %if computer is 64-bit macOS platform
     serialPort = '/dev/tty.usbmodem1421'; %format string stored in serialPort like is
 else %otherwise
-    serialPort = 'COM8'; %format like this
+    serialPort = 'COM4'; %format like this
 end
 a = ExperimentClass_master(serialPort); %create an object of the class to use it
 
@@ -19,12 +19,12 @@ a = ExperimentClass_master(serialPort); %create an object of the class to use it
 % a.speedModelFit(obj,delayi,delayf,ddelay,angleTrials);
 
 %% Test specifications
-% a.calibrate();
+ a.calibrate();
 % a.speedModelFit(15,65,5,12);
 
-% a.moveTo(63,63,10);
-% a.calibrate();
-% a.moveTo(63,0,15);
+ a.moveTo(63,63,10);
+ a.calibrate();
+ a.moveTo(63,0,15);
 % a.calibrate();
 % a.moveTo(0,63,10);
 
@@ -42,12 +42,12 @@ a.smoothPursuit("N", "blue", 1, 35);
 
 % a.speedModelFit(15,70,5,12);
 %a.calibrate(); 
-%a.moveTo(0,30,100); 
-%a.calibrate();
+a.moveTo(0,30,100); 
+a.calibrate();
 %a.moveTo(10,5,100); % x cm, y cm, hold ms
 %a.speedModelFit(15,65,5,12);
 % a.linearOscillate(10,10,60,25,30,2,100);
 %a.moveTo(20,20,500);
 %a.linearOscillate(0,0,20,20,30,2);
 
-%a.endSerial();
+a.endSerial();
