@@ -14,8 +14,8 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             %creates serial port object associated with the serial port
             %set properties
             %open connection
-            startTalk = tic;
-            obj.connection = serialport(COM,9600,"DataBits",8,"Timeout",60); 
+            %startTalk = tic;
+            obj.connection = serialport(COM,115200,"DataBits",8,"Timeout",20); 
             
             % Confirm serial connection
             % equivalent to initialize function in Driver_master.ino

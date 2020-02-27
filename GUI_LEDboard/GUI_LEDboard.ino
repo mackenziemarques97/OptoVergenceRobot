@@ -7,6 +7,11 @@
 #include <math.h>
 #include <FastLED.h>
 
+/*Define pins for interacting with photodiode*/
+//THESE ARE NOT DOING ANYTHING YET
+#define cReset 50
+#define dLatchOut 51
+
 /*Define LED pins on Arduino for each direction strip*/
 #define N_Strip 30 //bluewhite
 #define NW_Strip 31 //yellowblack
@@ -270,8 +275,8 @@ void setup() {
   FastLED.setBrightness( BRIGHTNESS );
 
   /*set serial data transmission rate (baud rate)*/
-  Serial.begin(9600);
-  Serial.setTimeout(10);
+  Serial.begin(115200);
+  Serial.setTimeout(4);
 
   char serialInit = 'X';
   Serial.println("A");
@@ -303,13 +308,14 @@ void loop() {
           timeOn = * (command + 4) * 1000; /*time LED is on, in seconds*/
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
+          leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime anything else turns on*/
           Serial.println("phaseParamsSent");
         }
         break;
       /*displays any changes made to LEDs*/
       case 2: //turnOnLED
         {
-          turnOnLED(); /*turn on LED*/
+          turnOnLED(); /*turn on LEDs*/
           Serial.println("LEDon");
           delay(timeOn); /*wait*/
         }

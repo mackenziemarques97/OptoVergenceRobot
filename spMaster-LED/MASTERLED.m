@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 14-Jan-2020 15:30:39
+% Last Modified by GUIDE v2.5 17-Feb-2020 11:37:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,6 +66,8 @@ handles.dio = dio;
 
 %Set function handles for inputs
 
+%save TrialParams in a cell array of doubles
+handles.TrialParam.Data = cellfun(@double,handles.TrialParam.Data,'UniformOutput',false);
 % startJoy
 % handles.getEyePosFunc = @peekJoyPos;
 handles.deliverRewardFunc = @deliverRewardNotification;
@@ -193,25 +195,20 @@ function TrialParam_CellEditCallback(hObject, eventdata, handles)
 %	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
-
 % I plan on writing code here to check for valid input, convert strings to 
 %   relevant numerical values, etc
-
-% safety check: Are the degrees entered by the user valid in the sense that
-% they correspond to lcoations where an LED is present?
-Data = str2double(get(handles.TrialParam,'String'));
-cols = 2;
-disp('hello')
-for phase = 1:size(Data,cols)
+% % safety check: Are the degrees entered by the user valid in the sense that
+% % they correspond to lcoations where an LED is present?
+Data = handles.TrialParam.Data;
+numPhases = size(Data,1);
+for phase = 1:numPhases
     if ((Data{phase,3} < 0)||(Data{phase,3} > 20 && Data{phase,3} < 25)...
             ||(Data{phase,3} > 25 && Data{phase,3} < 30)||...
-            (Data{phase,3} > 30 && Data{phase,3} < 35)||Data{phase,3} > 35)
-        str = sprintf('Invalid degree entry in phase %d of last saved trial.', phase);
-        msgbox(str);
+            (Data{phase,3} > 30 && Data{phase,3} < 35)||Data{phase,3} > 35)      
+        str = sprintf('Invalid degree entry in phase %d of current trial.', phase);
+        uiwait(msgbox(str,'Error','error'));
     end
 end
-
-
 
 function TrialName_Callback(hObject, eventdata, handles)
 % hObject    handle to TrialName (see GCBO)
@@ -473,3 +470,10 @@ function figure1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object deletion, before destroying properties.
+function SavedTrials_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to SavedTrials (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

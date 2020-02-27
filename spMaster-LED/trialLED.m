@@ -1,4 +1,6 @@
-function trialLED(trialname,handles)
+function trialLED(trialname,handles,a) %function inputs: savename of trial,
+%handles, object of Arduino experiment class
+
 %% Load the trial data/convert to struct, initialize axes in aux
 % save path locations to variables for reuse 
 masterFolder = 'C:\Users\SommerLab\Documents\spMaster-LED';
@@ -11,8 +13,32 @@ load(trialname,'TrialParams');
 % change the current folder to spMaster-LED
 cd(masterFolder)
 
+%get number of filled in rows (trial phases) in TrialParams
+numFilledInRows = sum(~cellfun(@isempty,TrialParams),1);
+numPhases = numFilledInRows(1); %number of rows with the direction filled in
+numParams = numel(numFilledInRows); %total number of params (columns)
+%if first element in a row exists and a subsequent element is empty
+%then replace empty element with 0
+%this is intended to correct any logical errors with params determined by
+%checkboxes
+for i = 1:numPhases
+    for j = 1:numParams
+        if ~isempty(TrialParams{i,1}) && isempty(TrialParams{i,j})
+            TrialParams{i,j} = 0;
+        end
+    end
+end
+TrialParams = TrialParams(1:numPhases, :);
+
 names = {'direction','color','degree','duration','fixDur','reward','withNext'};
 trial = cell2struct(TrialParams,names,2);
+
+for phaseNum = 1:numPhases
+    if ~isempty(trial(phaseNum).direction)
+        %convert direction and degree to x and y coordinates on auxiliary axis
+        [trial(phaseNum).xCoord, trial(phaseNum).yCoord] = getPhaseCoords(trial, phaseNum); 
+    end
+end
 
 ai = handles.ai;
 dio = handles.dio;
@@ -42,16 +68,19 @@ auxAxes = auxAxes.Position;
 %% initialize viewing figure axes in auxiliary gui
 
 axes(auxAxes);cla; %get axes from GUI
-
 [eyePosX, eyePosY] = handles.getEyePosFunc(ai);
-hFix = rectangle('Position', [0 0 1 1],'FaceColor','blue'); %create square for target
+hFix = rectangle('Position', [0 0 1 1],'FaceColor', 'blue'); %create first rectangle
 hEye = rectangle('Position', [eyePosX eyePosY 1 1],'FaceColor','red'); %create square for eye pos
 
-    function updateViewingFigure()
+    function updateViewingFigure(isWithNext)
         try
-            set(hFix, 'Position', [trial(phase).xCoord trial(phase).yCoord 1 1]);
-            set(hEye, 'Position', [eyePosX eyePosY 1 1]);
-            
+            set(hFix, 'Position', [trial(eyeCheckPhaseIndex).xCoord trial(eyeCheckPhaseIndex).yCoord 1 1]); 
+            set(hEye, 'Position', [eyePosX eyePosY 1 1]);           
+            if isWithNext == 1
+                for ii = 1:size(viewingFigureRectangles, 2)
+                    set(viewingFigureRectangles(ii), 'Position', [viewingFigureCoords(ii, 1) viewingFigureCoords(ii, 2) 1 1]);
+                end
+            end
             drawnow
         catch
             disp('Unable to plot axes');
@@ -59,53 +88,19 @@ hEye = rectangle('Position', [eyePosX eyePosY 1 1],'FaceColor','red'); %create s
     end
 
 % start the trial --> screen
-%INITIALIZE TRIAL BY SETTING ALL LEDS TO BLACK?
-%%
-% Arduino system setup
-%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
-%to find COM port you are connected to. If necessary, update string stored
-%in serialPort accordingly.
-serialPort = 'COM6';
-a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
-%%
 
-a.clearLEDs();
-startTrial = tic;
+a.clearLEDs(); %initalize trial by setting all LEDs to black
 
 %% Initialize finite state structure
 numPhases = size(trial, 1);
 phase = 1;
-while phase < numPhases   
-    
-    eyeCheckPhaseIndex = phase;
-        
-    %convert direction and degree to x and y coordinates on auxiliary axis
-    if strcmp(trial(phase).direction, 'N')
-        trial(phase).xCoord = 0;
-        trial(phase).yCoord = trial(phase).degree;
-    elseif strcmp(trial(phase).direction, 'S')
-        trial(phase).xCoord = 0;
-        trial(phase).yCoord = -trial(phase).degree;
-    elseif strcmp(trial(phase).direction, 'E')
-        trial(phase).xCoord = trial(phase).degree;
-        trial(phase).yCoord = 0;
-    elseif strcmp(trial(phase).direction, 'W')
-        trial(phase).xCoord = -trial(phase).degree;
-        trial(phase).yCoord = 0;
-    elseif strcmp(trial(phase).direction, 'NW')
-        trial(phase).xCoord = -trial(phase).degree * cosd(45);
-        trial(phase).yCoord = trial(phase).degree * sind(45);
-    elseif strcmp(trial(phase).direction, 'NE')
-        trial(phase).xCoord = trial(phase).degree * cosd(45);
-        trial(phase).yCoord = trial(phase).degree * sind(45);
-    elseif strcmp(trial(phase).direction, 'SW')
-        trial(phase).xCoord = -trial(phase).degree * cosd(45);
-        trial(phase).yCoord = -trial(phase).degree * sind(45);
-    elseif strcmp(trial(phase).direction, 'SE')
-        trial(phase).xCoord = trial(phase).degree * cosd(45);
-        trial(phase).yCoord = -trial(phase).degree * sind(45);
+while phase <= numPhases 
+    if exist('viewingFigureRectangles','var')
+       delete(viewingFigureRectangles);
     end
     
+    eyeCheckPhaseIndex = phase;
+              
     [numrew, fixTol] = checkAux(auxiliary);
     
     if isempty(trial(phase).duration) %can change to duration
@@ -115,19 +110,19 @@ while phase < numPhases
     success = false;
       
     a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree, trial(phase).duration); %WRITE FOR ARDUINO
-    
+        
     %is there more than one stimulus on screen
+    viewingFigureIndex = 1;
     while trial(phase).withNext
         phase = phase + 1;
+        viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [0 0 1 1],'FaceColor','green');
+        viewingFigureCoords(viewingFigureIndex, :) = [trial(phase).xCoord, trial(phase).yCoord];
+        viewingFigureIndex = viewingFigureIndex + 1;
         a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree, trial(phase).duration); %WRITE FOR ARDUINO
     end
     
-    fprintf('phase is %d', phase);
-    trialShowTic = tic;
-    a.turnOnLED(); %SWITCH TO ARDUINO COMMAND
-    
-    %THINK OF WAY TO VERIFY THAT LED CAME ON?
-    
+    a.turnOnLED(); 
+        
     % check for fixation
     fix = false; % assume no fixation to start
     fixTic = tic;
@@ -139,7 +134,12 @@ while phase < numPhases
             disp('missed eye position acquisition')
         end
         
-        updateViewingFigure();
+        if exist('viewingFigureRectangles','var')           
+            updateViewingFigure(1);
+        else
+            updateViewingFigure(0);
+        end
+         
         
         if abs(eyePosX - trial(eyeCheckPhaseIndex).xCoord) < fixTol && abs(eyePosY - trial(eyeCheckPhaseIndex).yCoord) < fixTol
             fix = true;
@@ -158,7 +158,11 @@ while phase < numPhases
                 disp('Missed data')
             end
 
-            updateViewingFigure();
+            if exist('viewingFigureRectangles','var')
+                updateViewingFigure(1);
+            else
+                updateViewingFigure(0);
+            end
 
             if abs(eyePosX - trial(eyeCheckPhaseIndex).xCoord) < fixTol && abs(eyePosY - trial(eyeCheckPhaseIndex).yCoord) < fixTol
                 keepFix = true;
@@ -169,19 +173,15 @@ while phase < numPhases
         end
     end
     a.clearLEDs();
-    y = toc(trialShowTic)
     
     % deliver reward only if fixation was maintained AND this phase is
     %   to deliver reward
     if keepFix && trial(eyeCheckPhaseIndex).reward
         handles.deliverRewardFunc(dio, numrew)
-        pause(2) % determine pause length between trials
+        pause(0.002) % determine pause length between trials
         success = true;
     end
     
     phase = phase + 1;
 end
-
-a.endSerial(); %end serial connection with Arduino
-
 end

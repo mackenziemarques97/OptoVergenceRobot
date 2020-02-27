@@ -11,7 +11,7 @@ experFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\experiments';
 % change current folder to experiments folder
 cd(experFolder)
 % load experiment structure/trial order
-load(experiment);
+load(experiment,'ExperParams');
 % change current folder to spMaster-LED
 cd(masterFolder)
 
@@ -22,6 +22,15 @@ ntrials = cell2mat(ncells);
 ntrials = str2num(ntrials);
 totalTrials = sum(ntrials);
 ntypes = length(ntrials);
+
+% Arduino system setup
+%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
+%to find COM port you are connected to. If necessary, update string stored
+%in serialPort accordingly.
+serialPort = 'COM4';
+%create an object of the class to use it
+%functions within class can be used in experimentLED and trialLED
+a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
 
 %% Create a vector totalTrials long containing the trial order
 trialOrder = [];
@@ -57,10 +66,12 @@ if strcmp(order,'Random')
 end
 
 %% Run through the experiment
-for i = 1:totalTrials
-    currentTrial = trialOrder{i};
+for ii = 1:totalTrials
+    currentTrial = trialOrder{ii};
     currentTrial = strcat(currentTrial,'.mat');
-    trialLED(currentTrial,handles) % calls trial.m with the current trial parameters
+    trialLED(currentTrial,handles,a) % calls trial.m with the current trial parameters
 end
+
+a.endSerial(); % at the end of each experiment, end serial connection with Arduino
 end
 
