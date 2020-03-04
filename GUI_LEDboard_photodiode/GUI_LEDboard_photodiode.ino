@@ -274,7 +274,8 @@ void setup() {
 
   FastLED.setBrightness( BRIGHTNESS );
 
-  
+  pinMode(cReset, INPUT);
+  pinMode(dLatchOut, INPUT);
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(115200);
@@ -319,6 +320,7 @@ void loop() {
         {
           turnOnLED(); /*turn on LEDs*/
           Serial.println("LEDon");
+          
           delay(timeOn); /*wait*/
         }
         break;
