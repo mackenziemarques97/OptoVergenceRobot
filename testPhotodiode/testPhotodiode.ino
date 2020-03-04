@@ -1,3 +1,7 @@
+/*The purpose of this script is to test the resetting of the photodiode 
+ * to get the expected Latch Out signal.
+ */
+
 #include <FastLED.h>
 
 /*Include the following libraries*/
@@ -7,7 +11,7 @@
 
 /*Define pins for interacting with photodiode*/
 #define cReset 50
-#define dLatchOut 51
+#define dLatchOut 51 //nothing is currently being done with this pin
 
 /*Define LED pins on Arduino for each direction strip*/
 #define N_Strip 30 //bluewhite
@@ -41,6 +45,7 @@ CRGB leds_Center[NUM_Center];
 
 
 void setup() {
+  /*Initialize strips*/
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NW_Strip, COLOR_ORDER>(leds_Strips[1], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NE_Strip, COLOR_ORDER>(leds_Strips[2], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -50,31 +55,36 @@ void setup() {
   FastLED.addLeds<LED_TYPE, W_Strip, COLOR_ORDER>(leds_Strips[6], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, E_Strip, COLOR_ORDER>(leds_Strips[7], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, Center, COLOR_ORDER>(leds_Center, NUM_Center).setCorrection( TypicalLEDStrip );
-
+  /*Set brightness*/
   FastLED.setBrightness( BRIGHTNESS );
+  /*Set cReset pin for photodiode as output*/
   pinMode(cReset, OUTPUT);
-  
+  /*Start connection to serial monitor*/
+  Serial.begin(9600);
+  /*Clear all LEDs*/
   FastLED.clear();
   FastLED.show();
-  
+  /*Quickly switch cReset from On to Off*/
   digitalWrite(cReset, HIGH);
   digitalWrite(cReset, LOW);
-  delay(100);
-  
+  delay(100); 
 }
 
 void loop() {
+  /*Reset is high*/
   digitalWrite(cReset, HIGH);
-
+  /*Turn on LEDs*/
   leds_Strips[6][0] = CRGB::Blue;
   leds_Strips[6][10] = CRGB::Blue;
   leds_Strips[6][22] = CRGB::Red;
   FastLED.show();
+  Serial.println("on");
   delay(1000);
-
+  /*Reset is low*/
   digitalWrite(cReset, LOW);
-
+  /*Turn off LEDs*/
   FastLED.clear();
   FastLED.show();
+  Serial.println("off");
   delay(1000);
 }

@@ -1,6 +1,6 @@
 /*This sketch is intended to integrate the LED board (controlled by an Arduino Mega 2560)
    with the sp_Master MATLAB GUI.
-   AND TEST THE PHOTODIODE PINS - what the signal received is
+   AND TEST/IMPLEMENt THE PHOTODIODE PINS
 */
 
 /*Include the following libraries*/
@@ -274,12 +274,16 @@ void setup() {
 
   FastLED.setBrightness( BRIGHTNESS );
 
-  pinMode(cReset, INPUT);
+  pinMode(cReset, OUTPUT);
   pinMode(dLatchOut, INPUT);
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(115200);
   Serial.setTimeout(4);
+
+  digitalWrite(cReset, HIGH);
+  digitalWrite(cReset, LOW);
+  delay(100);
 
   char serialInit = 'X';
   Serial.println("A");
@@ -318,6 +322,7 @@ void loop() {
       /*displays any changes made to LEDs*/
       case 2: //turnOnLED
         {
+          digitalWrite(cReset, HIGH);
           turnOnLED(); /*turn on LEDs*/
           Serial.println("LEDon");
           
@@ -327,6 +332,7 @@ void loop() {
       /*turns off specified LED*/
       case 3: //turnOffLED
         {
+          digitalWrite(cReset, LOW);
           turnOffLED(dir, ledNum); /*turn off LED*/
           Serial.println("LEDoff");
         }
@@ -334,6 +340,7 @@ void loop() {
       /* turns off all LEDs*/
       case 4: //clearLEDs
         {
+          digitalWrite(cReset, LOW);
           FastLED.clear();
           FastLED.show();
           Serial.println("LEDsCleared");
