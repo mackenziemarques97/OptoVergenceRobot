@@ -1,7 +1,10 @@
 function [xCoord, yCoord] = getPhaseCoords(trial, phase)
 
 %convert direction and degree to x and y coordinates on auxiliary axis
-if strcmp(trial(phase).direction, 'N')
+if strcmp(trial(phase).direction, 'center')
+    xCoord = 0;
+    yCoord = 0;
+elseif strcmp(trial(phase).direction, 'N')
     xCoord = 0;
     yCoord = trial(phase).degree;
 elseif strcmp(trial(phase).direction, 'S')

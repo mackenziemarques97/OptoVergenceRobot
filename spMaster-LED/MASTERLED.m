@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 17-Feb-2020 11:37:29
+% Last Modified by GUIDE v2.5 09-Mar-2020 14:53:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,35 +55,21 @@ function MASTERLED_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for MASTERGUI
 handles.output = hObject;
 
-% global ai; global dio;
-
-[ai, dio] = krConnectDAQInf();
-
-% handles = setfield(handles,'ai',ai);
-% handles = setfield(handles,'dio',dio);
-handles.ai = ai;
-handles.dio = dio;
-
 %Set function handles for inputs
 
 %save TrialParams in a cell array of doubles
 handles.TrialParam.Data = cellfun(@double,handles.TrialParam.Data,'UniformOutput',false);
-% startJoy
-% handles.getEyePosFunc = @peekJoyPos;
-handles.deliverRewardFunc = @deliverRewardNotification;
-
-handles.getEyePosFunc = @krPeekEyePos;
-%handles.deliverRewardFunc = @krDeliverReward;
-%global buffData buffTime
 
 handles.masterFolder = 'C:\Users\SommerLab\Documents\spMaster-LED';
 handles.experFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\experiments';
 handles.trialFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\trials';
+handles.dataFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\data';
 
 % change the current folder to trials folder
 cd(handles.trialFolder);
 
 trials = uigetdir;
+handles.trialFolder = trials;
 Infolder = dir(trials);
 trialList = [];
 for i = 1:length(Infolder)
@@ -99,6 +85,7 @@ set(handles.SavedTrials,'String',trialList)
 cd(handles.experFolder);
 
 experiments = uigetdir;
+handles.experFolder = experiments;
 Infolder = dir(experiments);
 experList = [];
 for i = 1:length(Infolder)
@@ -109,6 +96,33 @@ for i = 1:length(Infolder)
    end
 end
 set(handles.SavedExperiments,'String',experList)
+
+% change the current folder to data folder
+cd(handles.dataFolder);
+data_main_dir = uigetdir;
+handles.data_main_dir = data_main_dir;
+cd(data_main_dir);
+data_dir_prefix = datestr(datetime('now'),'yyyymmdd_');
+i = 0;
+while i < 100
+   data_dir = [data_dir_prefix,num2str(i)];
+   if ~exist(data_dir, 'dir')
+       mkdir(data_dir)
+       break;
+   end
+   i = i + 1;
+end
+if i == 100
+    errordlg('CATASTROPHIC ERROR: Hala, you have reached the maximum number of data folders allowed! Abort! Abort!','File Error');
+end
+handles.data_path = fullfile(data_main_dir,data_dir);
+
+[ai, dio] = krConnectDAQInf(data_main_dir);
+handles.ai = ai;
+handles.dio = dio;
+
+handles.getEyePosFunc = @()(krPeekEyePos(data_main_dir));
+handles.deliverRewardFunc = @krDeliverReward;
 
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
@@ -199,16 +213,7 @@ function TrialParam_CellEditCallback(hObject, eventdata, handles)
 %   relevant numerical values, etc
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to lcoations where an LED is present?
-Data = handles.TrialParam.Data;
-numPhases = size(Data,1);
-for phase = 1:numPhases
-    if ((Data{phase,3} < 0)||(Data{phase,3} > 20 && Data{phase,3} < 25)...
-            ||(Data{phase,3} > 25 && Data{phase,3} < 30)||...
-            (Data{phase,3} > 30 && Data{phase,3} < 35)||Data{phase,3} > 35)      
-        str = sprintf('Invalid degree entry in phase %d of current trial.', phase);
-        uiwait(msgbox(str,'Error','error'));
-    end
-end
+
 
 function TrialName_Callback(hObject, eventdata, handles)
 % hObject    handle to TrialName (see GCBO)
@@ -238,8 +243,39 @@ function SaveTrial_Callback(hObject, eventdata, handles)
 % hObject    handle to SaveTrial (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% %get number of filled in rows (trial phases) in TrialParams
+% numFilledInRows = sum(~cellfun(@isempty,Data),1);
+% numPhases = numFilledInRows(1); %number of rows with the direction filled in
+% numParams = numel(numFilledInRows); %total number of params (columns)
+% %if first element in a row exists and a subsequent element is empty
+% %then replace empty element with 0
+% %this is intended to correct any logical errors with params determined by
+% %checkboxes
+% for i = 1:numPhases
+%     for j = 1:numParams
+%         if ~isempty(Data{i,1}) && isempty(Data{i,j})
+%             Data{i,j} = 0;
+%         end
+%     end
+% end
+% Data = Data(1:numPhases, :);
+
 global TrialParams;
 TrialParams = get(handles.TrialParam,'Data');
+
+numFilledInRows = sum(~cellfun(@isempty,TrialParams),1);
+numPhases = numFilledInRows(1);
+for phase = 1:numPhases
+    if ((TrialParams{phase,3} < 0)||(TrialParams{phase,3} > 20 && TrialParams{phase,3} < 25)...
+            ||(TrialParams{phase,3} > 25 && TrialParams{phase,3} < 30)||...
+            (TrialParams{phase,3} > 30 && TrialParams{phase,3} < 35)||TrialParams{phase,3} > 35)     
+        str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
+        uiwait(msgbox(str,'Error','error'));
+    end
+end
+
 FileName   = get(handles.TrialName,'String');
 File = strcat(FileName,".mat");
 
@@ -269,19 +305,44 @@ function Start_Callback(hObject, eventdata, handles)
 
 % Update handles structure
 guidata(hObject, handles);
+
+if get(handles.checkbox2,'Value')
+    startJoy;
+    handles.getEyePosFunc = @peekJoyPos;
+    handles.deliverRewardFunc = @deliverRewardNotification;
+end
+
 contents = cellstr(get(handles.chooseOrder,'String'));
 order = contents{get(handles.chooseOrder,'Value')};
 
 exp2run = get(handles.ExperimentName,'String');
 exp2run = strcat(exp2run,'.mat');
 
-experimentLED(exp2run,order,handles);
+% Arduino system setup
+%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
+%to find COM port you are connected to. If necessary, update string stored
+%in serialPort accordingly.
+serialPort = 'COM4';
+%create an object of the class to use it
+%functions within class can be used in experimentLED and trialLED
+global a
+a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
+
+experimentLED(exp2run,order,handles,a);
 
 % --- Executes on button press in End.
-function End_Callback(hObject, eventdata, handles)
+function End_Callback(hObject, eventdata, handles,a)
 % hObject    handle to End (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% a.clearLEDs();
+% a.endSerial();
+% clear
+% close all
+% clc
+% 
+% return
 
 
 % --- Executes on button press in Reward.
@@ -458,6 +519,7 @@ function SaveExperiment_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 
+
 % --- Executes during object creation, after setting all properties.
 function End_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to End (see GCBO)
@@ -477,3 +539,12 @@ function SavedTrials_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to SavedTrials (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in checkbox2.
+function checkbox2_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox2

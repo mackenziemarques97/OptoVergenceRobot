@@ -1,6 +1,5 @@
-function deliverRewardNotification(dio, numrew)
-    for r = 1:numrew
-        disp('Yum, reward');
-        pause(0.05); %wait short delay
-    end
+function deliverRewardNotification(dio)
+    pause(0.001);
+    disp('Yum, reward');
+    pause(0.001);
 end

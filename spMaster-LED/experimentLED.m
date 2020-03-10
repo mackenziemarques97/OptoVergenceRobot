@@ -1,19 +1,12 @@
-function experimentLED(experiment, order, handles)
+function experimentLED(experiment, order, handles,a)
 %% BASICS: initialize psychtoolbox, DAQ card and joystick 
 %DAQ card initialized during GUI start-up. Handles imported here.
 
 
 %% Initialize experiment structure/trial order
 
-% save path locations for reuse
-masterFolder = 'C:\Users\SommerLab\Documents\spMaster-LED';
-experFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\experiments';
-% change current folder to experiments folder
-cd(experFolder)
 % load experiment structure/trial order
-load(experiment,'ExperParams');
-% change current folder to spMaster-LED
-cd(masterFolder)
+load(fullfile(handles.experFolder,experiment),'ExperParams');
 
 % get number of each trial type and total number of trials
 ncells = ExperParams(:,2);
@@ -23,14 +16,14 @@ ntrials = str2num(ntrials);
 totalTrials = sum(ntrials);
 ntypes = length(ntrials);
 
-% Arduino system setup
-%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
-%to find COM port you are connected to. If necessary, update string stored
-%in serialPort accordingly.
-serialPort = 'COM4';
-%create an object of the class to use it
-%functions within class can be used in experimentLED and trialLED
-a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
+% % Arduino system setup
+% % In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
+% % to find COM port you are connected to. If necessary, update string stored
+% % in serialPort accordingly.
+% % serialPort = 'COM4';
+% % create an object of the class to use it
+% % functions within class can be used in experimentLED and trialLED
+% % a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
 
 %% Create a vector totalTrials long containing the trial order
 trialOrder = [];
@@ -66,8 +59,10 @@ if strcmp(order,'Random')
 end
 
 %% Run through the experiment
+trial_num_format = ['%0',num2str(floor(eps + log(totalTrials) / log(10)) + 1),'d'];
 for ii = 1:totalTrials
     currentTrial = trialOrder{ii};
+    handles.trial_prefix = [experiment(1:end-4),'_',sprintf(trial_num_format,ii),'_',currentTrial,'_'];
     currentTrial = strcat(currentTrial,'.mat');
     trialLED(currentTrial,handles,a) % calls trial.m with the current trial parameters
 end

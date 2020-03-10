@@ -298,7 +298,9 @@ void loop() {
           timeOn = * (command + 4) * 1000; /*time LED is on, in seconds*/
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
-          leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime anything else turns on*/
+          if (color != -1){
+            leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime anything else turns on*/
+          }
           Serial.println("phaseParamsSent");
         }
         break;

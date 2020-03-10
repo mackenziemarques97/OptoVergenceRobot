@@ -1,9 +1,10 @@
-function [eyePosX eyePosY] = krPeekEyePos(ai)
-
-% this file is in krPlotEPos
-global buffData
-pause(.001);
-d = buffData;
-
-eyePosX = d(end,1)*100; % scaling from volts to deg
-eyePosY = d(end,2)*100; % scaling from volts to deg
+function [eyePosX, eyePosY] = krPeekEyePos(data_main_dir)
+DOUBLE_SIZE = 8;
+n_channels = 7;
+fr = fopen(fullfile(data_main_dir,'Data.bin'),'r');
+fseek(fr,-n_channels*DOUBLE_SIZE,'eof');
+data = fread(fr,[7,1],'double');
+eyePosX = data(1)*100;
+eyePosY = data(2)*100;
+fclose(fr);
+end
