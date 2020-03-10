@@ -232,6 +232,13 @@ void setColor(int dir, int col, int ledNum) { /*dir, col, ledNum are all integer
   }
 }
 
+/* This is a simple function to turn on LEDs,
+   meant to make function of FastLED.show() more transparent
+*/
+void turnOnLED() {
+  FastLED.show(); /* display the color selections set in setColor() */
+}
+
 /* This function turns off LED
   regardless of whether in leds_Center or leds_Strips
 */
@@ -307,7 +314,7 @@ void loop() {
         {
           digitalWrite(cReset, LOW);
           digitalWrite(cReset, HIGH);
-          FastLED.show(); /*turn on LEDs*/
+          turnOnLED(); /*turn on LEDs*/
           Serial.println("LEDon");
         }
         break;

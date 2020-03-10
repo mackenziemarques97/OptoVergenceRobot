@@ -1,14 +1,14 @@
 #include <FastLED.h>
 
-#define LED_PIN1    43
-#define LED_PIN2    44
-#define LED_PIN3    45
-#define LED_PIN4    46
-#define LED_PIN5    47
-#define LED_PIN6    48
-#define LED_PIN7    42
-#define LED_PIN8    41
-#define LED_PIN9    40
+#define LED_PIN1    33
+#define LED_PIN2    34
+#define LED_PIN3    35
+#define LED_PIN4    36
+#define LED_PIN5    37
+#define LED_PIN6    38
+#define LED_PIN7    32
+#define LED_PIN8    31
+#define LED_PIN9    30
 
 
 #define NUM_LEDS    23
