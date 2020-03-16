@@ -1,5 +1,5 @@
 /*This sketch is intended to integrate the LED board (controlled by an Arduino Mega 2560)
-   with the spMasterLED MATLAB GUI.
+   with the spMaster-LED MATLAB GUI.
 */
 
 /*Include the following libraries*/

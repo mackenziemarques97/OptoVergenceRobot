@@ -253,8 +253,7 @@ global TrialParams;
 TrialParams = get(handles.TrialParam,'Data');
 
 %for the number of rows that contain parameters 
-%iterate through and display error message if any of the entries for 
-%LED degree meet the conditions 
+%iterate through and 
 numFilledInRows = sum(~cellfun(@isempty,TrialParams),1);
 numPhases = numFilledInRows(1);
 for phase = 1:numPhases
@@ -296,11 +295,6 @@ function Start_Callback(hObject, eventdata, handles)
 % Update handles structure
 guidata(hObject, handles);
 
-%if debug mode is activated (if checkbox is checked)
-%use joy stick to simulate eye movements instead of eye coil phase detector
-%readings
-%print reward delivery notification in command window instead of actually
-%delivering reward
 if get(handles.checkbox2,'Value')
     startJoy;
     handles.getEyePosFunc = @peekJoyPos;
@@ -331,13 +325,13 @@ function End_Callback(hObject, eventdata, handles,a)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-a.clearLEDs();
-a.endSerial();
-clear
-close all
-clc
-
-return
+% a.clearLEDs();
+% a.endSerial();
+% clear
+% close all
+% clc
+% 
+% return
 
 
 % --- Executes on button press in Reward.
