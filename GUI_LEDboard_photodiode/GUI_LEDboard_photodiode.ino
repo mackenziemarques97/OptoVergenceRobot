@@ -1,16 +1,15 @@
 /*This sketch is intended to integrate the LED board (controlled by an Arduino Mega 2560)
-   with the sp_Master MATLAB GUI.
-   AND TEST/IMPLEMENt THE PHOTODIODE PINS
+   with the spMasterLED MATLAB GUI.
 */
 
 /*Include the following libraries*/
 #include <stdio.h>
 #include <math.h>
-#include <FastLED.h>
+#include <FastLED.h> //contains specific commands used to interact with LED pixels
 
 /*Define pins for interacting with photodiode*/
-#define cReset 50
-#define dLatchOut 51
+#define cReset 50 //resets the photodiode
+#define dLatchOut 51 //contains state of the latch, currently unused
 
 /*Define LED pins on Arduino for each direction strip*/
 #define N_Strip 30 //bluewhite
@@ -246,6 +245,7 @@ void turnOffLED(int dir, int ledNum) {
 
 
 void setup() {
+  /*initialize pins and settings*/
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NW_Strip, COLOR_ORDER>(leds_Strips[1], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<LED_TYPE, NE_Strip, COLOR_ORDER>(leds_Strips[2], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -298,8 +298,8 @@ void loop() {
           timeOn = * (command + 4) * 1000; /*time LED is on, in seconds*/
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
-          if (color != -1){
-            leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime anything else turns on*/
+          if (color != -1){ /*color will be -1 if something other than red,green,blue,yellow,magenta,black is received from MATLAB*/
+            leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime any other LED turns on*/
           }
           Serial.println("phaseParamsSent");
         }
@@ -307,7 +307,7 @@ void loop() {
       /*displays any changes made to LEDs*/
       case 2: //turnOnLED
         {
-          digitalWrite(cReset, LOW);
+          digitalWrite(cReset, LOW); /*reset photodiode before turning on LED*/
           digitalWrite(cReset, HIGH);
           FastLED.show(); /*turn on LEDs*/
           Serial.println("LEDon");
