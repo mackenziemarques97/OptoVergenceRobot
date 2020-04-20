@@ -262,8 +262,8 @@ void setup() {
   pinMode(dLatchOut, INPUT);
 
   /*set serial data transmission rate (baud rate)*/
-  Serial.begin(115200);
-  Serial.setTimeout(5);
+  Serial.begin(9600);
+  Serial.setTimeout(20);
 
   digitalWrite(cReset, HIGH);
   delay(100);

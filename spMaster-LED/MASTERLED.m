@@ -61,10 +61,10 @@ handles.output = hObject;
 handles.TrialParam.Data = cellfun(@double,handles.TrialParam.Data,'UniformOutput',false);
 
 %save folder paths
-handles.masterFolder = 'C:\Users\SommerLab\Documents\spMaster-LED';
-handles.experFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\experiments';
-handles.trialFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\trials';
-handles.dataFolder = 'C:\Users\SommerLab\Documents\spMaster-LED\data';
+handles.masterFolder = 'C:\Users\Mackenzie\Documents\Github\OptoVergenceRobot\spMaster-LED';
+handles.experFolder = 'C:\Users\Mackenzie\Documents\Github\OptoVergenceRobot\spMaster-LED\experiments';
+handles.trialFolder = 'C:\Users\Mackenzie\Documents\Github\OptoVergenceRobot\spMaster-LED\trials';
+handles.dataFolder = 'C:\Users\Mackenzie\Documents\Github\OptoVergenceRobot\spMaster-LED\data';
 
 % change the current folder to trials folder
 cd(handles.trialFolder);
@@ -284,7 +284,7 @@ set(handles.SavedTrials,'String',trials)
 
 
 % --- Executes on button press in Start.
-function Start_Callback(hObject, eventdata, handles)
+function a = Start_Callback(hObject, eventdata, handles)
 % hObject    handle to Start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -317,26 +317,27 @@ exp2run = strcat(exp2run,'.mat');
 %In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
 %to find COM port you are connected to. If necessary, update string stored
 %in serialPort accordingly.
-serialPort = 'COM4';
+serialPort = 'COM8';
 %create an object of the class to use it
 %functions within class can be used in experimentLED and trialLED
-global a
 a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
+handles.a = a;
+% Update handles structure
+guidata(hObject, handles);
 
-experimentLED(exp2run,order,handles,a);
+experimentLED(exp2run,order,handles);
 
 % --- Executes on button press in End.
-function End_Callback(hObject, eventdata, handles,a)
+function End_Callback(hObject, eventdata, handles)
 % hObject    handle to End (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+a = handles.a;
 a.clearLEDs();
 a.endSerial();
 clear
 close all
 clc
-
 return
 
 

@@ -6,7 +6,7 @@ ai.IsContinuous = true;
 ai.Rate = 5000;  
 ai.NotifyWhenDataAvailableExceeds = 25;
 
-cha = addAnalogInputChannel(ai,'Dev2',[0:5],'Voltage');
+cha = addAnalogInputChannel(ai,'Dev2',(0:5),'Voltage');
 prepare(ai);
 
 dio = daq.createSession('ni'); 

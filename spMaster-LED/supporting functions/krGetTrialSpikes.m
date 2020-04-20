@@ -15,6 +15,12 @@ function data_out = krGetTrialSpikes(data_main_dir)
     t_subsamp = (0:.001:max(t))'; 
     spikes_subsamp = zeros(size(t_subsamp));
     spikes_subsamp(round(1 + spike_times*1000)) = 1;
+    %Due to the rounding performed above, sometimes spikes_subsamp contains
+    %one more row entry than the rest of the data variables, and this
+    %causes the table formation (last line of function) to throw an error.
+    if length(t_subsamp) ~= length(spikes_subsamp)
+        spikes_subsamp = spikes_subsamp(1:end-1);
+    end
     %Build Output table
     eye_pos_x_1 = resample(timeseries(data(1,:)',t),t_subsamp);
     eye_pos_y_1 = resample(timeseries(data(2,:)',t),t_subsamp);

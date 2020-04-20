@@ -1,11 +1,13 @@
-function trialLED(trialname,handles,a) %function inputs: savename of trial,
+function [experimentData] = trialLED(trialname,handles,experimentData,trialCount) %function inputs: savename of trial,
     %handles, object of Arduino experiment class
     global fw viewingFigureIndex
     viewingFigureIndex = 0;
     %% Load the trial data/convert to struct, initialize axes in aux 
     % load the trial parameters/data
     load(fullfile(handles.trialFolder,trialname),'TrialParams');
-
+    experimentData.trialParameters{trialCount} = TrialParams;
+    a = handles.a;
+    
     %get number of filled in rows (trial phases) in TrialParams
     numFilledInRows = sum(~cellfun(@isempty,TrialParams),1);
     numPhases = numFilledInRows(1); %number of rows with the direction filled in
@@ -35,7 +37,11 @@ function trialLED(trialname,handles,a) %function inputs: savename of trial,
 
     ai = handles.ai;
     dio = handles.dio;
-
+    
+    % save the object "a" that contains serial connection in app data
+    % to be able to access it in auxiliary GUI
+    mainGUI = findobj('Tag','figure1');
+    setappdata(mainGUI,'a',a)
     auxiliary();
 
     h = findobj(auxiliary,'Tag','Position');
@@ -170,6 +176,10 @@ function trialLED(trialname,handles,a) %function inputs: savename of trial,
         end
         success = true;
     end
+    %Save session data
+    experimentData.successTrials(trialCount) = success;
+    experimentData.rewardValue(trialCount) = numrew;
+    experimentData.fixationTolerance(trialCount) = fixTol;
     
     %Save off DAQ card data
     %Throw warning for overwriting
@@ -179,4 +189,6 @@ function trialLED(trialname,handles,a) %function inputs: savename of trial,
     end
     data = krGetTrialSpikes(handles.data_main_dir);
     save(filename,'data')
+    cd(handles.data_path);
+    save('experimentData','experimentData');
 end

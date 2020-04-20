@@ -22,7 +22,7 @@ function varargout = auxiliary(varargin)
 
 % Edit the above text to modify the response to help auxgui
 
-% Last Modified by GUIDE v2.5 02-May-2018 18:03:09
+% Last Modified by GUIDE v2.5 15-Apr-2020 13:46:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,6 +54,12 @@ function auxiliary_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for auxgui
 handles.output = hObject;
+
+% access object "a" that contains serial connection and save it in handles
+% of auxiliary GUI
+mainGUI = findobj('Tag','figure1');
+a = getappdata(mainGUI,'a');
+handles.a = a;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -158,3 +164,23 @@ currentTol = str2num(get(handles.FixTol,'String'));
 newTol = currentTol - 1;
 newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
+
+
+% --- Executes on button press in viewRastersButton.
+function viewRastersButton_Callback(hObject, eventdata, handles)
+% hObject    handle to viewRastersButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in endExperimentButton.
+function endExperimentButton_Callback(hObject, eventdata, handles)
+% hObject    handle to endExperimentButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a = handles.a;
+a.clearLEDs();
+a.endSerial();
+clear
+close all
+clc
