@@ -7,7 +7,7 @@ function experimentLED(experiment, order, handles)
 
 % load experiment structure/trial order
 load(fullfile(handles.experFolder,experiment),'ExperParams');
-a = handles.a;
+a = handles.a_serialobj;
 
 % get number of each trial type and total number of trials
 ncells = ExperParams(:,2);
@@ -53,12 +53,24 @@ end
 %% Run through the experiment
 trial_num_format = ['%0',num2str(floor(eps + log(totalTrials) / log(10)) + 1),'d'];
 experimentData.experimentParameters = ExperParams;
+experimentData.order = order;
+trialByTrialData(totalTrials) = struct();
+% trialByTrialData.direction = {};
+% trialByTrialData.color = {};
+% trialByTrialData.degree = {};
+% trialByTrialData.duration = {};
+% trialByTrialData.fixDur = {};
+% trialByTrialData.ifReward = {};
+% trialByTrialData.withNext = {};
 for trialCount = 1:totalTrials
-    currentTrial = trialOrder{trialCount};
-    handles.trial_prefix = [experiment(1:end-4),'_',sprintf(trial_num_format,trialCount),'_',currentTrial,'_'];
-    currentTrial = strcat(currentTrial,'.mat');
-    experimentData = trialLED(currentTrial,handles,experimentData,trialCount); % calls trial.m with the current trial parameters
+    currentTrialName = trialOrder{trialCount};
+    handles.trial_prefix = [experiment(1:end-4),'_',sprintf(trial_num_format,trialCount),'_',currentTrialName,'_'];
+    currentTrialName = strcat(currentTrialName,'.mat');
+    [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount); % calls trial.m with the current trial parameters
 end
 a.endSerial(); % at the end of each experiment, end serial connection with Arduino
+uiwait(msgbox('Experiment Finished'));
+clear
+close all
 end
 
