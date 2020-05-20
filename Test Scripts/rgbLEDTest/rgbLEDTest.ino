@@ -11,7 +11,7 @@ int onBrightness = 127;
 int off = 255;
 
 void setup() {
-  // define LED pins as output pins
+  // define LED pins as output pins 
   pinMode(RED, OUTPUT);
   pinMode(BLUE, OUTPUT);
   pinMode(GREEN, OUTPUT);

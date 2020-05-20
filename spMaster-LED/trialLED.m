@@ -110,14 +110,14 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
         viewingFigureCoords(viewingFigureIndex, :) = [trial(phase).xCoord, trial(phase).yCoord];
         viewingFigureColor{viewingFigureIndex} = trial(phase).color;
-        a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree, trial(phase).duration); %WRITE FOR ARDUINO
+        a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree); %WRITE FOR ARDUINO
         while trial(phase).withNext
             phase = phase + 1;
             viewingFigureIndex = viewingFigureIndex + 1;
             viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
             viewingFigureCoords(viewingFigureIndex, :) = [trial(phase).xCoord, trial(phase).yCoord];
             viewingFigureColor{viewingFigureIndex} = trial(phase).color;
-            a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree, trial(phase).duration); %WRITE FOR ARDUINO
+            a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree); %WRITE FOR ARDUINO
         end
         
         a.turnOnLED(); 

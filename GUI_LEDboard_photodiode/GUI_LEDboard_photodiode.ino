@@ -7,10 +7,24 @@
 #include <math.h>
 #include <FastLED.h> //contains specific commands used to interact with LED pixels
 
+/*Define pins for the x-axis stepper motor*/
+#define xPulse 8 /*50% duty cycle pulse width modulation*/
+#define xDir 9 /*rotation direction*/
+/*Define pins for the y-axis stepper motor*/
+#define yPulse 10
+#define yDir 11
+/*Define pins for the 4 microswitches*/
+#define xMin 2
+#define xMax 3
+#define yMin 4
+#define yMax 5
+/*Define pins for RGB LED*/
+#define RED 22
+#define GREEN 23
+#define BLUE 24
 /*Define pins for interacting with photodiode*/
 #define cReset 50 //resets the photodiode
 #define dLatchOut 51 //contains state of the latch, currently unused
-
 /*Define LED pins on Arduino for each direction strip*/
 #define N_Strip 30 //bluewhite
 #define NW_Strip 31 //yellowblack
@@ -42,9 +56,17 @@ CRGB leds_Center[NUM_Center];
 
 /*Define global variables*/
 int dir, color, ledNum;
-double timeOn;
 int dirIndex, colIndex;
 String val;
+int ledOff = 255;
+int ledOn = 127;
+int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
+int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
+unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
+unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
+unsigned long location[2] = {0, 0}; /*presetting location*/
+int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
+float pi = 3.14159265359; /*numerical approximation used for pi*/
 
 /*This function assigns an integer to each direction strip. User enters direction
    as a string and that is stored as an index.
@@ -154,6 +176,11 @@ double* parseCommand(char strCommand[]) {
     command[0] = 4; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
+  if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 5; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    return command;
+  }
 
 }
 
@@ -243,6 +270,112 @@ void turnOffLED(int dir, int ledNum) {
   }
 }
 
+/* recalibrate function:
+   Moves LED to specified edge (xMax, xMin, yMax, yMin)
+   Standardizes edge as the point when the microswitch is just released.
+   Returns number of steps it took to get there
+   0 = pressed, 1 = unpressed for pin reads
+*/
+unsigned long recalibrate(int pin) { /*input is microswitch pin*/
+  delay(1000);
+  unsigned long steps = 0;
+  /*Specific pin recalibration/movement toward that pin*/
+  int val = digitalRead(pin); /*read the pin, 0 = pressed, 1 = unpressed*/
+  while (val) {
+    if (pin == xMin) { /*if pin is xMin*/
+      line(-microstepsPerStep * 10, 0, Delay); /*move in negative x-direction toward xMin*/
+    } else if (pin == xMax) { /*if pin is xMax*/
+      line(microstepsPerStep * 10, 0, Delay); /*move in positive x-direction toward xMax*/
+    } else if (pin == yMin) { /*if pin is yMin*/
+      line(0, -microstepsPerStep * 10, Delay); /*move in negative y-direction toward yMin*/
+    } else if (pin == yMax) { /*if pin is yMax*/
+      line(0, microstepsPerStep * 10, Delay); /*move in positive y-direction toward yMax*/
+    }
+    steps += 10; /*add 10 to steps counter*/
+
+    if (steps > (long) dimensions[1] * 1.2) { /*if the number of steps is greater than 120% of the number of steps of the y-dimension*/
+      Serial.end(); /*end the serial connection*/
+      break; /*break put of the loop*/
+    }
+
+    /*Overshoot adjustment: moves back until pin is just released*/
+    val = digitalRead(pin);
+    if (val == 0) { /*if switch is pressed*/
+      while (val == 0) { /*while switch is pressed*/
+        if (pin == xMin) {
+          line(microstepsPerStep, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
+          location[0] = 0; /*update x-coordinate location to 0*/
+          delay(200);
+        } else if (pin == xMax) {
+          line(-microstepsPerStep, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
+          location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
+          delay(200);
+        } else if (pin == yMin) {
+          line(0, microstepsPerStep, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
+          location[1] = 0; /*update y-coordinate location to 0*/
+          delay(200);
+        } else if (pin == yMax) {
+          line(0, -microstepsPerStep, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
+          location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
+          delay(200);
+        }
+        val = digitalRead(pin); /*continue reading the state of the pin*/
+        steps -= 1; /*remove one step from total step count, correcting for the overshoot*/
+      }
+      break; /*when val no longer is 0, switch has just been released, break from the loop*/
+    }
+  }
+  return steps; /*returns the number of steps*/
+}
+
+/* Implementation of Bresenham's Algorithm for a line
+   Input vector (in number of steps) along with pulse width (delay, which determines speed)
+   Proprioceptive location
+*/
+void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
+  location[0] += x1; /*add x1 to current x-coordinate location*/
+  location[1] += y1; /*add y1 to current y-coordinate location*/
+  long x0 = 0, y0 = 0;
+  long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
+  /*if x0 is less than x1, set signx equal to 1; if x0 is not less than x1, set signx equal to -1*/
+  /*if x-component of vector (desired x displacement) is positive, signx = 1 (clockwise rotation of motor)*/
+  long dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
+  long err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
+  digitalWrite(xDir, (signx + 1) / 2); /*setup x motor rotation direction, if signx = 1, rotate counterclockwise; if signx = -1, don't move*/
+  digitalWrite(yDir, (signy + 1) / 2); /*setup y motor rotation direction*/
+  for (;;) { /*infinite loop (;;)*/
+    if (x0 == x1 && y0 == y1) break; /*once the desired location is reached, break out of the infinite loop and halt movement*/
+    e2 = err; /*to maiantain error at start of loop, since error changes in some cases*/
+    if (e2 > -dx) { /*if error is greater than negative dx*/
+      err -= dy; /*subtract dy from the error*/
+      x0 += signx; /*add signx (1 or -1) to the x-coordinate location*/
+      /*HIGH to LOW represents one cycle of square wave, which corresponds to motor rotation*/
+      digitalWrite(xPulse, HIGH);
+      if (e2 < dy) { /*if error is less than dy*/
+        err += dx; /*add dx to error*/
+        y0 += signy; /*add signy (1 or -1) to the y-coordinate location*/
+        /*motors of both dimensions moving*/
+        digitalWrite(yPulse, HIGH);
+        delayMicroseconds(v);
+        digitalWrite(xPulse, LOW);
+        digitalWrite(yPulse, LOW);
+        delayMicroseconds(v);
+      } else {
+        delayMicroseconds(v);
+        digitalWrite(xPulse, LOW);
+        delayMicroseconds(v);
+      }
+    } else if (e2 < dy) {
+      err += dx;
+      y0 += signy;
+      /*y-dimension motor movement*/
+      digitalWrite(yPulse, HIGH);
+      delayMicroseconds(v);
+      digitalWrite(yPulse, LOW);
+      delayMicroseconds(v);
+    }
+  }
+}
 
 void setup() {
   /*initialize pins and settings*/
@@ -258,8 +391,35 @@ void setup() {
 
   FastLED.setBrightness( BRIGHTNESS );
 
+  /*pulse and direction pins for x & y-dimension motors are outputting signal*/
+  pinMode(xPulse, OUTPUT);
+  pinMode(xDir, OUTPUT);
+  pinMode(yPulse, OUTPUT);
+  pinMode(yDir, OUTPUT);
+  /*microswitch pins are awaiting input signal (pressed or unpressed)*/
+  pinMode(xMin, INPUT);
+  pinMode(xMax, INPUT);
+  pinMode(yMin, INPUT);
+  pinMode(yMax, INPUT);
+  /*LED pins output*/
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+  pinMode(BLUE, OUTPUT);
+  /*photodiode pins*/
   pinMode(cReset, OUTPUT);
   pinMode(dLatchOut, INPUT);
+  /*preset RGB LED to off*/
+  analogWrite(RED, ledOff);
+  analogWrite(BLUE, ledOff);
+  analogWrite(GREEN, ledOff);
+  /*preset stepper motor direction pins to 1*/
+  digitalWrite(yDir, direction);
+  digitalWrite(xDir, direction);
+  /*preset microswitch pins to HIGH (1), indicating unpressed*/
+  digitalWrite(xMin, HIGH);
+  digitalWrite(xMax, HIGH);
+  digitalWrite(yMin, HIGH);
+  digitalWrite(yMax, HIGH);
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(9600);
@@ -290,22 +450,21 @@ void loop() {
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
     switch ((int) *command) { /*switch case based on first command entry*/
       /*saves parameters for controlling single LED*/
-      case 1://sendPhaseParams:dir:color:degree:timeon
+      case 1://sendPhaseParams:dir:color:degree
         {
           dir = * (command + 1); /*direction strip*/
           color = * (command + 2); /*color*/
           int deg = * (command + 3); /*degree offset from center of LED*/
-          timeOn = * (command + 4) * 1000; /*time LED is on, in seconds*/
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
           setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
-          if (color != -1){ /*color will be -1 if something other than red,green,blue,yellow,magenta,black is received from MATLAB*/
+          if (color != -1) { /*color will be -1 if something other than red,green,blue,yellow,magenta,black is received from MATLAB*/
             leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime any other LED turns on*/
           }
           Serial.println("phaseParamsSent");
         }
         break;
       /*displays any changes made to LEDs*/
-      case 2: //turnOnLED
+      case 2: //turnOnLED:
         {
           digitalWrite(cReset, LOW); /*reset photodiode before turning on LED*/
           digitalWrite(cReset, HIGH);
@@ -314,18 +473,29 @@ void loop() {
         }
         break;
       /*turns off specified LED*/
-      case 3: //turnOffLED
+      case 3: //turnOffLED:
         {
           turnOffLED(dir, ledNum); /*turn off LED*/
           Serial.println("LEDoff");
         }
         break;
       /* turns off all LEDs*/
-      case 4: //clearLEDs
+      case 4: //clearLEDs:
         {
           FastLED.clear();
           FastLED.show();
           Serial.println("LEDsCleared");
+        }
+        break;
+      case 5: //returnRobot:
+        {
+          /* Calibrates to xMin and yMin and updates location to (0,0) */
+          int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
+          int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
+          location[0] = 0;
+          location[1] = 0;
+          Serial.println("robotReturned");
+          delay(300);
         }
         break;
     }

@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 30-Apr-2020 12:37:58
+% Last Modified by GUIDE v2.5 01-May-2020 16:48:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -131,6 +131,16 @@ handles.deliverRewardFunc = @krDeliverReward;
 
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
+
+% Arduino system setup
+%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
+%to find COM port you are connected to. If necessary, update string stored
+%in serialPort accordingly.
+serialPort = 'COM3';
+%create an object of the class to use it
+%functions within class can be used in experimentLED and trialLED
+a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
+handles.a_serialobj = a;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -312,16 +322,6 @@ order = contents{get(handles.chooseOrder,'Value')};
 
 exp2run = get(handles.ExperimentName,'String');
 exp2run = strcat(exp2run,'.mat');
-
-% Arduino system setup
-%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
-%to find COM port you are connected to. If necessary, update string stored
-%in serialPort accordingly.
-serialPort = 'COM8';
-%create an object of the class to use it
-%functions within class can be used in experimentLED and trialLED
-a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
-handles.a_serialobj = a;
 % Update handles structure
 guidata(hObject, handles);
 
@@ -542,3 +542,12 @@ function checkbox2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox2
+
+
+% --- Executes on button press in robotoriginpushbutton.
+function robotoriginpushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to robotoriginpushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a = handles.a_serialobj;
+a.returnRobot();
