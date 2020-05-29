@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 01-May-2020 16:48:21
+% Last Modified by GUIDE v2.5 20-May-2020 13:40:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -136,7 +136,7 @@ cd(handles.masterFolder);
 %In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
 %to find COM port you are connected to. If necessary, update string stored
 %in serialPort accordingly.
-serialPort = 'COM3';
+serialPort = 'COM8';
 %create an object of the class to use it
 %functions within class can be used in experimentLED and trialLED
 a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
@@ -228,6 +228,9 @@ function TrialParam_CellEditCallback(hObject, eventdata, handles)
 %   relevant numerical values, etc
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to lcoations where an LED is present?
+if get(handles.cellchangebutton1,'Value')
+    disp('Hi');
+end
 
 
 function TrialName_Callback(hObject, eventdata, handles)
@@ -551,3 +554,12 @@ function robotoriginpushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 a = handles.a_serialobj;
 a.returnRobot();
+
+
+% --- Executes on button press in cellchangebutton1.
+function cellchangebutton1_Callback(hObject, eventdata, handles)
+% hObject    handle to cellchangebutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cellchangebutton1
