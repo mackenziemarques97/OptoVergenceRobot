@@ -1,4 +1,5 @@
 function varargout = viewRasters(varargin)
+% NOT CURRENTLY FUNCTIONAL
 % VIEWRASTERS MATLAB code for viewRasters.fig
 %      VIEWRASTERS, by itself, creates a new VIEWRASTERS or raises the existing
 %      singleton*.
