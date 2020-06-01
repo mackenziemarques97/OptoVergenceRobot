@@ -422,8 +422,8 @@ void setup() {
   digitalWrite(yMax, HIGH);
 
   /*set serial data transmission rate (baud rate)*/
-  Serial.begin(9600);
-  Serial.setTimeout(20);
+  Serial.begin(115200);
+  Serial.setTimeout(15);
 
   digitalWrite(cReset, HIGH);
   delay(100);

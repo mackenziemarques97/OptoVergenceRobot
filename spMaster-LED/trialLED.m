@@ -1,5 +1,4 @@
-function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount) %function inputs: savename of trial,
-    %handles, object of Arduino experiment class
+function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount)
     global fw viewingFigureIndex viewingFigureColor
     viewingFigureIndex = 0;
     viewingFigureColor = {};
@@ -34,9 +33,6 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
             [trial(phaseNum).xCoord, trial(phaseNum).yCoord] = getPhaseCoords(trial, phaseNum); 
         end
     end
-
-    ai = handles.ai;
-    dio = handles.dio;
     
     % save the object "a" that contains serial connection in app data
     % to be able to access it in auxiliary GUI
@@ -103,6 +99,34 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         end
 
         success = false;
+        
+        if trial(eyeCheckPhaseIndex).withNext==1
+            for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1     
+                trialByTrialData(trialCount).direction{phaseCount} = trial(phaseCount).direction;
+                trialByTrialData(trialCount).color{phaseCount} = trial(phaseCount).color;    
+                trialByTrialData(trialCount).degree{phaseCount} = trial(phaseCount).degree; 
+                trialByTrialData(trialCount).phaseTargetLoc{phaseCount} = [trial(phaseCount).xCoord, trial(phaseCount).yCoord];
+                trialByTrialData(trialCount).duration{phaseCount} = trial(phaseCount).duration;
+                trialByTrialData(trialCount).fixDur{phaseCount} = trial(phaseCount).fixDur;
+                trialByTrialData(trialCount).ifReward{phaseCount} = trial(phaseCount).ifReward;
+                trialByTrialData(trialCount).withNext{phaseCount} = trial(phaseCount).withNext; 
+                trialByTrialData(trialCount).rewardAmount{phaseCount} = numrew;
+                trialByTrialData(trialCount).fixationTolerance{phaseCount} = fixTol;
+                trialByTrialData(trialCount).ifSuccess{phaseCount} = success;
+            end
+        else
+            trialByTrialData(trialCount).direction{phase} = trial(phase).direction;
+            trialByTrialData(trialCount).color{phase} = trial(phase).color;    
+            trialByTrialData(trialCount).degree{phase} = trial(phase).degree; 
+            trialByTrialData(trialCount).phaseTargetLoc{phase} = [trial(phase).xCoord, trial(phase).yCoord];
+            trialByTrialData(trialCount).duration{phase} = trial(phase).duration;
+            trialByTrialData(trialCount).fixDur{phase} = trial(phase).fixDur;
+            trialByTrialData(trialCount).ifReward{phase} = trial(phase).ifReward;
+            trialByTrialData(trialCount).withNext{phase} = trial(phase).withNext;
+            trialByTrialData(trialCount).rewardAmount{phase} = numrew;
+            trialByTrialData(trialCount).fixationTolerance{phase} = fixTol;
+            trialByTrialData(trialCount).ifSuccess{phase} = success;
+        end
 
         %is there more than one stimulus on screen
         viewingFigureIndex = 1;
@@ -175,30 +199,10 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         end
         %Save experiment data
         if trial(eyeCheckPhaseIndex).withNext==1
-            for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1;     
-                trialByTrialData(trialCount).direction{phaseCount} = trial(phaseCount).direction;
-                trialByTrialData(trialCount).color{phaseCount} = trial(phaseCount).color;    
-                trialByTrialData(trialCount).degree{phaseCount} = trial(phaseCount).degree; 
-                trialByTrialData(trialCount).phaseTargetLoc{phaseCount} = [trial(phaseCount).xCoord, trial(phaseCount).yCoord];
-                trialByTrialData(trialCount).duration{phaseCount} = trial(phaseCount).duration;
-                trialByTrialData(trialCount).fixDur{phaseCount} = trial(phaseCount).fixDur;
-                trialByTrialData(trialCount).ifReward{phaseCount} = trial(phaseCount).ifReward;
-                trialByTrialData(trialCount).withNext{phaseCount} = trial(phaseCount).withNext; 
-                trialByTrialData(trialCount).rewardAmount{phaseCount} = numrew;
-                trialByTrialData(trialCount).fixationTolerance{phaseCount} = fixTol;
+            for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1     
                 trialByTrialData(trialCount).ifSuccess{phaseCount} = success;
             end
-        else
-            trialByTrialData(trialCount).direction{phase} = trial(phase).direction;
-            trialByTrialData(trialCount).color{phase} = trial(phase).color;    
-            trialByTrialData(trialCount).degree{phase} = trial(phase).degree; 
-            trialByTrialData(trialCount).phaseTargetLoc{phase} = [trial(phase).xCoord, trial(phase).yCoord];
-            trialByTrialData(trialCount).duration{phase} = trial(phase).duration;
-            trialByTrialData(trialCount).fixDur{phase} = trial(phase).fixDur;
-            trialByTrialData(trialCount).ifReward{phase} = trial(phase).ifReward;
-            trialByTrialData(trialCount).withNext{phase} = trial(phase).withNext; 
-            trialByTrialData(trialCount).rewardAmount{phase} = numrew;
-            trialByTrialData(trialCount).fixationTolerance{phase} = fixTol;
+        else 
             trialByTrialData(trialCount).ifSuccess{phase} = success;  
         end
         phase = phase + 1;       

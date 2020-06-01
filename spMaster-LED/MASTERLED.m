@@ -148,7 +148,7 @@ cd(handles.masterFolder);
 % In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
 % to find COM port you are connected to. If necessary, update string stored
 % in serialPort accordingly.
-serialPort = 'COM8';
+serialPort = 'COM4';
 % create an object of the class to use it
 % functions within class can be used in experimentLED and trialLED
 a = ExperimentClass_GUI_LEDboard(serialPort); 
