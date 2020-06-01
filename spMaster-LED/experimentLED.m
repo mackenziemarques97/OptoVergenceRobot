@@ -1,12 +1,8 @@
 function experimentLED(experiment, order, handles)
-%% BASICS: initialize psychtoolbox, DAQ card and joystick 
-%DAQ card initialized during GUI start-up. Handles imported here.
-
-
 %% Initialize experiment structure/trial order
-
 % load experiment structure/trial order
 load(fullfile(handles.experFolder,experiment),'ExperParams');
+% create object outside of handles
 a = handles.a_serialobj;
 
 % get number of each trial type and total number of trials
@@ -55,20 +51,14 @@ trial_num_format = ['%0',num2str(floor(eps + log(totalTrials) / log(10)) + 1),'d
 experimentData.experimentParameters = ExperParams;
 experimentData.order = order;
 trialByTrialData(totalTrials) = struct();
-% trialByTrialData.direction = {};
-% trialByTrialData.color = {};
-% trialByTrialData.degree = {};
-% trialByTrialData.duration = {};
-% trialByTrialData.fixDur = {};
-% trialByTrialData.ifReward = {};
-% trialByTrialData.withNext = {};
 for trialCount = 1:totalTrials
     currentTrialName = trialOrder{trialCount};
     handles.trial_prefix = [experiment(1:end-4),'_',sprintf(trial_num_format,trialCount),'_',currentTrialName,'_'];
     currentTrialName = strcat(currentTrialName,'.mat');
     [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount); % calls trial.m with the current trial parameters
 end
-a.endSerial(); % at the end of each experiment, end serial connection with Arduino
+% at the end of each experiment, end serial connection with Arduino
+a.endSerial(); 
 uiwait(msgbox('Experiment Finished'));
 clear
 close all
