@@ -131,10 +131,8 @@ if i == 100
 end
 handles.data_path = fullfile(data_main_dir,data_dir);
 
-% connect to DAQ card, create session, listen for data
+% 
 [ai, dio] = krConnectDAQInf(data_main_dir);
-
-% save analog input and digital input/output objects to handles
 handles.ai = ai;
 handles.dio = dio;
 
@@ -145,14 +143,13 @@ handles.deliverRewardFunc = @krDeliverReward;
 cd(handles.masterFolder);
 
 % Arduino system setup
-% In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
-% to find COM port you are connected to. If necessary, update string stored
-% in serialPort accordingly.
+%In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
+%to find COM port you are connected to. If necessary, update string stored
+%in serialPort accordingly.
 serialPort = 'COM8';
-% create an object of the class to use it
-% functions within class can be used in experimentLED and trialLED
-a = ExperimentClass_GUI_LEDboard(serialPort); 
-% save experiment class object to handles
+%create an object of the class to use it
+%functions within class can be used in experimentLED and trialLED
+a = ExperimentClass_GUI_LEDboard(serialPort); %create an object of the class to use it
 handles.a_serialobj = a;
 
 % Update handles structure
