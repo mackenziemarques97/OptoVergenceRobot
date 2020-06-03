@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 20-May-2020 13:40:45
+% Last Modified by GUIDE v2.5 03-Jun-2020 13:48:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -41,7 +41,7 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
+% endExperiment_pushbutton initialization code - DO NOT EDIT
 
 
 % --- Executes just before MASTERGUI is made visible.
@@ -57,7 +57,7 @@ handles.output = hObject;
 
 % Set function handles for inputs
 % save TrialParams in handles in a cell array of doubles
-handles.TrialParam.Data = cellfun(@double,handles.TrialParam.Data,'UniformOutput',false);
+handles.TrialParam_LED.Data = cellfun(@double,handles.TrialParam_LED.Data,'UniformOutput',false);
 
 % save folder paths
 % choose paths based on computer name
@@ -90,7 +90,7 @@ for i = 1:length(Infolder)
        trialList{end+1,1} = name;
    end
 end
-set(handles.SavedTrials,'String',trialList)
+set(handles.savedTrials_listbox,'String',trialList)
 
 % change the current folder to experiments folder
 cd(handles.experFolder);
@@ -107,7 +107,7 @@ for i = 1:length(Infolder)
        experList{end+1,1} = expername;
    end
 end
-set(handles.SavedExperiments,'String',experList)
+set(handles.savedExperiments_listbox,'String',experList)
 
 % change the current folder to data folder
 cd(handles.dataFolder);
@@ -158,9 +158,6 @@ handles.a_serialobj = a;
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes MASTERGUI wait for user response (see UIRESUME)
-% uiwait(handles.mastergui);
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = MASTERLED_OutputFcn(hObject, eventdata, handles) 
@@ -173,9 +170,9 @@ function varargout = MASTERLED_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on selection change in SavedTrials.
-function SavedTrials_Callback(hObject, eventdata, handles)
-% hObject    handle to SavedTrials (see GCBO)
+% --- Executes on selection change in savedTrials_listbox.
+function savedTrials_listbox_Callback(hObject, eventdata, handles)
+% hObject    handle to savedTrials_listbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -193,16 +190,16 @@ cd(handles.masterFolder);
 
 data = mydata.TrialParams;
 
-set(handles.TrialParam,'data',data)
-set(handles.TrialName,'String',trisel)
+set(handles.TrialParam_LED,'data',data)
+set(handles.trialName_editbox,'String',trisel)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns SavedTrials contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from SavedTrials
+% Hints: contents = cellstr(get(hObject,'String')) returns savedTrials_listbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from savedTrials_listbox
 
 
 % --- Executes during object creation, after setting all properties.
-function SavedTrials_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SavedTrials (see GCBO)
+function savedTrials_listbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to savedTrials_listbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -213,23 +210,30 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+% --- Executes during object deletion, before destroying properties.
+function savedTrials_listbox_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to savedTrials_listbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
 % --- Executes during object creation, after setting all properties.
-function TrialParam_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam (see GCBO)
+function TrialParam_LED_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TrialParam_LED (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 
 % --- Executes during object deletion, before destroying properties.
-function TrialParam_DeleteFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam (see GCBO)
+function TrialParam_LED_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to TrialParam_LED (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes when entered data in editable cell(s) in TrialParam.
-function TrialParam_CellEditCallback(hObject, eventdata, handles)
-% hObject    handle to TrialParam (see GCBO)
+% --- Executes when entered data in editable cell(s) in TrialParam_LED.
+function TrialParam_LED_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to TrialParam_LED (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
 %	Indices: row and column indices of the cell(s) edited
 %	PreviousData: previous data for the cell(s) edited
@@ -241,24 +245,47 @@ function TrialParam_CellEditCallback(hObject, eventdata, handles)
 %   relevant numerical values, etc
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to lcoations where an LED is present?
-if get(handles.cellchangebutton1,'Value')
-    disp('Hi');
-end
 
 
-function TrialName_Callback(hObject, eventdata, handles)
-% hObject    handle to TrialName (see GCBO)
+% --- Executes during object creation, after setting all properties.
+function TrialParam_robot_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TrialParam_robot (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object deletion, before destroying properties.
+function TrialParam_robot_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to TrialParam_robot (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes when entered data in editable cell(s) in TrialParam_robot.
+function TrialParam_robot_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to TrialParam_robot (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+%	Indices: row and column indices of the cell(s) edited
+%	PreviousData: previous data for the cell(s) edited
+%	EditData: string(s) entered by the user
+%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
+%	Error: error string when failed to convert EditData to appropriate value for Data
+% handles    structure with handles and user data (see GUIDATA)
+
+
+function trialName_editbox_Callback(hObject, eventdata, handles)
+% hObject    handle to trialName_editbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global TrialName
 TrialName = get(hObject, 'String');
-% Hints: get(hObject,'String') returns contents of TrialName as text
-%        str2double(get(hObject,'String')) returns contents of TrialName as a double
+% Hints: get(hObject,'String') returns contents of trialName_editbox as text
+%        str2double(get(hObject,'String')) returns contents of trialName_editbox as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function TrialName_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TrialName (see GCBO)
+function trialName_editbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trialName_editbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -269,14 +296,14 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in SaveTrial.
-function SaveTrial_Callback(hObject, eventdata, handles)
-% hObject    handle to SaveTrial (see GCBO)
+% --- Executes on button press in saveTrial_pushbutton.
+function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to saveTrial_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 global TrialParams;
-TrialParams = get(handles.TrialParam,'Data');
+TrialParams = get(handles.TrialParam_LED,'Data');
 
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
@@ -292,7 +319,7 @@ for phase = 1:numPhases
     end
 end
 
-FileName   = get(handles.TrialName,'String');
+FileName   = get(handles.trialName_editbox,'String');
 File = strcat(FileName,".mat");
 
 % Save the trial into the "trials" folder
@@ -303,21 +330,27 @@ save(File, 'TrialParams')
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
-trials = get(handles.SavedTrials,'String');
+trials = get(handles.savedTrials_listbox,'String');
 trials = [trials; cellstr(FileName)];
-set(handles.SavedTrials,'String',trials)
+set(handles.savedTrials_listbox,'String',trials)
 
 
+% --- Executes during object creation, after setting all properties.
+function saveTrial_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to saveTrial_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
 
-% --- Executes on button press in Start.
-function a = Start_Callback(hObject, eventdata, handles)
-% hObject    handle to Start (see GCBO)
+
+% --- Executes on button press in start_pushbutton.
+function start_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to start_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % if(get(handles.SetTrialNumber,'Value') == 0)
 %     set(handles.SetTrialNumber,'Value',100);
-% end
+% endexperiment_pushbutton
 
 % Update handles structure
 guidata(hObject, handles);
@@ -325,27 +358,35 @@ guidata(hObject, handles);
 %if debug mode is activated (if checkbox is checked)
 %use joy stick to simulate eye movements instead of eye coil phase detector
 %readings
-%print reward delivery notification in command window instead of actually
-%delivering reward
-if get(handles.checkbox2,'Value')
+%print deliverreward_pushbutton delivery notification in command window instead of actually
+%delivering deliverreward_pushbutton
+if get(handles.debugging_checkbox,'Value')
     startJoy;
     handles.getEyePosFunc = @peekJoyPos;
     handles.deliverRewardFunc = @deliverRewardNotification;
 end
 
-contents = cellstr(get(handles.chooseOrder,'String'));
-order = contents{get(handles.chooseOrder,'Value')};
+contents = cellstr(get(handles.chooseOrder_choicelist,'String'));
+order = contents{get(handles.chooseOrder_choicelist,'Value')};
 
-exp2run = get(handles.ExperimentName,'String');
+exp2run = get(handles.experimentName_editbox,'String');
 exp2run = strcat(exp2run,'.mat');
 % Update handles structure
 guidata(hObject, handles);
 
 experimentLED(exp2run,order,handles);
 
-% --- Executes on button press in End.
-function End_Callback(hObject, eventdata, handles)
-% hObject    handle to End (see GCBO)
+
+% --- Executes during object creation, after setting all properties.
+function start_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to start_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in endExperiment_pushbutton.
+function endExperiment_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to endExperiment_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 a = handles.a_serialobj;
@@ -356,12 +397,26 @@ close all
 return
 
 
-% --- Executes on button press in Reward.
-function Reward_Callback(hObject, eventdata, handles)
-% hObject    handle to Reward (see GCBO)
+% --- Executes during object creation, after setting all properties.
+function endExperiment_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to endExperiment_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in deliverReward_pushbutton.
+function deliverReward_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to deliverReward_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 krDeliverReward(handles.dio,1);
+
+
+% --- Executes during object creation, after setting all properties.
+function deliverReward_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to deliverReward_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
 
 
 % --- Executes on selection change in chooseFun2Run.
@@ -391,33 +446,19 @@ set(hObject, 'String', {'Cal','DirReq','Fwd_Photo','Fwd_MScale',...
                          'Fwd_Sac','Fwd_Sac_MScale','FreeMap', 'FixTrain'});
 
 
-% --- Executes during object creation, after setting all properties.
-function Start_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Start (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes during object creation, after setting all properties.
-function Reward_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Reward (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-function ExperimentName_Callback(hObject, eventdata, handles)
-% hObject    handle to ExperimentName (see GCBO)
+function experimentName_editbox_Callback(hObject, eventdata, handles)
+% hObject    handle to experimentName_editbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global ExperimentName
 ExperimentName = get(hObject, 'String');
-% Hints: get(hObject,'String') returns contents of ExperimentName as text
-%        str2double(get(hObject,'String')) returns contents of ExperimentName as a double
+% Hints: get(hObject,'String') returns contents of experimentName_editbox as text
+%        str2double(get(hObject,'String')) returns contents of experimentName_editbox as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function ExperimentName_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ExperimentName (see GCBO)
+function experimentName_editbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to experimentName_editbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -428,9 +469,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in SavedExperiments.
-function SavedExperiments_Callback(hObject, eventdata, handles)
-% hObject    handle to SavedExperiments (see GCBO)
+% --- Executes on selection change in savedExperiments_listbox.
+function savedExperiments_listbox_Callback(hObject, eventdata, handles)
+% hObject    handle to savedExperiments_listbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -448,15 +489,15 @@ cd(handles.masterFolder);
 
 data = mydata.ExperParams;
 
-set(handles.ExperimentParam,'data',data)
-set(handles.ExperimentName,'String',expsel)
-% Hints: contents = cellstr(get(hObject,'String')) returns SavedExperiments contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from SavedExperiments
+set(handles.ExperimentParam_table,'data',data)
+set(handles.experimentName_editbox,'String',expsel)
+% Hints: contents = cellstr(get(hObject,'String')) returns savedExperiments_listbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from savedExperiments_listbox
 
 
 % --- Executes during object creation, after setting all properties.
-function SavedExperiments_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SavedExperiments (see GCBO)
+function savedExperiments_listbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to savedExperiments_listbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -467,14 +508,14 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in SaveExperiment.
-function SaveExperiment_Callback(hObject, eventdata, handles)
-% hObject    handle to SaveExperiment (see GCBO)
+% --- Executes on button press in saveExperiment_pushbutton.
+function saveExperiment_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to saveExperiment_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global ExperParams;
-ExperParams = get(handles.ExperimentParam,'Data');
-FileName   = get(handles.ExperimentName,'String');
+ExperParams = get(handles.ExperimentParam_table,'Data');
+FileName   = get(handles.experimentName_editbox,'String');
 File = strcat(FileName,".mat");
 
 % Save the experiment into the "experiments" folder
@@ -486,24 +527,31 @@ save(File, 'ExperParams')
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
-experiments = get(handles.SavedExperiments,'String');
+experiments = get(handles.savedExperiments_listbox,'String');
 experiments = [experiments; cellstr(FileName)];
-set(handles.SavedExperiments,'String',experiments)
-
-
-% --- Executes on selection change in chooseOrder.
-function chooseOrder_Callback(hObject, eventdata, handles)
-% hObject    handle to chooseOrder (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns chooseOrder contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from chooseOrder
+set(handles.savedExperiments_listbox,'String',experiments)
 
 
 % --- Executes during object creation, after setting all properties.
-function chooseOrder_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to chooseOrder (see GCBO)
+function saveExperiment_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to saveExperiment_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on selection change in chooseOrder_choicelist.
+function chooseOrder_choicelist_Callback(hObject, eventdata, handles)
+% hObject    handle to chooseOrder_choicelist (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns chooseOrder_choicelist contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from chooseOrder_choicelist
+
+
+% --- Executes during object creation, after setting all properties.
+function chooseOrder_choicelist_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to chooseOrder_choicelist (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -517,62 +565,25 @@ set(hObject, 'String', {'Uniform', 'Block','Random'});
 
 
 % --- Executes during object creation, after setting all properties.
-function SaveTrial_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SaveTrial (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes during object creation, after setting all properties.
-function SaveExperiment_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SaveExperiment (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-
-% --- Executes during object creation, after setting all properties.
-function End_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to End (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes during object creation, after setting all properties.
 function MASTERLEDfigure_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to MASTERLEDfigure (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% --- Executes during object deletion, before destroying properties.
-function SavedTrials_DeleteFcn(hObject, eventdata, handles)
-% hObject    handle to SavedTrials (see GCBO)
+
+% --- Executes on button press in debugging_checkbox.
+function debugging_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to debugging_checkbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on button press in checkbox2.
-function checkbox2_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of checkbox2
+% Hint: get(hObject,'Value') returns toggle state of debugging_checkbox
 
 
-% --- Executes on button press in robotoriginpushbutton.
-function robotoriginpushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to robotoriginpushbutton (see GCBO)
+% --- Executes on button press in robotReturnToOrigin_pushbutton.
+function robotReturnToOrigin_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to robotReturnToOrigin_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 a = handles.a_serialobj;
 a.returnRobot();
-
-
-% --- Executes on button press in cellchangebutton1.
-function cellchangebutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to cellchangebutton1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of cellchangebutton1
