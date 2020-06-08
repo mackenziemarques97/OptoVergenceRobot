@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 03-Jun-2020 13:48:58
+% Last Modified by GUIDE v2.5 08-Jun-2020 12:51:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,7 +57,9 @@ handles.output = hObject;
 
 % Set function handles for inputs
 % save TrialParams in handles in a cell array of doubles
-handles.TrialParam_LED.Data = cellfun(@double,handles.TrialParam_LED.Data,'UniformOutput',false);
+handles.TrialParams_LED.Data = cellfun(@double,handles.TrialParams_LED.Data,'UniformOutput',false);
+handles.TrialParams_robot.Data = cellfun(@double,handles.TrialParams_robot.Data,'UniformOutput',false);
+
 
 % save folder paths
 % choose paths based on computer name
@@ -190,7 +192,7 @@ cd(handles.masterFolder);
 
 data = mydata.TrialParams;
 
-set(handles.TrialParam_LED,'data',data)
+set(handles.TrialParams_LED,'data',data)
 set(handles.trialName_editbox,'String',trisel)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns savedTrials_listbox contents as cell array
@@ -217,23 +219,9 @@ function savedTrials_listbox_DeleteFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes during object creation, after setting all properties.
-function TrialParam_LED_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam_LED (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes during object deletion, before destroying properties.
-function TrialParam_LED_DeleteFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam_LED (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes when entered data in editable cell(s) in TrialParam_LED.
-function TrialParam_LED_CellEditCallback(hObject, eventdata, handles)
-% hObject    handle to TrialParam_LED (see GCBO)
+% --- Executes when entered data in editable cell(s) in TrialParams_LED.
+function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to TrialParams_LED (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
 %	Indices: row and column indices of the cell(s) edited
 %	PreviousData: previous data for the cell(s) edited
@@ -247,23 +235,9 @@ function TrialParam_LED_CellEditCallback(hObject, eventdata, handles)
 % % they correspond to lcoations where an LED is present?
 
 
-% --- Executes during object creation, after setting all properties.
-function TrialParam_robot_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam_robot (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes during object deletion, before destroying properties.
-function TrialParam_robot_DeleteFcn(hObject, eventdata, handles)
-% hObject    handle to TrialParam_robot (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes when entered data in editable cell(s) in TrialParam_robot.
-function TrialParam_robot_CellEditCallback(hObject, eventdata, handles)
-% hObject    handle to TrialParam_robot (see GCBO)
+% --- Executes when entered data in editable cell(s) in TrialParams_robot.
+function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to TrialParams_robot (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
 %	Indices: row and column indices of the cell(s) edited
 %	PreviousData: previous data for the cell(s) edited
@@ -302,8 +276,12 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-global TrialParams;
-TrialParams = get(handles.TrialParam_LED,'Data');
+global TrialParams_LED TrialParams_robot TrialParams;
+TrialParams_LED = get(handles.TrialParams_LED,'Data');
+TrialParams_LED = [TrialParams_LED cell(4,2)];
+TrialParams_robot = get(handles.TrialParams_robot,'Data');
+TrialParams = [TrialParams_LED; TrialParams_robot];
+
 
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
