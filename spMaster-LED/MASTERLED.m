@@ -59,7 +59,9 @@ handles.output = hObject;
 % save TrialParams in handles in a cell array of doubles
 handles.TrialParams_LED.Data = cellfun(@double,handles.TrialParams_LED.Data,'UniformOutput',false);
 handles.TrialParams_robot.Data = cellfun(@double,handles.TrialParams_robot.Data,'UniformOutput',false);
-
+% Make logical checkbox columns in parameter table for robot editable
+% Replace 0 with []
+handles.TrialParams_robot.Data(:,:) = {[]};
 
 % save folder paths
 % choose paths based on computer name
@@ -276,22 +278,36 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%take parameters from the 2 trial design tables 
+%and combine into one cell array with indication of whether each phase
+%includes LED board or robot
+%reorder and reformat TrialParams cell arrays
 global TrialParams_LED TrialParams_robot TrialParams;
 TrialParams_LED = get(handles.TrialParams_LED,'Data');
-TrialParams_LED = [TrialParams_LED cell(4,2)];
-TrialParams_robot = get(handles.TrialParams_robot,'Data');
-TrialParams = [TrialParams_LED; TrialParams_robot];
+LED = cell(size(TrialParams_LED,1),1);
+LED(:) = {'LED'};
+TrialParams_LED = [LED TrialParams_LED cell(4,2)];
 
+TrialParams_robot = get(handles.TrialParams_robot,'Data') ;
+rob = cell(size(TrialParams_robot,1),1);
+rob(:) = {'robot'};
+TrialParams_robot = [rob TrialParams_robot];
+
+TrialParams = [TrialParams_LED; TrialParams_robot];
+TrialParams(:,2) = cellfun(@str2double, TrialParams(:,2),'UniformOutput',0);
+TrialParams = sortrows(TrialParams,2);
+phaseOrder = cell2mat(TrialParams(:,2));
+TrialParams(isnan(phaseOrder),1:2) = {[]};
 
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
 %LED degree meet the conditions 
-numFilledInRows = sum(~cellfun(@isempty,TrialParams),1);
-numPhases = numFilledInRows(1);
-for phase = 1:numPhases
-    if ((TrialParams{phase,3} < 0)||(TrialParams{phase,3} > 20 && TrialParams{phase,3} < 25)...
-            ||(TrialParams{phase,3} > 25 && TrialParams{phase,3} < 30)||...
-            (TrialParams{phase,3} > 30 && TrialParams{phase,3} < 35)||TrialParams{phase,3} > 35)     
+numLEDphases = sum(~cellfun(@isempty,TrialParams_LED(:,2)),1);
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Degree'))+1;
+for phase = 1:numLEDphases
+    if ((TrialParams_LED{phase,degIdx} < 0)||(TrialParams_LED{phase,degIdx} > 20 && TrialParams_LED{phase,degIdx} < 25)...
+            ||(TrialParams_LED{phase,degIdx} > 25 && TrialParams_LED{phase,degIdx} < 30)||...
+            (TrialParams_LED{phase,degIdx} > 30 && TrialParams_LED{phase,degIdx} < 35)||TrialParams_LED{phase,degIdx} > 35)     
         str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
