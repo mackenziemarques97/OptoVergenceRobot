@@ -6,28 +6,38 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     % load the trial parameters/data
     load(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot');
     a = handles.a_serialobj;
-
+    % set field names for LED and robot parameters in trial structures
     paramNames_LED = {'phaseNum','color','direction','degree','duration','fixDur','ifReward','withNext'};
     paramNames_robot = {'phaseNum','color','vergenceAngle','degree','velocity','Vx','Vz','duration','ifReward','withNext'};
+    % use supporting function to access and sort parameters saved in master GUI
+    % tables for controlling LEDs and robot into structures
     trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
     trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
     
+    % identify total number of phases, number of LED wall phases, and
+    % number of robot phases
     numPhases = numel(vertcat(trialLED(:).phaseNum,trialRobot(:).phaseNum));
     numLEDPhases = numel(vertcat(trialLED(:).phaseNum));
     numRobotPhases = numel(vertcat(trialRobot(:).phaseNum));
+    %LED 
+    % loop through each LED phase and assign x and y coordinates for each
+    % lit-up LED; save coords as additional fields in trialLED structure
     for phaseNum = 1:numLEDPhases
         if ~isempty(trialLED(phaseNum).direction)
             %convert direction and degree to x and y coordinates on auxiliary axis
             [trialLED(phaseNum).xCoord, trialLED(phaseNum).yCoord] = getPhaseCoords(trialLED, phaseNum); 
         end
     end
-    
+    % Robot Location Calculation for each Phase
+    % loop through each robot phase and calculate Dx and Dz in cm from the
+    % vergence angle and interpupillary distance inputs on the main GUI;
+    % save distances as additional fields in trialRobot structure
     for phaseNum = 1:numRobotPhases
-        if ~isempty(trialRobot(phaseNum).direction)
-            interpupDist = handles.interpupDist_editbox;
+        if ~isempty(trialRobot(phaseNum).color)
+            interpupDist = str2double(handles.interpupDist_editbox.String);
             vergAng = trialRobot(phaseNum).vergenceAngle;
-            Dz = (interpupDist/2)/tand(vergAng/2);
-            Dx = Dz/tand(trialRobot(phaseNum).degree);
+            trialRobot(phaseNum).Dz = (interpupDist/2)/tand(vergAng/2);
+            trialRobot(phaseNum).Dx = trialRobot(phaseNum).Dz/tand(trialRobot(phaseNum).degree);
         end
     end
     

@@ -239,6 +239,21 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to lcoations where an LED is present?
 
+%for the number of rows that contain parameters 
+%iterate through and display error message if any of the entries for 
+%LED degree meet the conditions 
+LED = get(handles.TrialParams_LED,'Data');
+%numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Degree'));
+for phase = 1:size(LED,1)
+    if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
+            ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
+            (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
+        str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
+        uiwait(msgbox(str,'Error','error'));
+    end
+end
+
 
 % --- Executes when entered data in editable cell(s) in TrialParams_robot.
 function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
@@ -250,6 +265,19 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 %	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
+
+% calculate overall velocity from Vx and Vz in cm/s
+% if Vx and Vz entered, then calculate overall velocity and fill cell
+robot = get(handles.TrialParams_robot,'Data');
+VxIdx = find(strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)'));
+VzIdx = find(strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)'));
+
+Vz = cell2mat(robot(:,VzIdx));
+Vx = cell2mat(robot(:,VzIdx));
+x=1;
+
+
+
 
 
 function trialName_editbox_Callback(hObject, eventdata, handles)
