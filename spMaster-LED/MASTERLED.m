@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 08-Jun-2020 12:51:47
+% Last Modified by GUIDE v2.5 11-Jun-2020 13:56:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -192,9 +192,12 @@ mydata = load(trisel);
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
-data = mydata.TrialParams;
+%data = mydata.TrialParams;
+LEDdata = mydata.TrialParams_LED;
+robotdata = mydata.TrialParams_robot;
 
-set(handles.TrialParams_LED,'data',data)
+set(handles.TrialParams_LED,'data',LEDdata)
+set(handles.TrialParams_robot,'data',robotdata)
 set(handles.trialName_editbox,'String',trisel)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns savedTrials_listbox contents as cell array
@@ -278,48 +281,30 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-%take parameters from the 2 trial design tables 
-%and combine into one cell array with indication of whether each phase
-%includes LED board or robot
-%reorder and reformat TrialParams cell arrays
-global TrialParams_LED TrialParams_robot TrialParams;
-TrialParams_LED = get(handles.TrialParams_LED,'Data');
-LED = cell(size(TrialParams_LED,1),1);
-LED(:) = {'LED'};
-TrialParams_LED = [LED TrialParams_LED cell(4,2)];
-
-TrialParams_robot = get(handles.TrialParams_robot,'Data') ;
-rob = cell(size(TrialParams_robot,1),1);
-rob(:) = {'robot'};
-TrialParams_robot = [rob TrialParams_robot];
-
-TrialParams = [TrialParams_LED; TrialParams_robot];
-TrialParams(:,2) = cellfun(@str2double, TrialParams(:,2),'UniformOutput',0);
-TrialParams = sortrows(TrialParams,2);
-phaseOrder = cell2mat(TrialParams(:,2));
-TrialParams(isnan(phaseOrder),1:2) = {[]};
-
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
 %LED degree meet the conditions 
-numLEDphases = sum(~cellfun(@isempty,TrialParams_LED(:,2)),1);
+LED = get(handles.TrialParams_LED,'Data');
+numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Degree'))+1;
 for phase = 1:numLEDphases
-    if ((TrialParams_LED{phase,degIdx} < 0)||(TrialParams_LED{phase,degIdx} > 20 && TrialParams_LED{phase,degIdx} < 25)...
-            ||(TrialParams_LED{phase,degIdx} > 25 && TrialParams_LED{phase,degIdx} < 30)||...
-            (TrialParams_LED{phase,degIdx} > 30 && TrialParams_LED{phase,degIdx} < 35)||TrialParams_LED{phase,degIdx} > 35)     
+    if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
+            ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
+            (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
         str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
 end
 
+TrialParams_LED = get(handles.TrialParams_LED,'Data');
+TrialParams_robot = get(handles.TrialParams_robot,'Data');
 FileName   = get(handles.trialName_editbox,'String');
 File = strcat(FileName,".mat");
 
 % Save the trial into the "trials" folder
 % change the current folder to trials folder
 cd(handles.trialFolder);
-save(File, 'TrialParams')
+save(File, 'TrialParams_LED', 'TrialParams_robot')
 
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
@@ -327,6 +312,9 @@ cd(handles.masterFolder);
 trials = get(handles.savedTrials_listbox,'String');
 trials = [trials; cellstr(FileName)];
 set(handles.savedTrials_listbox,'String',trials)
+
+% Update handles structure
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -359,6 +347,27 @@ if get(handles.debugging_checkbox,'Value')
     handles.getEyePosFunc = @peekJoyPos;
     handles.deliverRewardFunc = @deliverRewardNotification;
 end
+
+% % take parameters from the 2 trial design tables 
+% % and combine into one cell array with indication of whether each phase
+% % includes LED board or robot
+% % reorder and reformat TrialParams cell arrays
+% LED = get(handles.TrialParams_LED,'Data');
+% extLED = cell(size(LED,1),1);
+% extLED(:) = {'LED'};
+% LED = [extLED LED cell(4,2)];
+% 
+% robot = get(handles.TrialParams_robot,'Data') ;
+% extRob = cell(size(robot,1),1);
+% extRob(:) = {'robot'};
+% robot = [extRob robot];
+% 
+% TrialParams = [LED; robot];
+% TrialParams(:,2) = cellfun(@str2double, TrialParams(:,2),'UniformOutput',0);
+% TrialParams = sortrows(TrialParams,2);
+% phaseOrder = cell2mat(TrialParams(:,2));
+% TrialParams(isnan(phaseOrder),1:2) = {[]};
+% handles.TrialParams = TrialParams;
 
 contents = cellstr(get(handles.chooseOrder_choicelist,'String'));
 order = contents{get(handles.chooseOrder_choicelist,'Value')};
@@ -581,3 +590,26 @@ function robotReturnToOrigin_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 a = handles.a_serialobj;
 a.returnRobot();
+
+
+
+function interpupDist_editbox_Callback(hObject, eventdata, handles)
+% hObject    handle to interpupDist_editbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of interpupDist_editbox as text
+%        str2double(get(hObject,'String')) returns contents of interpupDist_editbox as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function interpupDist_editbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to interpupDist_editbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

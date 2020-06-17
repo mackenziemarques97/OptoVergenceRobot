@@ -23,11 +23,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     end
     
     for phaseNum = 1:numRobotPhases
-        if ~isempty(trialRobot(phaseNum).color)
-            interpupDist = str2double(handles.interpupDist_editbox.String);
+        if ~isempty(trialRobot(phaseNum).direction)
+            interpupDist = handles.interpupDist_editbox;
             vergAng = trialRobot(phaseNum).vergenceAngle;
-            trialRobot(phaseNum).Dz = (interpupDist/2)/tand(vergAng/2);
-            trialRobot(phaseNum).Dx = Dz/tand(trialRobot(phaseNum).degree);
+            Dz = (interpupDist/2)/tand(vergAng/2);
+            Dx = Dz/tand(trialRobot(phaseNum).degree);
         end
     end
     
