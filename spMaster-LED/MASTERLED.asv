@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 11-Jun-2020 13:56:08
+% Last Modified by GUIDE v2.5 18-Jun-2020 11:50:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -268,13 +268,28 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 
 % calculate overall velocity from Vx and Vz in cm/s
 % if Vx and Vz entered, then calculate overall velocity and fill cell
+% store data from robot params table
 robot = get(handles.TrialParams_robot,'Data');
-VxIdx = find(strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)'));
-VzIdx = find(strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)'));
-%if ~isempty
-Vx = cell2mat(cellfun(@cell2mat,robot(:,VxIdx));
-Vz = cellfun(@cell2mat,robot(:,VzIdx));
-
+% get column index of Vx from table column names
+VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
+% get column index of Vz
+VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)');
+% store  current row index of param table
+currRow = eventdata.Indices(1);
+% if Vx or Vz entry in table is empty, then wait
+while isempty(robot{currRow,VzIdx})||isempty(robot{currRow,VxIdx})
+    pause;
+end
+% when Vx and Vz entry filled, convert cells to matrices/numbers (since
+% cells as inputs incompatible with hypot function)
+Vz = cell2mat(robot(currRow,VzIdx));
+Vx = cell2mat(robot(currRow,VxIdx));
+% calculate overall velocity from the x and z components
+Vel = hypot(Vx, Vz);
+% fill the calculated velocity robot cell array
+robot(currRow,find(VxIdx)-1) = num2cell(Vel);
+% display changes of data cell array on robot params table of main GUI
+set(handles.TrialParams_robot,'Data',robot);
 
 
 function trialName_editbox_Callback(hObject, eventdata, handles)

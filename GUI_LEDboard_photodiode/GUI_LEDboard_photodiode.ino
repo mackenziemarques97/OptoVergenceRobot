@@ -5,6 +5,7 @@
 /*Include the following libraries*/
 #include <stdio.h>
 #include <math.h>
+#include <EEPROM.h>
 #include <FastLED.h> //contains specific commands used to interact with LED pixels
 
 /*Define pins for the x-axis stepper motor*/
@@ -63,7 +64,8 @@ int ledOn = 127;
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
 int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
-unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
+//unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
+unsigned long dimensions[2]; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
 int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
@@ -179,6 +181,11 @@ double* parseCommand(char strCommand[]) {
   if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
     command[0] = 5; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    return command;
+  }
+  if (strcmp(token, "findDimensions") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 6; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
 
@@ -377,6 +384,31 @@ void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-componen
   }
 }
 
+/* findDimensions function:
+   Moves to xMax from current location then to xMin and counts the number of steps it took
+   Does the same in the y-direction
+   Returns the number of steps in a 2-element array, x & y dimension
+   Ends at (xMin, yMin)
+*/
+int* findDimensions() {
+  recalibrate(xMax); /*move to xMax*/
+  int a = recalibrate(xMin); /*a = number of steps necessary to move from xMax to xMin*/
+  recalibrate(yMax); /*move to yMax*/
+  int b = recalibrate(yMin); /*b = number of steps necessary to move from yMax to yMin*/
+  static int i[2] = {a, b}; /*store x & y dimensions in an array in terms of number of steps*/
+  return i;
+}
+
+void writeDimensions(unsigned long dimensions[]){
+  byte dim0 = dimensions[0];
+  byte dim1 = dimensions[1];
+  EEPROM.put(0,dim0);
+  EEPROM.put(1,dim1);
+  Serial.print("dim0: "); Serial.println(dim0);
+  Serial.print("dim1: "); Serial.println(dim1);
+}
+
+
 void setup() {
   /*initialize pins and settings*/
   FastLED.addLeds<LED_TYPE, N_Strip, COLOR_ORDER>(leds_Strips[0], NUM_LEDS_PER_STRIP).setCorrection( TypicalLEDStrip );
@@ -435,6 +467,12 @@ void setup() {
     serialInit = Serial.read();
   }
 
+  Serial.print("dimensions[0]: "); Serial.println(dimensions[0]);
+  Serial.print("dimensions[1]: "); Serial.println(dimensions[1]);
+  EEPROM.get(0,dimensions[0]);
+  EEPROM.get(1,dimensions[1]);
+  Serial.print("dimensions[0]postread: "); Serial.println(dimensions[0]);
+  Serial.print("dimensions[1]postread: "); Serial.println(dimensions[1]);
   Serial.println("startSignalReceived");
 }
 
@@ -495,6 +533,20 @@ void loop() {
           location[0] = 0;
           location[1] = 0;
           Serial.println("robotReturned");
+          delay(300);
+        }
+        break;
+      case 6: //findDimensions:
+        {
+          Serial.println("Hello!");
+          /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
+          //int *i = findDimensions();
+          dimensions[0] = 107488;//*i * microstepsPerStep;
+          dimensions[1] = 55296;//*(i + 1) * microstepsPerStep;
+          writeDimensions(dimensions);
+          Serial.print("dimensions[0]: "); Serial.println(dimensions[0]);
+          Serial.print("dimensions[1]: "); Serial.println(dimensions[1]);
+          Serial.println("dimensionsFound");
           delay(300);
         }
         break;
