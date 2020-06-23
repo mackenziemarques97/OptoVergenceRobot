@@ -5,7 +5,7 @@
 /*Include the following libraries*/
 #include <stdio.h>
 #include <math.h>
-#include <EEPROM.h>
+#include <EEPROMex.h>
 #include <FastLED.h> //contains specific commands used to interact with LED pixels
 
 /*Define pins for the x-axis stepper motor*/
@@ -17,8 +17,8 @@
 /*Define pins for the 4 microswitches*/
 #define xMin 2
 #define xMax 3
-#define yMin 4
-#define yMax 5
+#define zMin 4
+#define zMax 5
 /*Define pins for RGB LED*/
 #define RED 22
 #define GREEN 23
@@ -56,6 +56,7 @@ CRGB leds_Strips[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB leds_Center[NUM_Center];
 
 /*Define global variables*/
+int addressLongX, addressLongZ; //address/bytes to write dimensions to
 int dir, color, ledNum;
 int dirIndex, colIndex;
 String val;
@@ -278,7 +279,7 @@ void turnOffLED(int dir, int ledNum) {
 }
 
 /* recalibrate function:
-   Moves LED to specified edge (xMax, xMin, yMax, yMin)
+   Moves LED to specified edge (xMax, xMin, zMax, zMin)
    Standardizes edge as the point when the microswitch is just released.
    Returns number of steps it took to get there
    0 = pressed, 1 = unpressed for pin reads
@@ -293,10 +294,10 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
       line(-microstepsPerStep * 10, 0, Delay); /*move in negative x-direction toward xMin*/
     } else if (pin == xMax) { /*if pin is xMax*/
       line(microstepsPerStep * 10, 0, Delay); /*move in positive x-direction toward xMax*/
-    } else if (pin == yMin) { /*if pin is yMin*/
-      line(0, -microstepsPerStep * 10, Delay); /*move in negative y-direction toward yMin*/
-    } else if (pin == yMax) { /*if pin is yMax*/
-      line(0, microstepsPerStep * 10, Delay); /*move in positive y-direction toward yMax*/
+    } else if (pin == zMin) { /*if pin is zMin*/
+      line(0, -microstepsPerStep * 10, Delay); /*move in negative y-direction toward zMin*/
+    } else if (pin == zMax) { /*if pin is zMax*/
+      line(0, microstepsPerStep * 10, Delay); /*move in positive y-direction toward zMax*/
     }
     steps += 10; /*add 10 to steps counter*/
 
@@ -317,12 +318,12 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
           line(-microstepsPerStep, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
           delay(200);
-        } else if (pin == yMin) {
-          line(0, microstepsPerStep, Delay); /*if yMin microswitch is pressed, move forward in y-direction*/
+        } else if (pin == zMin) {
+          line(0, microstepsPerStep, Delay); /*if zMin microswitch is pressed, move forward in y-direction*/
           location[1] = 0; /*update y-coordinate location to 0*/
           delay(200);
-        } else if (pin == yMax) {
-          line(0, -microstepsPerStep, Delay); /*if yMax microswitch is pressed, move back in negative y-direction*/
+        } else if (pin == zMax) {
+          line(0, -microstepsPerStep, Delay); /*if zMax microswitch is pressed, move back in negative y-direction*/
           location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
           delay(200);
         }
@@ -388,24 +389,24 @@ void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-componen
    Moves to xMax from current location then to xMin and counts the number of steps it took
    Does the same in the y-direction
    Returns the number of steps in a 2-element array, x & y dimension
-   Ends at (xMin, yMin)
+   Ends at (xMin, zMin)
 */
 int* findDimensions() {
   recalibrate(xMax); /*move to xMax*/
   int a = recalibrate(xMin); /*a = number of steps necessary to move from xMax to xMin*/
-  recalibrate(yMax); /*move to yMax*/
-  int b = recalibrate(yMin); /*b = number of steps necessary to move from yMax to yMin*/
+  recalibrate(zMax); /*move to zMax*/
+  int b = recalibrate(zMin); /*b = number of steps necessary to move from zMax to zMin*/
   static int i[2] = {a, b}; /*store x & y dimensions in an array in terms of number of steps*/
   return i;
 }
 
 void writeDimensions(unsigned long dimensions[]){
-  byte dim0 = dimensions[0];
-  byte dim1 = dimensions[1];
-  EEPROM.put(0,dim0);
-  EEPROM.put(1,dim1);
-  Serial.print("dim0: "); Serial.println(dim0);
-  Serial.print("dim1: "); Serial.println(dim1);
+  long xDim = dimensions[0];
+  EEPROM.updateLong(addressLongX,xDim);
+  Serial.print("xDim: "); Serial.println(xDim);
+  long zDim = dimensions[1];
+  EEPROM.updateLong(addressLongZ,zDim);
+  Serial.print("zDim: "); Serial.println(zDim);
 }
 
 
@@ -431,8 +432,8 @@ void setup() {
   /*microswitch pins are awaiting input signal (pressed or unpressed)*/
   pinMode(xMin, INPUT);
   pinMode(xMax, INPUT);
-  pinMode(yMin, INPUT);
-  pinMode(yMax, INPUT);
+  pinMode(zMin, INPUT);
+  pinMode(zMax, INPUT);
   /*LED pins output*/
   pinMode(RED, OUTPUT);
   pinMode(GREEN, OUTPUT);
@@ -450,8 +451,8 @@ void setup() {
   /*preset microswitch pins to HIGH (1), indicating unpressed*/
   digitalWrite(xMin, HIGH);
   digitalWrite(xMax, HIGH);
-  digitalWrite(yMin, HIGH);
-  digitalWrite(yMax, HIGH);
+  digitalWrite(zMin, HIGH);
+  digitalWrite(zMax, HIGH);
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(115200);
@@ -467,12 +468,18 @@ void setup() {
     serialInit = Serial.read();
   }
 
-  Serial.print("dimensions[0]: "); Serial.println(dimensions[0]);
-  Serial.print("dimensions[1]: "); Serial.println(dimensions[1]);
-  EEPROM.get(0,dimensions[0]);
-  EEPROM.get(1,dimensions[1]);
-  Serial.print("dimensions[0]postread: "); Serial.println(dimensions[0]);
-  Serial.print("dimensions[1]postread: "); Serial.println(dimensions[1]);
+  /* get addresses/bytes to write to in EEPROM */
+  addressLongX = EEPROM.getAddress(sizeof(long));
+  addressLongZ = EEPROM.getAddress(sizeof(long));
+  /* read from EEPROM */
+  long EEPROMoutput = EEPROM.readLong(addressLongX);
+  /* store in first position of dimensions array */
+  dimensions[0] = EEPROMoutput;
+  /* read from EEPROM */
+  EEPROMoutput = EEPROM.readLong(addressLongZ);
+  /* store in second position of dimensions array */
+  dimensions[1] = EEPROMoutput;
+
   Serial.println("startSignalReceived");
 }
 
@@ -527,9 +534,9 @@ void loop() {
         break;
       case 5: //returnRobot:
         {
-          /* Calibrates to xMin and yMin and updates location to (0,0) */
+          /* Calibrates to xMin and zMin and updates location to (0,0) */
           int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-          int yErr = recalibrate(yMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
+          int yErr = recalibrate(zMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
           location[0] = 0;
           location[1] = 0;
           Serial.println("robotReturned");
@@ -538,14 +545,12 @@ void loop() {
         break;
       case 6: //findDimensions:
         {
-          Serial.println("Hello!");
-          /* Determines dimensions by moving from xmax to xmin, then ymax to ymin*/
-          //int *i = findDimensions();
-          dimensions[0] = 107488;//*i * microstepsPerStep;
-          dimensions[1] = 55296;//*(i + 1) * microstepsPerStep;
+          /* Determines dimensions by moving from xmax to xmin, then zMax to zMin*/
+          int *i = findDimensions();
+          dimensions[0] = *i * microstepsPerStep;
+          dimensions[1] = *(i + 1) * microstepsPerStep;
+          /* writes dimensions to EEPROM */
           writeDimensions(dimensions);
-          Serial.print("dimensions[0]: "); Serial.println(dimensions[0]);
-          Serial.print("dimensions[1]: "); Serial.println(dimensions[1]);
           Serial.println("dimensionsFound");
           delay(300);
         }

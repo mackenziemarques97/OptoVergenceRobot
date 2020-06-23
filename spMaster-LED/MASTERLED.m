@@ -270,6 +270,21 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 % if Vx and Vz entered, then calculate overall velocity and fill cell
 % store data from robot params table
 robot = get(handles.TrialParams_robot,'Data');
+VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Visual Angle (°)');
+VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vergence Angle (°)');
+% store  current row index of param table
+currRow = eventdata.Indices(1);
+% if Vx or Vz entry in table is empty, then wait
+while isempty(robot{currRow,VisAngIdx})||isempty(robot{currRow,VergAngIdx})
+    pause;
+end
+interpupDist = str2double(handles.interpupDist_editbox.String);
+Ihalf = interpupDist/2;
+VisAng = cell2mat(robot(currRow,VisAngIdx));
+VergAng = cell2mat(robot(currRow,VergAngIdx));
+[xCoord,zCoord] = calcRobotCoords(VisAng,VergAng,Ihalf);
+
+
 % get column index of Vx from table column names
 VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
 % get column index of Vz
@@ -665,6 +680,8 @@ function robotFindDimensions_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to robotFindDimensions_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+a = handles.a_serialobj;
+a.findDimensions();
 
 
 % --- Executes during object creation, after setting all properties.

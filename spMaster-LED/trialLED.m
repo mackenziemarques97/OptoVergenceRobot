@@ -7,8 +7,8 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     load(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot');
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
-    paramNames_LED = {'phaseNum','color','direction','degree','duration','fixDur','ifReward','withNext'};
-    paramNames_robot = {'phaseNum','color','vergenceAngle','degree','velocity','Vx','Vz','duration','ifReward','withNext'};
+    paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
+    paramNames_robot = {'phaseNum','color','vergAng','visAng','velocity','Vx','Vz','duration','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
     trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
@@ -35,9 +35,12 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     for phaseNum = 1:numRobotPhases
         if ~isempty(trialRobot(phaseNum).color)
             interpupDist = str2double(handles.interpupDist_editbox.String);
-            vergAng = trialRobot(phaseNum).vergenceAngle;
-            trialRobot(phaseNum).Dz = (interpupDist/2)/tand(vergAng/2);
-            trialRobot(phaseNum).Dx = trialRobot(phaseNum).Dz/tand(trialRobot(phaseNum).degree);
+            Ihalf = interpupDist/2;
+            vergAng = trialRobot(phaseNum).vergAng;
+            visAng = trialRobot(phaseNum).visAng;
+            [trialRobot(phaseNum).xCoord,trialRobot(phaseNum).zCoord] = calcRobotCoords(visAng,vergAng,Ihalf);
+%             trialRobot(phaseNum).Dz = (interpupDist/2)/tand(vergAng/2);
+%             trialRobot(phaseNum).Dx = trialRobot(phaseNum).Dz/tand(trialRobot(phaseNum).degree);
         end
     end
     
