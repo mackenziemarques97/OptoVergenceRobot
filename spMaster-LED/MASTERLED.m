@@ -244,8 +244,11 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
 %numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Degree'));
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
 for phase = 1:size(LED,1)
+    while isempty(LED{phase,degIdx})
+        pause;
+    end
     if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
             ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
             (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
@@ -272,39 +275,70 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 robot = get(handles.TrialParams_robot,'Data');
 VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Visual Angle (°)');
 VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vergence Angle (°)');
-% store  current row index of param table
-currRow = eventdata.Indices(1);
-% if Vx or Vz entry in table is empty, then wait
-while isempty(robot{currRow,VisAngIdx})||isempty(robot{currRow,VergAngIdx})
-    pause;
-end
+xCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'X Coordinate (cm)');
+zCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'Z Coordinate (cm)');
 interpupDist = str2double(handles.interpupDist_editbox.String);
 Ihalf = interpupDist/2;
-VisAng = cell2mat(robot(currRow,VisAngIdx));
-VergAng = cell2mat(robot(currRow,VergAngIdx));
-[xCoord,zCoord] = calcRobotCoords(VisAng,VergAng,Ihalf);
+currCol = eventdata.Indices(2);
 
-
-% get column index of Vx from table column names
-VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
-% get column index of Vz
-VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)');
-% store  current row index of param table
-currRow = eventdata.Indices(1);
-% if Vx or Vz entry in table is empty, then wait
-while isempty(robot{currRow,VzIdx})||isempty(robot{currRow,VxIdx})
-    pause;
+if currCol == find(xCoordIdx) || currCol == find(zCoordIdx)
+    currRow = eventdata.Indices(1);
+    while isempty(robot{currRow,xCoordIdx})||isempty(robot{currRow,zCoordIdx})
+        pause;
+    end
+    xCoord = cell2mat(robot(currRow,xCoordIdx));
+    zCoord = cell2mat(robot(currRow,zCoordIdx));
+    [VisAng,VergAng] = calcRobotPhaseAngs(xCoord,zCoord,Ihalf);
+    robot(currRow,VisAngIdx) = num2cell(VisAng);
+    robot(currRow,VergAngIdx) = num2cell(VergAng);
+elseif currCol == find(VisAngIdx) || currCol == find(VergAngIdx)
+    % store  current row index of param table
+    currRow = eventdata.Indices(1);
+    % if Vx or Vz entry in table is empty, then wait
+    while isempty(robot{currRow,VisAngIdx})||isempty(robot{currRow,VergAngIdx})
+        pause;
+    end
+    VisAng = cell2mat(robot(currRow,VisAngIdx));
+    VergAng = cell2mat(robot(currRow,VergAngIdx));
+    [xCoord,zCoord] = calcRobotPhaseCoords(VisAng,VergAng,Ihalf);
+    robot(currRow,xCoordIdx) = num2cell(xCoord);
+    robot(currRow,zCoordIdx) = num2cell(zCoord);
 end
-% when Vx and Vz entry filled, convert cells to matrices/numbers (since
-% cells as inputs incompatible with hypot function)
-Vz = cell2mat(robot(currRow,VzIdx));
-Vx = cell2mat(robot(currRow,VxIdx));
-% calculate overall velocity from the x and z components
-Vel = hypot(Vx, Vz);
-% fill the calculated velocity robot cell array
-robot(currRow,find(VxIdx)-1) = num2cell(Vel);
+
+validCheck = true;
+if xCoord < 0 || xCoord > 134.62 
+    str = sprintf('Calculated X-coordinate out of bounds. Invalid visual/vergence angle combination.');
+    uiwait(msgbox(str,'Error','error'));
+    validCheck = false;
+end
+if zCoord < 0 || zCoord > 86.0425
+    str = sprintf('Calculated Z-coordinate out of bounds. Invalid visual/vergence angle combination.');
+    uiwait(msgbox(str,'Error','error'));
+    validCheck = false;
+end
+
+% % get column index of Vx from table column names
+% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
+% % get column index of Vz
+% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)');
+% % store  current row index of param table
+% % currRow = eventdata.Indices(1);
+% % if Vx or Vz entry in table is empty, then wait
+% % while isempty(robot{currRow,VzIdx})||isempty(robot{currRow,VxIdx})
+% %     pause;
+% % end
+% % when Vx and Vz entry filled, convert cells to matrices/numbers (since
+% % cells as inputs incompatible with hypot function)
+% % Vz = cell2mat(robot(currRow,VzIdx));
+% % Vx = cell2mat(robot(currRow,VxIdx));
+% % calculate overall velocity from the x and z components
+% % Vel = hypot(Vx, Vz);
+% % fill the calculated velocity robot cell array
+%%robot(currRow,find(VxIdx)-1) = num2cell(Vel);
 % display changes of data cell array on robot params table of main GUI
-set(handles.TrialParams_robot,'Data',robot);
+if validCheck
+    set(handles.TrialParams_robot,'Data',robot);   
+end
 
 
 function trialName_editbox_Callback(hObject, eventdata, handles)
@@ -341,7 +375,7 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
 numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Degree'))+1;
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'))+1;
 for phase = 1:numLEDphases
     if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
             ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...

@@ -8,7 +8,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
     paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
-    paramNames_robot = {'phaseNum','color','vergAng','visAng','velocity','Vx','Vz','duration','ifReward','withNext'};
+    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
     trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
@@ -25,7 +25,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     for phaseNum = 1:numLEDPhases
         if ~isempty(trialLED(phaseNum).direction)
             %convert direction and degree to x and y coordinates on auxiliary axis
-            [trialLED(phaseNum).xCoord, trialLED(phaseNum).yCoord] = getPhaseCoords(trialLED, phaseNum); 
+            [trialLED(phaseNum).xCoord, trialLED(phaseNum).yCoord] = getLEDPhaseCoords(trialLED, phaseNum); 
         end
     end
     % Robot Location Calculation for each Phase
@@ -37,10 +37,9 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
             interpupDist = str2double(handles.interpupDist_editbox.String);
             Ihalf = interpupDist/2;
             vergAng = trialRobot(phaseNum).vergAng;
-            visAng = trialRobot(phaseNum).visAng;
-            [trialRobot(phaseNum).xCoord,trialRobot(phaseNum).zCoord] = calcRobotCoords(visAng,vergAng,Ihalf);
-%             trialRobot(phaseNum).Dz = (interpupDist/2)/tand(vergAng/2);
-%             trialRobot(phaseNum).Dx = trialRobot(phaseNum).Dz/tand(trialRobot(phaseNum).degree);
+            visAng = trialRobot(phaseNum).visAng;            
+            xCoord = trialRobot(phaseNum).xCoord;
+            zCoord = trialRobot(phaseNum).zCoord;
         end
     end
     
@@ -99,14 +98,13 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     pause(.010);
 
     %% Initialize finite state structure
-    numPhases = size(trial, 1);
     phase = 1;
     while phase <= numPhases
 
         eyeCheckPhaseIndex = phase;
         
         [numrew, fixTol] = checkAux(auxiliary);
-
+        %%CHECK IF PHASE IS LED BOARD OR ROBOT
         if isempty(trial(phase).duration)
             break
         end

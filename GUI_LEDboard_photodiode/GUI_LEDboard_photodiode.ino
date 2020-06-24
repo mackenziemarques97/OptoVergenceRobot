@@ -456,17 +456,10 @@ void setup() {
 
   /*set serial data transmission rate (baud rate)*/
   Serial.begin(115200);
-  Serial.setTimeout(15);
+  Serial.setTimeout(35);
 
   digitalWrite(cReset, HIGH);
   delay(100);
-
-  char serialInit = 'X';
-  Serial.println("A");
-  while (serialInit != 'A')
-  {
-    serialInit = Serial.read();
-  }
 
   /* get addresses/bytes to write to in EEPROM */
   addressLongX = EEPROM.getAddress(sizeof(long));
@@ -479,6 +472,13 @@ void setup() {
   EEPROMoutput = EEPROM.readLong(addressLongZ);
   /* store in second position of dimensions array */
   dimensions[1] = EEPROMoutput;
+
+  char serialInit = 'X';
+  Serial.println("A");
+  while (serialInit != 'A')
+  {
+    serialInit = Serial.read();
+  }
 
   Serial.println("startSignalReceived");
 }
