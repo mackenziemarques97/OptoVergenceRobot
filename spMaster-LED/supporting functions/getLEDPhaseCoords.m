@@ -1,33 +1,35 @@
-function [xCoord, yCoord] = getLEDPhaseCoords(trial, phase)
+function [xCoord, yCoord] = getLEDPhaseCoords(Trial, phaseNum)
+dir = Trial(phaseNum).phases.direction;
+deg = Trial(phaseNum).phases.visAng;
 
 %convert direction and degree to x and y coordinates on auxiliary axis
-if strcmp(trial(phase).direction, 'center')
+if strcmp(dir, 'center')
     xCoord = 0;
     yCoord = 0;
-elseif strcmp(trial(phase).direction, 'N')
+elseif strcmp(dir, 'N')
     xCoord = 0;
-    yCoord = trial(phase).degree;
-elseif strcmp(trial(phase).direction, 'S')
+    yCoord = deg;
+elseif strcmp(dir, 'S')
     xCoord = 0;
-    yCoord = -trial(phase).degree;
-elseif strcmp(trial(phase).direction, 'E')
-    xCoord = trial(phase).degree;
+    yCoord = -deg;
+elseif strcmp(dir, 'E')
+    xCoord = deg;
     yCoord = 0;
-elseif strcmp(trial(phase).direction, 'W')
-    xCoord = -trial(phase).degree;
+elseif strcmp(dir, 'W')
+    xCoord = -deg;
     yCoord = 0;
-elseif strcmp(trial(phase).direction, 'NW')
-    xCoord = -trial(phase).degree * cosd(45);
-    yCoord = trial(phase).degree * sind(45);
-elseif strcmp(trial(phase).direction, 'NE')
-    xCoord = trial(phase).degree * cosd(45);
-    yCoord = trial(phase).degree * sind(45);
-elseif strcmp(trial(phase).direction, 'SW')
-    xCoord = -trial(phase).degree * cosd(45);
-    yCoord = -trial(phase).degree * sind(45);
-elseif strcmp(trial(phase).direction, 'SE')
-    xCoord = trial(phase).degree * cosd(45);
-    yCoord = -trial(phase).degree * sind(45);
+elseif strcmp(dir, 'NW')
+    xCoord = -deg * cosd(45);
+    yCoord = deg * sind(45);
+elseif strcmp(dir, 'NE')
+    xCoord = deg * cosd(45);
+    yCoord = deg * sind(45);
+elseif strcmp(dir, 'SW')
+    xCoord = -deg * cosd(45);
+    yCoord = -deg * sind(45);
+elseif strcmp(dir, 'SE')
+    xCoord = deg * cosd(45);
+    yCoord = -deg * sind(45);
 end
 
 end

@@ -37,16 +37,14 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             %removes data from input buffer associated with serial port
             flush(obj.connection); 
             
-            waitSignal = check(obj);
-            
             %setupTime = toc(startTalk)
             
         end
         
-        %% sendPhaseParams 
+        %% sendLEDPhaseParams 
         % sends LED parameters from MATLAB to Arduino
-        function sendPhaseParams(obj,dir,color,deg)
-            str1 = sprintf('sendPhaseParams:%s:%s:',[dir,color]);
+        function sendLEDPhaseParams(obj,dir,color,deg)
+            str1 = sprintf('sendLEDPhaseParams:%s:%s:',[dir,color]);
             str2 = sprintf('%d:',deg);
             sendInfo = [str1 str2];       
             writeline(obj.connection, sendInfo); 
@@ -76,6 +74,16 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             waitSignal = check(obj);
         end
         
+        %% sendRobotPhaseParams 
+        % sends Robot parameters from MATLAB to Arduino
+        function sendRobotPhaseParams(obj,x1,y1,v)
+            str1 = sprintf('sendRobotPhaseParams:%d:%d:%d',[x1,y1,v]);
+            str2 = sprintf('%s:',color);
+            sendInfo = [str1 str2];       
+            writeline(obj.connection, sendInfo); 
+            waitSignal = check(obj);
+        end
+        
         %% returnRobot
         % move robot RGB LED to origin
         function returnRobot(obj)            
@@ -100,6 +108,30 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             delete(obj.connection); %close connection
         end
         
+%         %% waitSignal - communication function  
+%         % do not suppress "waitSignal = check(obj)" line if you want what's
+%         % received to print in MATLAB's command window
+%         %
+%         % reads info in serial buffer
+%         % continues reading if nothing received
+%         % if something is received
+%         % prints in command window
+%         function waitSignal = check(obj)
+%             data = ''; % "data" variable starts out empty
+%             while(1)
+%                 % reads and stores data from serial buffer
+%                 data = readline(obj.connection);  
+%                 if isempty(data) == 1 % if nothing is read
+%                     data = readline(obj.connection);% continue reading
+%                     %1
+%                 elseif isempty(data) == 0 % if something is received
+%                     % print it
+%                     % it will be a string (message w/ no spaces)
+%                     waitSignal = data; 
+%                     break;
+%                 end
+%             end
+%         end
         %% waitSignal - communication function  
         % do not suppress "waitSignal = check(obj)" line if you want what's
         % received to print in MATLAB's command window
@@ -108,20 +140,11 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         % continues reading if nothing received
         % if something is received
         % prints in command window
-        function waitSignal = check(obj)
+        function data = check(obj)
             data = ''; % "data" variable starts out empty
-            while(1)
+            while isempty(data)
                 % reads and stores data from serial buffer
                 data = readline(obj.connection);  
-                if isempty(data) == 1 % if nothing is read
-                    data = readline(obj.connection);% continue reading
-                    %1
-                elseif isempty(data) == 0 % if something is received
-                    % print it
-                    % it will be a string (message w/ no spaces)
-                    waitSignal = data; 
-                    break;
-                end
             end
         end
     end

@@ -11,9 +11,9 @@
 /*Define pins for the x-axis stepper motor*/
 #define xPulse 8 /*50% duty cycle pulse width modulation*/
 #define xDir 9 /*rotation direction*/
-/*Define pins for the y-axis stepper motor*/
-#define yPulse 10
-#define yDir 11
+/*Define pins for the z-axis stepper motor*/
+#define zPulse 10
+#define zDir 11
 /*Define pins for the 4 microswitches*/
 #define xMin 2
 #define xMax 3
@@ -57,7 +57,6 @@ CRGB leds_Center[NUM_Center];
 
 /*Define global variables*/
 int addressLongX, addressLongZ; //address/bytes to write dimensions to
-int dir, color, ledNum;
 int dirIndex, colIndex;
 String val;
 int ledOff = 255;
@@ -142,7 +141,7 @@ double* parseCommand(char strCommand[]) {
   char *token;
   token = strtok(strCommand, delim); /*start to split string into tokens (tokens separated by delimiter :)*/
 
-  if (strcmp(token, "sendPhaseParams") == 0) { /*switch case 1 - sendPhaseParams*/
+  if (strcmp(token, "sendLEDPhaseParams") == 0) { /*switch case 1 - sendPhaseParams*/
     static double command[5]; /*5 numerical double command entries are required - sendPhaseParams:direction:color:degree offset:time on*/
     command[0] = 1; /*first number in command array indicates switch case ( 1 = "sendPhaseParams" )*/
     int i = 1;
@@ -179,14 +178,31 @@ double* parseCommand(char strCommand[]) {
     command[0] = 4; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
-  if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
+  if (strcmp(token, "sendRobotPhaseParams") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
     command[0] = 5; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    int i = 1;
+    while (token != NULL) {
+      token = strtok(NULL, delim);
+      /*the following if statement assigns numbers to string command entries*/
+      if (i == 1) { /*i = 1 indicates 2nd command entry - if looping through and parsing 2nd command entry*/
+        command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
+        i++;
+      }
+      else { /*for rest of command entries (which should be integers)*/
+        command[i++] = atof(token); /*save them in command array*/
+      }
+    }
+    return command;
+  }
+  if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 6; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
   if (strcmp(token, "findDimensions") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
-    command[0] = 6; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    command[0] = 7; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
 
@@ -194,6 +210,7 @@ double* parseCommand(char strCommand[]) {
 
 /*This function accepts degree entries and saves the equivalent position in the strip.*/
 int checkDegree(int dir, int deg) {
+  int ledNum;
   if (dir == 8) {
     ledNum = 0;
   }
@@ -221,7 +238,7 @@ int checkDegree(int dir, int deg) {
 }
 
 /*This function sets the color of the specified LED based on index saved in command[]*/
-void setColor(int dir, int col, int ledNum) { /*dir, col, ledNum are all integers stored in command []; re-stored in named variables at start of each switch case*/
+void setLEDColor(int dir, int col, int ledNum) { /*dir, col, ledNum are all integers stored in command []; re-stored in named variables at start of each switch case*/
   /*if turning on center LED*/
   if (dir == 8) {
     if (col == 1) {
@@ -295,15 +312,15 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
     } else if (pin == xMax) { /*if pin is xMax*/
       line(microstepsPerStep * 10, 0, Delay); /*move in positive x-direction toward xMax*/
     } else if (pin == zMin) { /*if pin is zMin*/
-      line(0, -microstepsPerStep * 10, Delay); /*move in negative y-direction toward zMin*/
+      line(0, -microstepsPerStep * 10, Delay); /*move in negative z-direction toward zMin*/
     } else if (pin == zMax) { /*if pin is zMax*/
-      line(0, microstepsPerStep * 10, Delay); /*move in positive y-direction toward zMax*/
+      line(0, microstepsPerStep * 10, Delay); /*move in positive z-direction toward zMax*/
     }
     steps += 10; /*add 10 to steps counter*/
 
-    if (steps > (long) dimensions[1] * 1.2) { /*if the number of steps is greater than 120% of the number of steps of the y-dimension*/
+    if (steps > (long) dimensions[1] * 1.2) { /*if the number of steps is greater than 120% of the number of steps of the z-dimension*/
       Serial.end(); /*end the serial connection*/
-      break; /*break put of the loop*/
+      break; /*break out of the loop*/
     }
 
     /*Overshoot adjustment: moves back until pin is just released*/
@@ -319,12 +336,12 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
           delay(200);
         } else if (pin == zMin) {
-          line(0, microstepsPerStep, Delay); /*if zMin microswitch is pressed, move forward in y-direction*/
-          location[1] = 0; /*update y-coordinate location to 0*/
+          line(0, microstepsPerStep, Delay); /*if zMin microswitch is pressed, move forward in z-direction*/
+          location[1] = 0; /*update z-coordinate location to 0*/
           delay(200);
         } else if (pin == zMax) {
-          line(0, -microstepsPerStep, Delay); /*if zMax microswitch is pressed, move back in negative y-direction*/
-          location[1] = dimensions[1]; /*update y-coordinate location to max y-dimension*/
+          line(0, -microstepsPerStep, Delay); /*if zMax microswitch is pressed, move back in negative z-direction*/
+          location[1] = dimensions[1]; /*update z-coordinate location to max z-dimension*/
           delay(200);
         }
         val = digitalRead(pin); /*continue reading the state of the pin*/
@@ -340,46 +357,46 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
    Input vector (in number of steps) along with pulse width (delay, which determines speed)
    Proprioceptive location
 */
-void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-component of vector, speed/pulse width*/
+void line(long x1, long z1, int v) { /*inputs: x-component of vector, z-component of vector, speed/pulse width*/
   location[0] += x1; /*add x1 to current x-coordinate location*/
-  location[1] += y1; /*add y1 to current y-coordinate location*/
-  long x0 = 0, y0 = 0;
-  long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,y1) location and origin*/
+  location[1] += z1; /*add z1 to current z-coordinate location*/
+  long x0 = 0, z0 = 0;
+  long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,z1) location and origin*/
   /*if x0 is less than x1, set signx equal to 1; if x0 is not less than x1, set signx equal to -1*/
   /*if x-component of vector (desired x displacement) is positive, signx = 1 (clockwise rotation of motor)*/
-  long dy = abs(y1 - y0), signy = y0 < y1 ? 1 : -1; /*same as above, except in terms of y*/
-  long err = (dx > dy ? dx : -dy) / 2, e2; /*if dx is greater than dy, set error equal to dx/2; if dx is not greater than dy, set error equal to -dy/2*/
+  long dz = abs(z1 - z0), signy = z0 < z1 ? 1 : -1; /*same as above, except in terms of y*/
+  long err = (dx > dz ? dx : -dz) / 2, e2; /*if dx is greater than dz, set error equal to dx/2; if dx is not greater than dz, set error equal to -dz/2*/
   digitalWrite(xDir, (signx + 1) / 2); /*setup x motor rotation direction, if signx = 1, rotate counterclockwise; if signx = -1, don't move*/
-  digitalWrite(yDir, (signy + 1) / 2); /*setup y motor rotation direction*/
+  digitalWrite(zDir, (signy + 1) / 2); /*setup y motor rotation direction*/
   for (;;) { /*infinite loop (;;)*/
-    if (x0 == x1 && y0 == y1) break; /*once the desired location is reached, break out of the infinite loop and halt movement*/
+    if (x0 == x1 && z0 == z1) break; /*once the desired location is reached, break out of the infinite loop and halt movement*/
     e2 = err; /*to maiantain error at start of loop, since error changes in some cases*/
     if (e2 > -dx) { /*if error is greater than negative dx*/
-      err -= dy; /*subtract dy from the error*/
+      err -= dz; /*subtract dz from the error*/
       x0 += signx; /*add signx (1 or -1) to the x-coordinate location*/
       /*HIGH to LOW represents one cycle of square wave, which corresponds to motor rotation*/
       digitalWrite(xPulse, HIGH);
-      if (e2 < dy) { /*if error is less than dy*/
+      if (e2 < dz) { /*if error is less than dz*/
         err += dx; /*add dx to error*/
-        y0 += signy; /*add signy (1 or -1) to the y-coordinate location*/
+        z0 += signy; /*add signy (1 or -1) to the z-coordinate location*/
         /*motors of both dimensions moving*/
-        digitalWrite(yPulse, HIGH);
+        digitalWrite(zPulse, HIGH);
         delayMicroseconds(v);
         digitalWrite(xPulse, LOW);
-        digitalWrite(yPulse, LOW);
+        digitalWrite(zPulse, LOW);
         delayMicroseconds(v);
       } else {
         delayMicroseconds(v);
         digitalWrite(xPulse, LOW);
         delayMicroseconds(v);
       }
-    } else if (e2 < dy) {
+    } else if (e2 < dz) {
       err += dx;
-      y0 += signy;
-      /*y-dimension motor movement*/
-      digitalWrite(yPulse, HIGH);
+      z0 += signy;
+      /*z-dimension motor movement*/
+      digitalWrite(zPulse, HIGH);
       delayMicroseconds(v);
-      digitalWrite(yPulse, LOW);
+      digitalWrite(zPulse, LOW);
       delayMicroseconds(v);
     }
   }
@@ -387,8 +404,8 @@ void line(long x1, long y1, int v) { /*inputs: x-component of vector, y-componen
 
 /* findDimensions function:
    Moves to xMax from current location then to xMin and counts the number of steps it took
-   Does the same in the y-direction
-   Returns the number of steps in a 2-element array, x & y dimension
+   Does the same in the z-direction
+   Returns the number of steps in a 2-element array, x & z dimension
    Ends at (xMin, zMin)
 */
 int* findDimensions() {
@@ -396,17 +413,32 @@ int* findDimensions() {
   int a = recalibrate(xMin); /*a = number of steps necessary to move from xMax to xMin*/
   recalibrate(zMax); /*move to zMax*/
   int b = recalibrate(zMin); /*b = number of steps necessary to move from zMax to zMin*/
-  static int i[2] = {a, b}; /*store x & y dimensions in an array in terms of number of steps*/
+  static int i[2] = {a, b}; /*store x & z dimensions in an array in terms of number of steps*/
   return i;
 }
 
-void writeDimensions(unsigned long dimensions[]){
+void writeDimensions(unsigned long dimensions[]) {
   long xDim = dimensions[0];
-  EEPROM.updateLong(addressLongX,xDim);
+  EEPROM.updateLong(addressLongX, xDim);
   Serial.print("xDim: "); Serial.println(xDim);
   long zDim = dimensions[1];
-  EEPROM.updateLong(addressLongZ,zDim);
+  EEPROM.updateLong(addressLongZ, zDim);
   Serial.print("zDim: "); Serial.println(zDim);
+}
+
+int setRobotColor(int colIndex){
+  int ledPin;
+  if (colIndex == 1){
+    ledPin = RED;
+    Serial.print("ledPin "); Serial.println(ledPin);
+  }
+  else if (colIndex == 2){
+    ledPin = BLUE;
+  }
+  else if (colIndex == 3){
+    ledPin = GREEN;
+  }
+  return ledPin;
 }
 
 
@@ -424,11 +456,11 @@ void setup() {
 
   FastLED.setBrightness( BRIGHTNESS );
 
-  /*pulse and direction pins for x & y-dimension motors are outputting signal*/
+  /*pulse and direction pins for x & z-dimension motors are outputting signal*/
   pinMode(xPulse, OUTPUT);
   pinMode(xDir, OUTPUT);
-  pinMode(yPulse, OUTPUT);
-  pinMode(yDir, OUTPUT);
+  pinMode(zPulse, OUTPUT);
+  pinMode(zDir, OUTPUT);
   /*microswitch pins are awaiting input signal (pressed or unpressed)*/
   pinMode(xMin, INPUT);
   pinMode(xMax, INPUT);
@@ -446,7 +478,7 @@ void setup() {
   analogWrite(BLUE, ledOff);
   analogWrite(GREEN, ledOff);
   /*preset stepper motor direction pins to 1*/
-  digitalWrite(yDir, direction);
+  digitalWrite(zDir, direction);
   digitalWrite(xDir, direction);
   /*preset microswitch pins to HIGH (1), indicating unpressed*/
   digitalWrite(xMin, HIGH);
@@ -480,10 +512,10 @@ void setup() {
     serialInit = Serial.read();
   }
 
-  Serial.println("startSignalReceived");
 }
 
 void loop() {
+  int dir, ledNum;
   Serial.flush();
   val = Serial.readString(); /*read characters from serial connection into a String object*/
   /* Executes once there is incoming Serial information
@@ -495,17 +527,17 @@ void loop() {
     double *command = parseCommand(inputArray); /*create pointer variable to parsed commands*/
     switch ((int) *command) { /*switch case based on first command entry*/
       /*saves parameters for controlling single LED*/
-      case 1://sendPhaseParams:dir:color:degree
+      case 1://sendLEDPhaseParams:dir:color:degree
         {
           dir = * (command + 1); /*direction strip*/
-          color = * (command + 2); /*color*/
+          int color = * (command + 2); /*color*/
           int deg = * (command + 3); /*degree offset from center of LED*/
           ledNum = checkDegree(dir, deg); /*converts degree entry to LED position in strip*/
-          setColor(dir, color, ledNum); /*sets and saves color of specified LED*/
+          setLEDColor(dir, color, ledNum); /*sets and saves color of specified LED*/
           if (color != -1) { /*color will be -1 if something other than red,green,blue,yellow,magenta,black is received from MATLAB*/
             leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime any other LED turns on*/
           }
-          Serial.println("phaseParamsSent");
+          Serial.println("LEDPhaseParamsSent");
         }
         break;
       /*displays any changes made to LEDs*/
@@ -532,18 +564,30 @@ void loop() {
           Serial.println("LEDsCleared");
         }
         break;
-      case 5: //returnRobot:
+      /*saves parameters for controlling robot*/
+      case 5://sendRobotPhaseParams:color:x1:y1:v
+        {
+          int x1 = * (command + 2);
+          int z1 = * (command + 3);
+          int v = * (command + 4);
+          int ledPin = setRobotColor(*(command+1));
+          analogWrite(ledPin,ledOn);
+          line(x1,z1,v);
+          Serial.println("RobotParamsSentRobotMoved");
+        }
+        break;
+      case 6: //returnRobot:
         {
           /* Calibrates to xMin and zMin and updates location to (0,0) */
           int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-          int yErr = recalibrate(zMin); /*yErr is number of steps from initial y-coordinate location to y=0*/
+          int zErr = recalibrate(zMin); /*zErr is number of steps from initial z-coordinate location to z=0*/
           location[0] = 0;
           location[1] = 0;
           Serial.println("robotReturned");
           delay(300);
         }
         break;
-      case 6: //findDimensions:
+      case 7: //findDimensions:
         {
           /* Determines dimensions by moving from xmax to xmin, then zMax to zMin*/
           int *i = findDimensions();

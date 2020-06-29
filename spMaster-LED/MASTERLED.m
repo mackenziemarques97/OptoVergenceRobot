@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 18-Jun-2020 11:55:19
+% Last Modified by GUIDE v2.5 26-Jun-2020 14:35:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -721,5 +721,21 @@ a.findDimensions();
 % --- Executes during object creation, after setting all properties.
 function robotFindDimensions_pushbutton_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to robotFindDimensions_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in robotCurrentLocation_radiobutton.
+function robotCurrentLocation_radiobutton_Callback(hObject, eventdata, handles)
+% hObject    handle to robotCurrentLocation_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of robotCurrentLocation_radiobutton
+
+
+% --- Executes during object creation, after setting all properties.
+function robotCurrentLocation_radiobutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to robotCurrentLocation_radiobutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
