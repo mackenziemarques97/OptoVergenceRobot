@@ -64,11 +64,16 @@ int ledOn = 127;
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
 int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
-//unsigned long dimensions[2] = {30000 * microstepsPerStep, 30000 * microstepsPerStep}; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
 unsigned long dimensions[2]; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
 int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
+/* Defines scaling factor for rotation
+    radius of pulley
+    will be multiplied by 2pi later in the code to get circumference
+*/
+float motor_radius = 0.65; //cm
+float Circ = 2 * pi * motor_radius; /*circumference of pulley*/
 
 /*This function assigns an integer to each direction strip. User enters direction
    as a string and that is stored as an index.
@@ -565,14 +570,26 @@ void loop() {
         }
         break;
       /*saves parameters for controlling robot*/
-      case 5://sendRobotPhaseParams:color:x1:y1:v
+      case 5://sendRobotPhaseParams:color:x1:y1:time
         {
-          int x1 = * (command + 2);
-          int z1 = * (command + 3);
-          int v = * (command + 4);
+          double x1_uSteps = * (command + 2);
+          double z1_uSteps = * (command + 3);
+          double dur = * (command + 4);
+          //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
           int ledPin = setRobotColor(*(command+1));
           analogWrite(ledPin,ledOn);
-          line(x1,z1,v);
+//          Serial.print("color: "); Serial.println(*(command+1));
+//          Serial.print("x1: "); Serial.println(x1);
+//          Serial.print("x1_steps: "); Serial.println(x1_steps);
+//          Serial.print("z1: "); Serial.println(z1);
+//          Serial.print("z1_steps: "); Serial.println(z1_steps);
+//          Serial.print("x-dim: "); Serial.println(dimensions[0]);
+//          Serial.print("z-dim: "); Serial.println(dimensions[1]);
+//          Serial.print("dur: "); Serial.println(dur);
+//          Serial.print("v: "); Serial.println(v);
+          long xDisp = x1_uSteps-location[0];
+          long zDisp = z1_uSteps-location[1];
+          line(xDisp,zDisp,Delay);
           Serial.println("RobotParamsSentRobotMoved");
         }
         break;

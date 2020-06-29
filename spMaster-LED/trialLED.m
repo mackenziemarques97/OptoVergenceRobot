@@ -8,11 +8,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
     paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
-    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
+    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','tracking','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
-%     trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
-%     trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
+%   trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
+%   trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
     [Trial,totNumPhases,numLEDPhases,numRobotPhases,LEDPhases,robotPhases] = makeTrialStruct(TrialParams_LED,TrialParams_robot,paramNames_LED,paramNames_robot);
     
     % identify total number of phases, number of LED wall phases, and
@@ -32,11 +32,14 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     % loop through each robot phase and calculate Dx and Dz in cm from the
     % vergence angle and interpupillary distance inputs on the main GUI;
     % save distances as additional fields in trialRobot structure
+    Circ = 2*pi*0.65; % cm
+    stepsPerRev = 200;
+    uStepsPerStep = 16;
     for i = 1:numRobotPhases
         phaseNum = robotPhases(i);
-        Trial(phaseNum).phases.interpupDist = str2double(handles.interpupDist_editbox.String);
-        Trial(phaseNum).phases.Ihalf = Trial(phaseNum).phases.interpupDist/2;
-%       vergAng = trialRobot(phaseNum).vergAng;
+        Trial(phaseNum).phases.xCoord_uSteps = (Trial(phaseNum).phases.xCoord/Circ)*stepsPerRev*uStepsPerStep;
+        Trial(phaseNum).phases.zCoord_uSteps = (Trial(phaseNum).phases.zCoord/Circ)*stepsPerRev*uStepsPerStep;
+        %       vergAng = trialRobot(phaseNum).vergAng;
 %       visAng = trialRobot(phaseNum).visAng;            
 %       xCoord = trialRobot(phaseNum).xCoord;
 %       zCoord = trialRobot(phaseNum).zCoord;
@@ -108,29 +111,29 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 
                 success = false;
                 
-                if trial(eyeCheckPhaseIndex).withNext==1
+                if Trial(eyeCheckPhaseIndex).phases.withNext==1
                     for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1
-                        trialByTrialData(trialCount).direction{phaseCount} = trial(phaseCount).direction;
-                        trialByTrialData(trialCount).color{phaseCount} = trial(phaseCount).color;
-                        trialByTrialData(trialCount).degree{phaseCount} = trial(phaseCount).degree;
-                        trialByTrialData(trialCount).phaseTargetLoc{phaseCount} = [trial(phaseCount).xCoord, trial(phaseCount).yCoord];
-                        trialByTrialData(trialCount).duration{phaseCount} = trial(phaseCount).duration;
-                        trialByTrialData(trialCount).fixDur{phaseCount} = trial(phaseCount).fixDur;
-                        trialByTrialData(trialCount).ifReward{phaseCount} = trial(phaseCount).ifReward;
-                        trialByTrialData(trialCount).withNext{phaseCount} = trial(phaseCount).withNext;
+                        trialByTrialData(trialCount).direction{phaseCount} = Trial(phaseCount).phases.direction;
+                        trialByTrialData(trialCount).color{phaseCount} = Trial(phaseCount).phases.color;
+                        trialByTrialData(trialCount).degree{phaseCount} = Trial(phaseCount).phases.visAng;
+                        trialByTrialData(trialCount).phaseTargetLoc{phaseCount} = [Trial(phaseCount).phases.xCoord, Trial(phaseCount).phases.yCoord];
+                        trialByTrialData(trialCount).duration{phaseCount} = Trial(phaseCount).phases.duration;
+                        trialByTrialData(trialCount).fixDur{phaseCount} = Trial(phaseCount).phases.fixDur;
+                        trialByTrialData(trialCount).ifReward{phaseCount} = Trial(phaseCount).phases.ifReward;
+                        trialByTrialData(trialCount).withNext{phaseCount} = Trial(phaseCount).phases.withNext;
                         trialByTrialData(trialCount).rewardAmount{phaseCount} = numrew;
                         trialByTrialData(trialCount).fixationTolerance{phaseCount} = fixTol;
                         trialByTrialData(trialCount).ifSuccess{phaseCount} = success;
                     end
                 else
-                    trialByTrialData(trialCount).direction{phase} = trial(phase).direction;
-                    trialByTrialData(trialCount).color{phase} = trial(phase).color;
-                    trialByTrialData(trialCount).degree{phase} = trial(phase).degree;
-                    trialByTrialData(trialCount).phaseTargetLoc{phase} = [trial(phase).xCoord, trial(phase).yCoord];
-                    trialByTrialData(trialCount).duration{phase} = trial(phase).duration;
-                    trialByTrialData(trialCount).fixDur{phase} = trial(phase).fixDur;
-                    trialByTrialData(trialCount).ifReward{phase} = trial(phase).ifReward;
-                    trialByTrialData(trialCount).withNext{phase} = trial(phase).withNext;
+                    trialByTrialData(trialCount).direction{phase} = Trial(phase).phases.direction;
+                    trialByTrialData(trialCount).color{phase} = Trial(phase).phases.color;
+                    trialByTrialData(trialCount).degree{phase} = Trial(phase).phases.visAng;
+                    trialByTrialData(trialCount).phaseTargetLoc{phase} = [Trial(phase).phases.xCoord, Trial(phase).phases.yCoord];
+                    trialByTrialData(trialCount).duration{phase} = Trial(phase).phases.duration;
+                    trialByTrialData(trialCount).fixDur{phase} = Trial(phase).phases.fixDur;
+                    trialByTrialData(trialCount).ifReward{phase} = Trial(phase).phases.ifReward;
+                    trialByTrialData(trialCount).withNext{phase} = Trial(phase).phases.withNext;
                     trialByTrialData(trialCount).rewardAmount{phase} = numrew;
                     trialByTrialData(trialCount).fixationTolerance{phase} = fixTol;
                     trialByTrialData(trialCount).ifSuccess{phase} = success;
@@ -140,27 +143,27 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 viewingFigureIndex = 1;
                 
                 viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
-                viewingFigureCoords(viewingFigureIndex, :) = [trial(phase).xCoord, trial(phase).yCoord];
-                viewingFigureColor{viewingFigureIndex} = trial(phase).color;
-                a.sendPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree); %WRITE FOR ARDUINO
-                while trial(phase).withNext
+                viewingFigureCoords(viewingFigureIndex, :) = [Trial(phase).phases.xCoord, Trial(phase).phases.yCoord];
+                viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
+                a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
+                while Trial(phase).phases.withNext
                     phase = phase + 1;
                     viewingFigureIndex = viewingFigureIndex + 1;
                     viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
-                    viewingFigureCoords(viewingFigureIndex, :) = [trial(phase).xCoord, trial(phase).yCoord];
-                    viewingFigureColor{viewingFigureIndex} = trial(phase).color;
-                    a.sendLEDPhaseParams(convertCharsToStrings(trial(phase).direction), convertCharsToStrings(trial(phase).color), trial(phase).degree); %WRITE FOR ARDUINO
+                    viewingFigureCoords(viewingFigureIndex, :) = [Trial(phase).phases.xCoord, Trial(phase).phases.yCoord];
+                    viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
+                    a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
                 end
                 
                 a.turnOnLED();
                 % check for fixation
                 fix = false; % assume no fixation to start
                 fixTic = tic;
-                while toc(fixTic) < trial(eyeCheckPhaseIndex).duration
+                while toc(fixTic) < Trial(eyeCheckPhaseIndex).phases.duration
                     pause(0.001)
                     [eyePosX, eyePosY] = handles.getEyePosFunc();
                     updateViewingFigure();
-                    if abs(eyePosX - trial(eyeCheckPhaseIndex).xCoord) < fixTol && abs(eyePosY - trial(eyeCheckPhaseIndex).yCoord) < fixTol
+                    if abs(eyePosX - Trial(eyeCheckPhaseIndex).phases.xCoord) < fixTol && abs(eyePosY - Trial(eyeCheckPhaseIndex).phases.yCoord) < fixTol
                         fix = true;
                         break
                     end
@@ -170,11 +173,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 if fix
                     keepFix = true;
                     keepFixTic = tic;
-                    while toc(keepFixTic) < trial(eyeCheckPhaseIndex).fixDur
+                    while toc(keepFixTic) < Trial(eyeCheckPhaseIndex).phases.fixDur
                         pause(0.002)
                         [eyePosX, eyePosY] = handles.getEyePosFunc();
                         updateViewingFigure();
-                        if abs(eyePosX - trial(eyeCheckPhaseIndex).xCoord) < fixTol && abs(eyePosY - trial(eyeCheckPhaseIndex).yCoord) < fixTol
+                        if abs(eyePosX - Trial(eyeCheckPhaseIndex).phases.xCoord) < fixTol && abs(eyePosY - Trial(eyeCheckPhaseIndex).phases.yCoord) < fixTol
                             keepFix = true;
                         else
                             keepFix = false;
@@ -191,16 +194,16 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         end
         for i = 1:numRobotPhases
             if phase == robotPhases(i)
-                a.sendRobotPhaseParams();
+                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration);
             end
         end
 
         % deliver reward only if fixation was maintained AND this phase is
         % to deliver reward
-        if ~keepFix && trial(eyeCheckPhaseIndex).ifReward
+        if ~keepFix && Trial(eyeCheckPhaseIndex).phases.ifReward
             break            
         end
-        if keepFix && trial(eyeCheckPhaseIndex).ifReward
+        if keepFix && Trial(eyeCheckPhaseIndex).phases.ifReward
             for r = 1:numrew
             handles.deliverRewardFunc(dio)
             interRewardTic = tic;
@@ -213,7 +216,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         success = true;
         end
         %Save experiment data
-        if trial(eyeCheckPhaseIndex).withNext==1
+        if Trial(eyeCheckPhaseIndex).phases.withNext==1
             for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1     
                 trialByTrialData(trialCount).ifSuccess{phaseCount} = success;
             end
