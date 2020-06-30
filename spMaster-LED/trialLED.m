@@ -8,7 +8,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
     paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
-    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','tracking','ifReward','withNext'};
+    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
 %   trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
@@ -104,14 +104,15 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     while phase <= totNumPhases
 
         eyeCheckPhaseIndex = phase;
+        %withNextTracker = 0;
         %%CHECK IF PHASE IS LED BOARD OR ROBOT 
         for i = 1:numLEDPhases
-            if phase == LEDPhases(i)
+            if phase == LEDPhases(i) && phase == eyeCheckPhaseIndex
                 [numrew, fixTol] = checkAux(auxiliary);
                 
                 success = false;
                 
-                if Trial(eyeCheckPhaseIndex).phases.withNext==1
+                if Trial(eyeCheckPhaseIndex).phases.withNext
                     for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1
                         trialByTrialData(trialCount).direction{phaseCount} = Trial(phaseCount).phases.direction;
                         trialByTrialData(trialCount).color{phaseCount} = Trial(phaseCount).phases.color;
@@ -145,8 +146,10 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
                 viewingFigureCoords(viewingFigureIndex, :) = [Trial(phase).phases.xCoord, Trial(phase).phases.yCoord];
                 viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
+                
                 a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
                 while Trial(phase).phases.withNext
+                    %withNextTracker = 1;
                     phase = phase + 1;
                     viewingFigureIndex = viewingFigureIndex + 1;
                     viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');

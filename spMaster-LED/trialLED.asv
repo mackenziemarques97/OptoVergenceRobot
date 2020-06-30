@@ -8,11 +8,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
     paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
-    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
+    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','tracking','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
-%     trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
-%     trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
+%   trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
+%   trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
     [Trial,totNumPhases,numLEDPhases,numRobotPhases,LEDPhases,robotPhases] = makeTrialStruct(TrialParams_LED,TrialParams_robot,paramNames_LED,paramNames_robot);
     
     % identify total number of phases, number of LED wall phases, and
@@ -37,10 +37,8 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     uStepsPerStep = 16;
     for i = 1:numRobotPhases
         phaseNum = robotPhases(i);
-        Trial(phaseNum).phases.interpupDist = str2double(handles.interpupDist_editbox.String);
-        Trial(phaseNum).phases.Ihalf = Trial(phaseNum).phases.interpupDist/2;
         Trial(phaseNum).phases.xCoord_uSteps = (Trial(phaseNum).phases.xCoord/Circ)*stepsPerRev*uStepsPerStep;
-        Trial(phaseNum).phases.xCoord_uSteps = (Trial(phaseNum).phases.xCoord/Circ)*stepsPerRev*uStepsPerStep;
+        Trial(phaseNum).phases.zCoord_uSteps = (Trial(phaseNum).phases.zCoord/Circ)*stepsPerRev*uStepsPerStep;
         %       vergAng = trialRobot(phaseNum).vergAng;
 %       visAng = trialRobot(phaseNum).visAng;            
 %       xCoord = trialRobot(phaseNum).xCoord;
@@ -108,12 +106,12 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         eyeCheckPhaseIndex = phase;
         %%CHECK IF PHASE IS LED BOARD OR ROBOT 
         for i = 1:numLEDPhases
-            if phase == LEDPhases(i)
+            if phase == LEDPhases(i) && ~Trial(phase-1).phases.withNext
                 [numrew, fixTol] = checkAux(auxiliary);
                 
                 success = false;
                 
-                if Trial(eyeCheckPhaseIndex).phases.withNext==1
+                if Trial(eyeCheckPhaseIndex).phases.withNext
                     for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1
                         trialByTrialData(trialCount).direction{phaseCount} = Trial(phaseCount).phases.direction;
                         trialByTrialData(trialCount).color{phaseCount} = Trial(phaseCount).phases.color;
@@ -196,7 +194,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         end
         for i = 1:numRobotPhases
             if phase == robotPhases(i)
-                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord,Trial(phase).phases.zCoord,Trial(phase).phases.duration);
+                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration);
             end
         end
 

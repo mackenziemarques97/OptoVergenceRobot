@@ -279,10 +279,10 @@ xCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'X Coordinate (cm)');
 zCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'Z Coordinate (cm)');
 interpupDist = str2double(handles.interpupDist_editbox.String);
 Ihalf = interpupDist/2;
+currRow = eventdata.Indices(1);
 currCol = eventdata.Indices(2);
 
 if currCol == find(xCoordIdx) || currCol == find(zCoordIdx)
-    currRow = eventdata.Indices(1);
     while isempty(robot{currRow,xCoordIdx})||isempty(robot{currRow,zCoordIdx})
         pause;
     end
@@ -292,9 +292,6 @@ if currCol == find(xCoordIdx) || currCol == find(zCoordIdx)
     robot(currRow,VisAngIdx) = num2cell(VisAng);
     robot(currRow,VergAngIdx) = num2cell(VergAng);
 elseif currCol == find(VisAngIdx) || currCol == find(VergAngIdx)
-    % store  current row index of param table
-    currRow = eventdata.Indices(1);
-    % if Vx or Vz entry in table is empty, then wait
     while isempty(robot{currRow,VisAngIdx})||isempty(robot{currRow,VergAngIdx})
         pause;
     end
@@ -306,12 +303,12 @@ elseif currCol == find(VisAngIdx) || currCol == find(VergAngIdx)
 end
 
 validCheck = true;
-if xCoord < 0 || xCoord > 134.62 
+if ~isempty(robot{currRow,xCoordIdx}) && (xCoord < 0 || xCoord > 134.62) 
     str = sprintf('Calculated X-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
     validCheck = false;
 end
-if zCoord < 0 || zCoord > 86.0425
+if ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
     str = sprintf('Calculated Z-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
     validCheck = false;

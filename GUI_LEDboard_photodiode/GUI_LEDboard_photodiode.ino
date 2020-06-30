@@ -21,8 +21,8 @@
 #define zMax 5
 /*Define pins for RGB LED*/
 #define RED 22
-#define GREEN 23
-#define BLUE 24
+#define GREEN 24
+#define BLUE 23
 /*Define pins for interacting with photodiode*/
 #define cReset 50 //resets the photodiode
 #define dLatchOut 51 //contains state of the latch, currently unused
@@ -587,17 +587,16 @@ void loop() {
 //          Serial.print("z-dim: "); Serial.println(dimensions[1]);
 //          Serial.print("dur: "); Serial.println(dur);
 //          Serial.print("v: "); Serial.println(v);
-          long xDisp = x1_uSteps-location[0];
-          long zDisp = z1_uSteps-location[1];
-          line(xDisp,zDisp,Delay);
+          line(x1_uSteps-location[0],z1_uSteps-location[1],Delay);
+          analogWrite(ledPin,ledOff);
           Serial.println("RobotParamsSentRobotMoved");
         }
         break;
       case 6: //returnRobot:
         {
           /* Calibrates to xMin and zMin and updates location to (0,0) */
-          int xErr = recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
-          int zErr = recalibrate(zMin); /*zErr is number of steps from initial z-coordinate location to z=0*/
+          recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
+          recalibrate(zMin); /*zErr is number of steps from initial z-coordinate location to z=0*/
           location[0] = 0;
           location[1] = 0;
           Serial.println("robotReturned");
