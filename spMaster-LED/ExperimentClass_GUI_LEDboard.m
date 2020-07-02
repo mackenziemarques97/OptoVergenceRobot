@@ -48,7 +48,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             str2 = sprintf('%d:',deg);
             sendInfo = [str1 str2]       
             writeline(obj.connection, sendInfo); 
-            waitSignal = check(obj)
+            waitSignal = check(obj);
         end
         
         %% turnOnLED
@@ -56,14 +56,14 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         function turnOnLED(obj)  
             %send string in this format with colon delimiter to Arduino
             writeline(obj.connection,'turnOnLED:'); 
-            waitSignal = check(obj)
+            waitSignal = check(obj);
         end
         
         %% turnOffLED
         function turnOffLED(obj)  
             %send string in this format with colon delimiter to Arduino
             writeline(obj.connection,'turnOffLED:'); 
-            waitSignal = check(obj)
+            waitSignal = check(obj);
         end
         
         %% clearLEDs
@@ -71,7 +71,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         function clearLEDs(obj)            
             %send string in this format with colon delimiter to Arduino
             writeline(obj.connection,'clearLEDs:');       
-            waitSignal = check(obj)
+            waitSignal = check(obj);
         end
         
         %% sendRobotPhaseParams 

@@ -1,12 +1,20 @@
 clear;close all;
 serialPort = 'COM4';
 a = ExperimentClass_GUI_LEDboard(serialPort);
-tic;
 for i = 1:250
-    writeline(a.connection, 'poop:');
-    waitSignal = check(a);
-    %a.sendPhaseParams('NW', 'blue', 12, .7);
-    %a.turnOnLED(); 
+    a.sendLEDPhaseParams("center", "blue", 0);
+    a.turnOnLED();
+    pause(1);
+    a.clearLEDs();
+    pause(1);
 end
-toc / 250
-a.endSerial()
+a.endSerial();
+
+%%
+clear;close all;
+serialPort = 'COM4';
+a = ExperimentClass_GUI_LEDboard(serialPort);
+a.sendLEDPhaseParams("center", "yellow", 0);
+a.sendLEDPhaseParams("N", "green", 2);
+a.turnOnLED();
+

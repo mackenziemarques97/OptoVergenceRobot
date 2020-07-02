@@ -21,8 +21,8 @@
 #define zMax 5
 /*Define pins for RGB LED*/
 #define RED 22
-#define GREEN 24
-#define BLUE 23
+#define GREEN 23
+#define BLUE 24
 /*Define pins for interacting with photodiode*/
 #define cReset 50 //resets the photodiode
 #define dLatchOut 51 //contains state of the latch, currently unused
@@ -431,17 +431,16 @@ void writeDimensions(unsigned long dimensions[]) {
   Serial.print("zDim: "); Serial.println(zDim);
 }
 
-int setRobotColor(int colIndex){
+int setRobotColor(int colIndex) {
   int ledPin;
-  if (colIndex == 1){
+  if (colIndex == 1) {
     ledPin = RED;
-    Serial.print("ledPin "); Serial.println(ledPin);
   }
-  else if (colIndex == 2){
-    ledPin = BLUE;
-  }
-  else if (colIndex == 3){
+  else if (colIndex == 2) {
     ledPin = GREEN;
+  }
+  else if (colIndex == 3) {
+    ledPin = BLUE;
   }
   return ledPin;
 }
@@ -542,7 +541,7 @@ void loop() {
           if (color != -1) { /*color will be -1 if something other than red,green,blue,yellow,magenta,black is received from MATLAB*/
             leds_Strips[6][22] = CRGB::Red; /*photodiode LED ~ set 35 degree LED in W strip to turn on anytime any other LED turns on*/
           }
-          Serial.println("LEDPhaseParamsSent");
+          Serial.println(leds_Center[0]);
         }
         break;
       /*displays any changes made to LEDs*/
@@ -576,19 +575,19 @@ void loop() {
           double z1_uSteps = * (command + 3);
           double dur = * (command + 4);
           //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
-          int ledPin = setRobotColor(*(command+1));
-          analogWrite(ledPin,ledOn);
-//          Serial.print("color: "); Serial.println(*(command+1));
-//          Serial.print("x1: "); Serial.println(x1);
-//          Serial.print("x1_steps: "); Serial.println(x1_steps);
-//          Serial.print("z1: "); Serial.println(z1);
-//          Serial.print("z1_steps: "); Serial.println(z1_steps);
-//          Serial.print("x-dim: "); Serial.println(dimensions[0]);
-//          Serial.print("z-dim: "); Serial.println(dimensions[1]);
-//          Serial.print("dur: "); Serial.println(dur);
-//          Serial.print("v: "); Serial.println(v);
-          line(x1_uSteps-location[0],z1_uSteps-location[1],Delay);
-          analogWrite(ledPin,ledOff);
+          int ledPin = setRobotColor(*(command + 1));
+          analogWrite(ledPin, ledOn);
+          //          Serial.print("color: "); Serial.println(*(command+1));
+          //          Serial.print("x1: "); Serial.println(x1);
+          //          Serial.print("x1_steps: "); Serial.println(x1_steps);
+          //          Serial.print("z1: "); Serial.println(z1);
+          //          Serial.print("z1_steps: "); Serial.println(z1_steps);
+          //          Serial.print("x-dim: "); Serial.println(dimensions[0]);
+          //          Serial.print("z-dim: "); Serial.println(dimensions[1]);
+          //          Serial.print("dur: "); Serial.println(dur);
+          //          Serial.print("v: "); Serial.println(v);
+          line(x1_uSteps - location[0], z1_uSteps - location[1], Delay);
+          analogWrite(ledPin, ledOff);
           Serial.println("RobotParamsSentRobotMoved");
         }
         break;

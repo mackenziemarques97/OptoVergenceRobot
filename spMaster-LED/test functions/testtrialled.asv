@@ -1,0 +1,11 @@
+clear;close all;
+serialPort = 'COM4';
+a = ExperimentClass_GUI_LEDboard(serialPort);
+%for i = 1:250
+    a.sendLEDPhaseParams('N', 'blue', 10);
+    a.turnOnLED();
+    pause(1);
+    a.turnOffLED();
+    pause(1);
+end
+a.endSerial()
