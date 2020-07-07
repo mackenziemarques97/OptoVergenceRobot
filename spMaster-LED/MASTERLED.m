@@ -131,7 +131,7 @@ while i < 100
    i = i + 1;
 end
 if i == 100
-    errordlg('CATASTROPHIC ERROR: Hala, you have reached the maximum number of data folders allowed! Abort! Abort!','File Error');
+    errordlg('ERROR: You have reached the maximum number of data folders allowed.','File Error');
 end
 handles.data_path = fullfile(data_main_dir,data_dir);
 
@@ -152,7 +152,7 @@ cd(handles.masterFolder);
 % In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
 % to find COM port you are connected to. If necessary, update string stored
 % in serialPort accordingly.
-serialPort = 'COM4';
+serialPort = 'COM8';
 % create an object of the class to use it
 % functions within class can be used in experimentLED and trialLED
 a = ExperimentClass_GUI_LEDboard(serialPort); 
@@ -252,7 +252,7 @@ for phase = 1:size(LED,1)
     if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
             ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
             (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
-        str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
+        str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 1-20, 25, 30, and 35.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
 end
@@ -377,7 +377,7 @@ for phase = 1:numLEDphases
     if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
             ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
             (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
-        str = sprintf('Hala, Invalid degree entry in phase %d of current trial.', phase);
+        str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 1-20, 25, 30, and 35.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
 end

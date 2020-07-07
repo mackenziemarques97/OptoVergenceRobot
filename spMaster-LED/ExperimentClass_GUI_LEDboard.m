@@ -46,7 +46,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         function sendLEDPhaseParams(obj,dir,color,deg)
             str1 = sprintf('sendLEDPhaseParams:%s:%s:',[dir,color]);
             str2 = sprintf('%d:',deg);
-            sendInfo = [str1 str2]       
+            sendInfo = [str1 str2];       
             writeline(obj.connection, sendInfo); 
             waitSignal = check(obj);
         end
@@ -81,7 +81,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             str2 = sprintf('%d:%d:%d:',[x1,y1,duration]);
             sendInfo = [str1 str2];       
             writeline(obj.connection, sendInfo); 
-            waitSignal = check(obj)
+            waitSignal = check(obj);
         end
         
         %% returnRobot
