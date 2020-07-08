@@ -56,8 +56,11 @@ function MASTER_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % global ai; global dio;
-
-[ai, dio] = krConnectDAQInf();
+cd C:\Users\Mackenzie\Documents\GitHub\OptoVergenceRobot\spMaster\data    % for pc
+data_main_dir = uigetdir;
+handles.data_main_dir = data_main_dir;
+cd(data_main_dir);
+[ai, dio] = krConnectDAQInf(data_main_dir);
 
 % handles = setfield(handles,'ai',ai);
 % handles = setfield(handles,'dio',dio);
