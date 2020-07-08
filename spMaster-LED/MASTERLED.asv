@@ -152,7 +152,7 @@ cd(handles.masterFolder);
 % In Arduino sketch, when Arduino is connected to computer, go to Tools>Port
 % to find COM port you are connected to. If necessary, update string stored
 % in serialPort accordingly.
-serialPort = 'COM4';
+serialPort = 'COM8';
 % create an object of the class to use it
 % functions within class can be used in experimentLED and trialLED
 a = ExperimentClass_GUI_LEDboard(serialPort); 
@@ -250,7 +250,9 @@ for phase = 1:size(LED,1)
     while isempty(LED{phase,degIdx})
         pause;
     end
-    if ~ismember(LED{phase,degIdx},availLEDs)   
+    if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
+            ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
+            (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
         str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 1-20, 25, 30, and 35.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
@@ -370,11 +372,12 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 %iterate through and display error message if any of the entries for 
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
-%numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
+numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'))+1;
-availLEDs = [1:20 25:5:35];
 for phase = 1:numLEDphases
-    if ~ismember(LED{phase,degIdx},availLEDs)    
+    if ((LED{phase,degIdx} < 0)||(LED{phase,degIdx} > 20 && LED{phase,degIdx} < 25)...
+            ||(LED{phase,degIdx} > 25 && LED{phase,degIdx} < 30)||...
+            (LED{phase,degIdx} > 30 && LED{phase,degIdx} < 35)||LED{phase,degIdx} > 35)     
         str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 1-20, 25, 30, and 35.', phase);
         uiwait(msgbox(str,'Error','error'));
     end

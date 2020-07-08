@@ -442,6 +442,9 @@ int setRobotColor(int colIndex) {
   else if (colIndex == 3) {
     ledPin = BLUE;
   }
+  else {
+    ledPin = -1;
+  }
   return ledPin;
 }
 
@@ -576,18 +579,13 @@ void loop() {
           double dur = * (command + 4);
           //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
           int ledPin = setRobotColor(*(command + 1));
-          analogWrite(ledPin, ledOn);
-          //          Serial.print("color: "); Serial.println(*(command+1));
-          //          Serial.print("x1: "); Serial.println(x1);
-          //          Serial.print("x1_steps: "); Serial.println(x1_steps);
-          //          Serial.print("z1: "); Serial.println(z1);
-          //          Serial.print("z1_steps: "); Serial.println(z1_steps);
-          //          Serial.print("x-dim: "); Serial.println(dimensions[0]);
-          //          Serial.print("z-dim: "); Serial.println(dimensions[1]);
-          //          Serial.print("dur: "); Serial.println(dur);
-          //          Serial.print("v: "); Serial.println(v);
+//          if (ledPin != -1) {
+//            analogWrite(ledPin, ledOn);
+//          }
           line(x1_uSteps - location[0], z1_uSteps - location[1], Delay);
-          analogWrite(ledPin, ledOff);
+//          if (ledPin != -1) {
+//            analogWrite(ledPin, ledOff);
+//          }
           Serial.println("RobotParamsSentRobotMoved");
         }
         break;
@@ -604,7 +602,7 @@ void loop() {
         break;
       case 7: //findDimensions:
         {
-          /* Determines dimensions by moving from xmax to xmin, then zMax to zMin*/
+          /* Determines dimensions by moving from xMax to xMin, then zMax to zMin*/
           int *i = findDimensions();
           dimensions[0] = *i * microstepsPerStep;
           dimensions[1] = *(i + 1) * microstepsPerStep;
