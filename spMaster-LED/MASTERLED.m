@@ -370,7 +370,7 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 %iterate through and display error message if any of the entries for 
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
-%numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
+numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'))+1;
 availLEDs = [1:20 25:5:35];
 for phase = 1:numLEDphases

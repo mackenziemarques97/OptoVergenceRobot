@@ -198,7 +198,8 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         for i = 1:numRobotPhases
             if phase == robotPhases(i)
                 success = false;
-                
+                %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
+                %if trialCount
                 a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration);
                 keepFix = false;
             end
