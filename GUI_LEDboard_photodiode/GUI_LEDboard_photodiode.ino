@@ -573,7 +573,7 @@ void loop() {
         }
         break;
       /*saves parameters for controlling robot*/
-      case 5://sendRobotPhaseParams:color:x1:y1:time
+      case 5://sendRobotPhaseParams:color:x1:y1:time:currentPhase:startRobotPhase:lastRobotPhase
         {
 
           long xDisp = *(command + 2) - location[0];
@@ -581,54 +581,32 @@ void loop() {
           double dur = *(command + 4);
           //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
           int ledPin = setRobotColor(*(command + 1));
-          //          if (ledPin != -1) {
-          //            analogWrite(ledPin, ledOn);
-          //          }
+          if (ledPin != -1 && (*(command + 5) == *(command + 6))) {
+            analogWrite(ledPin, ledOn);
+          }
           int baseDelay = 70;
           int dv = baseDelay - Delay;
           long dtx = (long) xDisp / (10 * dv / 2);
           long dtz = (long) zDisp / (10 * dv / 2);
-          
+
           Serial.println("MovementStarted");
-//          Serial.print("xDim: "); Serial.println(dimensions[0]);
-//          Serial.print("zDim: "); Serial.println(dimensions[1]);
-//          Serial.print("x_uSteps: "); Serial.println(*(command+2));
-//          Serial.print("z_uSteps: "); Serial.println(*(command+3));
-//          Serial.print("basDelay: "); Serial.println(baseDelay);
-//          Serial.print("Delay: "); Serial.println(Delay);
-//          Serial.print("startLoc: "); Serial.print(location[0]); Serial.print(", "); Serial.println(location[1]);
+
 
           for (int i = 0; i < (int)dv / 2; i++) {
             int a = baseDelay - i * 2;
             line(dtx, dtz, a);
-//            Serial.print("dtx: "); Serial.println(dtx);
-//            Serial.print("dtz: "); Serial.println(dtz);
-//            Serial.print("a: "); Serial.println(a);
-//            location[0] = location[0] + dtx;
-//            location[1] = location[1] + dtz;
-//            Serial.print("location: "); Serial.print(location[0]); Serial.print(", "); Serial.println(location[1]);
           }
 
           line((long) xDisp * 0.8, (long) zDisp * 0.8, Delay);
-          //Serial.print("location: "); Serial.print(location[0] + xDisp*0.8); Serial.print(", "); Serial.println(location[1] + zDisp*0.8);
 
           for (int i = 0; i < (int)dv / 2; i++) {
             int a = Delay + i * 2;
             line(dtx, dtz, a);
-//            Serial.print("dtx: "); Serial.println(dtx);
-//            Serial.print("dtz: "); Serial.println(dtz);
-//            Serial.print("a: "); Serial.println(a);
-//            location[0] = location[0] + dtx;
-//            location[1] = location[1] + dtz;
-//            Serial.print("location: "); Serial.print(location[0]); Serial.print(", "); Serial.println(location[1]);
           }
-          //          Serial.print("start location: "); Serial.print(location[0]); Serial.print(", "); Serial.println(location[1]);
-          //          line(x_uSteps - location[0], z_uSteps - location[1], Delay);
-          //          Serial.print("end location: "); Serial.print(location[0]); Serial.print(", "); Serial.println(location[1]);
 
-          //          if (ledPin != -1) {
-          //            analogWrite(ledPin, ledOff);
-          //          }
+          if (ledPin != -1 && (*(command + 5) == *(command + 7))) {
+            analogWrite(ledPin, ledOff);
+          }
         }
         break;
       case 6: //returnRobot:

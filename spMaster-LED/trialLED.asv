@@ -104,7 +104,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     while phase <= totNumPhases
 
         eyeCheckPhaseIndex = phase;
-        %withNextTracker = 0;
+       
         %%CHECK IF PHASE IS LED BOARD OR ROBOT 
         for i = 1:numLEDPhases
             if phase == LEDPhases(i) && phase == eyeCheckPhaseIndex
@@ -200,7 +200,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 success = false;
                 %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
                 %if trialCount
-                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration);
+                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration,phase,robotPhases(end));
                 keepFix = false;
             end
         end

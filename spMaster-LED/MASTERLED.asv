@@ -734,12 +734,11 @@ LED(:,1) = num2cell(1:23);
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
 LED(:,degIdx) = num2cell([0:20 25 30]');
 if ~isempty(LED(1,2))
-    LED(:,2) = LED(1,2);
-end
-if ~isempty(LED(1,3))
-    LED(:,3) = LED(1,3);
+    LED(:,2) = LED(1,2)
 end
 set(handles.TrialParams_LED,'Data',LED);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
