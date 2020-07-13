@@ -157,7 +157,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                     viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
                     a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
                 end
-                
+                tstart(trialCount) = tic 
                 a.turnOnLED();
                 % check for fixation
                 fix = false; % assume no fixation to start
@@ -189,6 +189,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                     end
                 end
                 a.clearLEDs();
+                tend = toc(tstart(trialCount))
                 delete(viewingFigureRectangles);
                 viewingFigureIndex = 0;
                 updateViewingFigure()

@@ -244,9 +244,15 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
 %numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
+dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
+
 availLEDs = [0:20 25:5:30];
 for phase = 1:size(LED,1)
+    if strcmp(LED(phase,dirIdx),'center')
+        LED(phase,degIdx) = num2cell(0);
+        set(handles.TrialParams_LED,'Data',LED);   
+    end
     while isempty(LED{phase,degIdx})
         pause;
     end
@@ -579,6 +585,7 @@ data = mydata.ExperParams;
 
 set(handles.ExperimentParam_table,'data',data)
 set(handles.experimentName_editbox,'String',expsel)
+set(handles.chooseOrder_choicelist,'Value',mydata.trialOrder)
 % Hints: contents = cellstr(get(hObject,'String')) returns savedExperiments_listbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from savedExperiments_listbox
 
@@ -603,21 +610,23 @@ function saveExperiment_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global ExperParams;
 ExperParams = get(handles.ExperimentParam_table,'Data');
-FileName   = get(handles.experimentName_editbox,'String');
+trialOrder = get(handles.chooseOrder_choicelist,'Value');
+
+FileName = get(handles.experimentName_editbox,'String');
 File = strcat(FileName,".mat");
 
 % Save the experiment into the "experiments" folder
 % change the current folder to experiments folder
 cd(handles.experFolder);
 
-save(File, 'ExperParams')
+save(File, 'ExperParams', 'trialOrder')
 
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
 experiments = get(handles.savedExperiments_listbox,'String');
 experiments = [experiments; cellstr(FileName)];
-set(handles.savedExperiments_listbox,'String',experiments)
+set(handles.savedExperiments_listbox,'String',experiments(:,1))
 
 
 % --- Executes during object creation, after setting all properties.
