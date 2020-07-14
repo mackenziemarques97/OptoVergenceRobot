@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 10-Jul-2020 11:52:24
+% Last Modified by GUIDE v2.5 14-Jul-2020 14:13:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -237,7 +237,7 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 % I plan on writing code here to check for valid input, convert strings to 
 %   relevant numerical values, etc
 % % safety check: Are the degrees entered by the user valid in the sense that
-% % they correspond to lcoations where an LED is present?
+% % they correspond to locations where an LED is present?
 
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
@@ -730,16 +730,80 @@ function robotFindDimensions_pushbutton_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 
-
-% --- Executes on button press in smoothpursuit_radiobutton.
-function smoothpursuit_radiobutton_Callback(hObject, eventdata, handles)
-% hObject    handle to smoothpursuit_radiobutton (see GCBO)
+function defaultITI_editbox_Callback(hObject, eventdata, handles)
+% hObject    handle to defaultITI_editbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of smoothpursuit_radiobutton
+% Hints: get(hObject,'String') returns contents of defaultITI_editbox as text
+%        str2double(get(hObject,'String')) returns contents of defaultITI_editbox as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function defaultITI_editbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to defaultITI_editbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function timeout_editbox_Callback(hObject, eventdata, handles)
+% hObject    handle to timeout_editbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of timeout_editbox as text
+%        str2double(get(hObject,'String')) returns contents of timeout_editbox as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function timeout_editbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to timeout_editbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in timeout_checkbox.
+function timeout_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to timeout_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of timeout_checkbox
+if get(hObject,'Value')
+    set(handles.timeout_editbox,'enable','on');
+else
+    set(handles.timeout_editbox,'enable','off');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function timeout_checkbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to timeout_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in smoothPursuit_pushbutton.
+function smoothPursuit_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to smoothPursuit_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 LED = get(handles.TrialParams_LED,'Data');
-LED(:,1) = num2cell(1:23);
+spIdx = find(diff(LED(:,1)) > 1)
+%LED(:,1) = num2cell(1:23);
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
 LED(:,degIdx) = num2cell([0:20 25 30]');
 if ~isempty(LED(1,2))
@@ -752,7 +816,7 @@ set(handles.TrialParams_LED,'Data',LED);
 
 
 % --- Executes during object creation, after setting all properties.
-function smoothpursuit_radiobutton_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to smoothpursuit_radiobutton (see GCBO)
+function smoothPursuit_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to smoothPursuit_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called

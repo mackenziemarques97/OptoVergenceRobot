@@ -44,6 +44,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
 %       xCoord = trialRobot(phaseNum).xCoord;
 %       zCoord = trialRobot(phaseNum).zCoord;
     end
+    timeout = get(handles.timeout_checkbox,'Value');
     
     ai = handles.ai;
     dio = handles.dio;
@@ -157,7 +158,6 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                     viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
                     a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
                 end
-                tstart(trialCount) = tic 
                 a.turnOnLED();
                 % check for fixation
                 fix = false; % assume no fixation to start
@@ -186,14 +186,16 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                             keepFix = false;
                             break
                         end
-                    end
+                    end          
                 end
                 a.clearLEDs();
-                tend = toc(tstart(trialCount))
                 delete(viewingFigureRectangles);
                 viewingFigureIndex = 0;
                 updateViewingFigure()
                 pause(0.002)
+                if ~keepFix && timeout
+                    pause(str2double(handles.timeout_editbox.String))
+                end
             end 
         end
         for i = 1:numRobotPhases
@@ -208,7 +210,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
 
         % deliver reward only if fixation was maintained AND this phase is
         % to deliver reward
-        if ~keepFix && Trial(eyeCheckPhaseIndex).phases.ifReward
+        if ~keepFix
             break            
         end
         if keepFix && Trial(eyeCheckPhaseIndex).phases.ifReward

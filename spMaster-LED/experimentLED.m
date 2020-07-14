@@ -56,6 +56,7 @@ for trialCount = 1:totalTrials
     handles.trial_prefix = [experiment(1:end-4),'_',sprintf(trial_num_format,trialCount),'_',currentTrialName,'_'];
     currentTrialName = strcat(currentTrialName,'.mat');
     [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount); % calls trial.m with the current trial parameters
+    pause(str2double(handles.defaultITI_editbox.String));
 end
 % at the end of each experiment, end serial connection with Arduino
 a.endSerial(); 
