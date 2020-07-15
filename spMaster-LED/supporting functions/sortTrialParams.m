@@ -8,6 +8,9 @@ numParams = numel(numFilledInRows); %total number of params (columns)
 %this is intended to correct any logical errors with params determined by
 %checkboxes
 for i = 1:numPhases
+    if ischar(TrialParams{i,1})
+        TrialParams{i,1} = str2double(TrialParams(i,1));
+    end
     for j = 1:numParams
         if ~isempty(TrialParams{i,1}) && isempty(TrialParams{i,j})
             TrialParams{i,j} = 0;
