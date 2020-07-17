@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 14-Jul-2020 14:13:27
+% Last Modified by GUIDE v2.5 17-Jul-2020 11:39:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -882,5 +882,12 @@ end
 % --- Executes during object creation, after setting all properties.
 function smoothPursuit_pushbutton_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to smoothPursuit_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function TrialParams_LED_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TrialParams_LED (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called

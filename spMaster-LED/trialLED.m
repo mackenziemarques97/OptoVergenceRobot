@@ -7,7 +7,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     load(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot');
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
-    paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
+    paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext','fixTol','numRew'};
     paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
@@ -61,17 +61,27 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     % auxAxes = get(auxAxes,'Position');
 
     %% get updated values from auxiliary gui
-        function [numrew, fixTol] = checkAux(auxiliary)
+        function [numrew, fixTol] = checkAux(auxiliary,Trial,phase)
 
             h = findobj(auxiliary,'Tag','RewardValue');
             numrew = guidata(h);
             numrew = numrew.RewardValue;
-            numrew = str2num(get(numrew,'String'));
+            if numrew.newRew~=numrew
+                Trial(phase).phases.numRew = numrew.newRew;
+            else
+                set(numrew,'String',Trial(phase).phases.numRew) 
+            end
+            %numrew = str2num(get(numrew,'String'));
 
             h = findobj(auxiliary,'Tag','FixTol');
             fixTol = guidata(h);
             fixTol = fixTol.FixTol;
-            fixTol = str2num(get(fixTol,'String'));
+            if fixTol.newTol~=fixTol
+                Trial(phase).phases.fixTol = fixTol.newTol;
+            else
+                set(fixTol,'String',Trial(phase).phases.fixTol)
+            end
+            %fixTol = str2num(get(fixTol,'String'));
 
         end
     %% initialize viewing figure axes in auxiliary gui
@@ -109,7 +119,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         %%CHECK IF PHASE IS LED BOARD OR ROBOT 
         for i = 1:numLEDPhases
             if phase == LEDPhases(i) && phase == eyeCheckPhaseIndex
-                [numrew, fixTol] = checkAux(auxiliary);
+                [numrew, fixTol] = checkAux(auxiliary,Trial,phase);
                 
                 success = false;
                 

@@ -156,10 +156,8 @@ function ToleranceUp_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 currentTol = str2num(get(handles.FixTol,'String'));
 newTol = currentTol + 1;
-handles.newTol = num2str(newTol);
+newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
-% Update handles structure
-guidata(hObject, handles);
 
 
 % --- Executes on button press in ToleranceDown.
@@ -169,10 +167,8 @@ function ToleranceDown_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 currentTol = str2num(get(handles.FixTol,'String'));
 newTol = currentTol - 1;
-handles.newTol = num2str(newTol);
+newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
-% Update handles structure
-guidata(hObject, handles);
 
 
 % --- Executes on button press in viewRastersButton.

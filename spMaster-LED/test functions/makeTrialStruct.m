@@ -4,7 +4,13 @@ function [Trial,totNumPhases,numLEDPhases,numRobotPhases,LEDPhases,robotPhases] 
 numFilledInRows = sum(~cellfun(@isempty,LED),1);
 numLEDPhases = numFilledInRows(1);
 numParams = numel(numFilledInRows);
+LEDPhases = zeros(size(LED(:,1)));
 for i = 1:numLEDPhases
+    if ~isa(LED{i,1},'double')
+        LEDPhases(i) = str2double(LED(i,1));
+    else
+        LEDPhases(i) = LED{i,1};
+    end
     for j = 1:numParams
         if ~isempty(LED{i,1}) && isempty(LED{i,j})
             LED{i,j} = 0;
@@ -25,13 +31,12 @@ end
 
 LED = LED(1:numLEDPhases,:);
 robot = robot(1:numRobotPhases,:);
-LEDPhases = str2double(LED(:,1));
 robotPhases = str2double(robot(:,1));
 totNumPhases = numLEDPhases + numRobotPhases;
 
 for i = totNumPhases:-1:1
     for j = 1:numLEDPhases
-        if i == str2double(LED{j,1})
+        if i == LEDPhases(j)
             Trial(i).phases = cell2struct(LED(j,:),paramNames_LED,2);
         end
     end
@@ -40,4 +45,5 @@ for i = totNumPhases:-1:1
             Trial(i).phases = cell2struct(robot(k,:),paramNames_robot,2);
         end
     end
+end
 end
