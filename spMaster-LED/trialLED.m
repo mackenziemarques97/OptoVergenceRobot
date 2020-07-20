@@ -65,18 +65,18 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
 
             h = findobj(auxiliary,'Tag','RewardValue');
             numrew = guidata(h);
-            numrew = numrew.RewardValue;
-            if numrew.newRew~=numrew
-                Trial(phase).phases.numRew = numrew.newRew;
-            else
-                set(numrew,'String',Trial(phase).phases.numRew) 
+            %numrew = numrew.RewardValue;
+            if exist('numrew.newRew','var') && strcmp(numrew.newRew,numrew.RewardValue.String)
+                Trial(phase).phases.numRew = str2double(get(numrew.newRew,'String'));
             end
-            %numrew = str2num(get(numrew,'String'));
+            set(numrew.RewardValue,'String',Trial(phase).phases.numRew) 
+
+            
 
             h = findobj(auxiliary,'Tag','FixTol');
             fixTol = guidata(h);
             fixTol = fixTol.FixTol;
-            if fixTol.newTol~=fixTol
+            if exist('fixTol.newTol','var') && fixTol.newTol~=fixTol
                 Trial(phase).phases.fixTol = fixTol.newTol;
             else
                 set(fixTol,'String',Trial(phase).phases.fixTol)
