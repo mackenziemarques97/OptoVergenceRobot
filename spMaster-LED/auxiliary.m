@@ -107,7 +107,7 @@ function RewardUp_Callback(hObject, eventdata, handles)
 % hObject    handle to RewardUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-currentRew = str2num(get(handles.RewardValue,'String'));
+handles.currentRew = str2double(get(handles.RewardValue,'String'));
 newRew = currentRew + 1;
 handles.newRew = num2str(newRew);
 set(handles.RewardValue,'String',newRew)
@@ -119,7 +119,7 @@ function RewardDown_Callback(hObject, eventdata, handles)
 % hObject    handle to RewardDown (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-currentRew = str2num(get(handles.RewardValue,'String'));
+handles.currentRew = str2double(get(handles.RewardValue,'String'));
 newRew = currentRew - 1;
 handles.newRew = num2str(newRew);
 set(handles.RewardValue,'String',newRew)
@@ -154,7 +154,7 @@ function ToleranceUp_Callback(hObject, eventdata, handles)
 % hObject    handle to ToleranceUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-currentTol = str2num(get(handles.FixTol,'String'));
+handles.currentTol = str2double(get(handles.FixTol,'String'));
 newTol = currentTol + 1;
 handles.newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
@@ -167,7 +167,7 @@ function ToleranceDown_Callback(hObject, eventdata, handles)
 % hObject    handle to ToleranceDown (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-currentTol = str2num(get(handles.FixTol,'String'));
+handles.currentTol = str2double(get(handles.FixTol,'String'));
 newTol = currentTol - 1;
 handles.newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)

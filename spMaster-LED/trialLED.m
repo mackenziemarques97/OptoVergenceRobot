@@ -65,23 +65,19 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
 
             h = findobj(auxiliary,'Tag','RewardValue');
             numrew = guidata(h);
-            %numrew = numrew.RewardValue;
-            if exist('numrew.newRew','var') && strcmp(numrew.newRew,numrew.RewardValue.String)
-                Trial(phase).phases.numRew = str2double(get(numrew.newRew,'String'));
+            if isfield(numrew,'newRew') && ~strcmp(numrew.newRew,numrew.RewardValue.String)
+                Trial(phase).phases.numRew = str2double(numrew.newRew);
             end
-            set(numrew.RewardValue,'String',Trial(phase).phases.numRew) 
-
-            
+            set(numrew.RewardValue,'String',Trial(phase).phases.numRew)
+            numrew = Trial(phase).phases.numRew;
 
             h = findobj(auxiliary,'Tag','FixTol');
             fixTol = guidata(h);
-            fixTol = fixTol.FixTol;
-            if exist('fixTol.newTol','var') && fixTol.newTol~=fixTol
-                Trial(phase).phases.fixTol = fixTol.newTol;
-            else
-                set(fixTol,'String',Trial(phase).phases.fixTol)
+            if isfield(fixTol,'newTol') && ~strcmp(fixTol.newTol,fixTol.FixTol.String)
+                Trial(pahse).phases.fixTol = str2double(fixTol.newTol);
             end
-            %fixTol = str2num(get(fixTol,'String'));
+            set(fixTol.FixTol,'String',Trial(phase).phases.fixTol)
+            fixTol = Trial(phase).phases.fixTol;
 
         end
     %% initialize viewing figure axes in auxiliary gui

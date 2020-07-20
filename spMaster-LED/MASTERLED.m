@@ -801,10 +801,10 @@ function smoothPursuit_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to smoothPursuit_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-LED = get(handles.TrialParams_LED,'Data');
+TrialParams_LED = get(handles.TrialParams_LED,'Data');
 validCheck = true;
-paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext'};
-trial = sortTrialParams(LED, paramNames_LED);
+paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext','fixTol','numRew'};
+trial = sortTrialParams(TrialParams_LED, paramNames_LED);
 enteredPhases = vertcat(trial(1:end).phaseNum);
 availLEDs = [0:20 25:5:30];
 spStartIdx = find(diff(enteredPhases) > 1);
@@ -812,9 +812,9 @@ spEndIdx = spStartIdx + 1;
 matchDeg = find(availLEDs == trial(spStartIdx).visAng);
 degs = sort(availLEDs(2:matchDeg-1),'descend');
 dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
-LED(spEndIdx,:) = {[]};
+TrialParams_LED(spEndIdx,:) = {[]};
 if ~strcmp(trial(spStartIdx).direction, trial(spEndIdx).direction)
-    LED(trial(spEndIdx).phaseNum,:) = struct2cell(trial(spEndIdx));
+    TrialParams_LED(trial(spEndIdx).phaseNum,:) = struct2cell(trial(spEndIdx));
     if strcmp(trial(spStartIdx).direction, 'center')
         if validCheck
             for phase = spStartIdx+1:enteredPhases(spEndIdx)-1
@@ -824,7 +824,7 @@ if ~strcmp(trial(spStartIdx).direction, trial(spEndIdx).direction)
                     uiwait(msgbox(str,'Error','error'));
                     break
                 end
-                LED(phase,:) = {phase,LED{enteredPhases(spEndIdx),2},LED{enteredPhases(spEndIdx),dirIdx},availLEDs(phase-2),0.1,0,0,0};
+                TrialParams_LED(phase,:) = {phase,TrialParams_LED{enteredPhases(spEndIdx),2},TrialParams_LED{enteredPhases(spEndIdx),dirIdx},availLEDs(phase-2),0.1,0,0,0,30,0};
             end
         end
     end
@@ -835,10 +835,10 @@ if ~strcmp(trial(spStartIdx).direction, trial(spEndIdx).direction)
             uiwait(msgbox(str,'Error','error'));
             break
         end
-        LED(phase,:) = {phase,LED{phase-1,2},LED{phase-1,dirIdx},degs(phase-numel(enteredPhases)+1),0.1,0,0,0};
+        TrialParams_LED(phase,:) = {phase,TrialParams_LED{phase-1,2},TrialParams_LED{phase-1,dirIdx},degs(phase-numel(enteredPhases)+1),0.1,0,0,0,30,0};
     end
     zeroPhase = enteredPhases(spEndIdx)-matchDeg+1;
-    LED(zeroPhase,:) = {zeroPhase,LED{zeroPhase-1,2},'center',0,0.1,0,0,0};
+    TrialParams_LED(zeroPhase,:) = {zeroPhase,TrialParams_LED{zeroPhase-1,2},'center',0,0.1,0,0,0,30,0};
     if validCheck
         for phase = zeroPhase+1:enteredPhases(spEndIdx)-1
             if (phase-matchDeg-1) < 2
@@ -847,7 +847,7 @@ if ~strcmp(trial(spStartIdx).direction, trial(spEndIdx).direction)
                 uiwait(msgbox(str,'Error','error'));
                 break
             end
-            LED(phase,:) = {phase,LED{enteredPhases(spEndIdx),2},LED{enteredPhases(spEndIdx),dirIdx},availLEDs(phase-matchDeg-1),0.1,0,0,0};
+            TrialParams_LED(phase,:) = {phase,TrialParams_LED{enteredPhases(spEndIdx),2},TrialParams_LED{enteredPhases(spEndIdx),dirIdx},availLEDs(phase-matchDeg-1),0.1,0,0,0,30,0};
         end
     end
 elseif strcmp(trial(spStartIdx).direction, trial(spEndIdx).direction)
@@ -875,7 +875,14 @@ end
 %     LED(:,3) = LED(1,3);
 % end
 if validCheck
-    set(handles.TrialParams_LED,'Data',LED);
+    set(handles.TrialParams_LED,'Data',TrialParams_LED);
+    FileName   = get(handles.trialName_editbox,'String');
+    File = strcat(FileName,".mat");
+    TrialParams_robot = cell(4,9);
+    % Save the trial into the "trials" folder
+    % change the current folder to trials folder
+    cd(handles.trialFolder);
+    save(File, 'TrialParams_LED', 'TrialParams_robot')
 end
 
 
