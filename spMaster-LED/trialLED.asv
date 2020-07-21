@@ -1,4 +1,4 @@
-function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount,totTrials)
+function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount)
     global fw viewingFigureIndex viewingFigureColor
     viewingFigureIndex = 0;
     viewingFigureColor = {};
@@ -209,7 +209,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 success = false;
                 %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
                 %if trialCount
-                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration,phase,robotPhases(1),robotPhases(end),trialCount,1,totTrials)
+                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration,trialCount,robotPhases(1),robotPhases(end))
                 keepFix = true;
             end
         end

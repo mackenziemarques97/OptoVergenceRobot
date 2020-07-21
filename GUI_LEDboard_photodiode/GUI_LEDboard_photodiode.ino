@@ -58,6 +58,7 @@ CRGB leds_Center[NUM_Center];
 /*Define global variables*/
 int addressLongX, addressLongZ; //address/bytes to write dimensions to
 int dirIndex, colIndex;
+bool robotLEDTracker = false;
 String val;
 int ledOff = 255;
 int ledOn = 127;
@@ -518,8 +519,6 @@ void setup() {
   {
     serialInit = Serial.read();
   }
-  Serial.println("he");
-
 }
 
 void loop() {
@@ -573,16 +572,27 @@ void loop() {
         }
         break;
       /*saves parameters for controlling robot*/
-      case 5://sendRobotPhaseParams:color:x1:y1:time:currentPhase:startRobotPhase:lastRobotPhase
+      case 5://sendRobotPhaseParams:color:x1:y1:time:currentPhase:startRobotPhase:lastRobotPhase:currentTrial:startTrial:lastTrial
         {
 
           long xDisp = *(command + 2) - location[0];
           long zDisp = *(command + 3) - location[1];
           double dur = *(command + 4);
+
+//          Serial.print("currentPhase: "); Serial.println(*(command + 5));
+//          Serial.print("startPhase: "); Serial.println(*(command + 6));
+//          Serial.print("lastPhase: "); Serial.println(*(command + 7));
+//          Serial.print("currentTrial: "); Serial.println(*(command + 8));
+//          Serial.print("startTrial: "); Serial.println(*(command + 9));
+//          Serial.print("lastTrial: "); Serial.println(*(command + 10));
+
           //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
           int ledPin = setRobotColor(*(command + 1));
-          if (ledPin != -1 && (*(command + 5) == *(command + 6))) {
+          if (ledPin != -1 && !robotLEDTracker) {
             analogWrite(ledPin, ledOn);
+            robotLEDTracker = true;
+//            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
+//            Serial.println("ON");
           }
           int baseDelay = 70;
           int dv = baseDelay - Delay;
@@ -604,8 +614,11 @@ void loop() {
             line(dtx, dtz, a);
           }
 
-          if (ledPin != -1 && (*(command + 5) == *(command + 7))) {
+          if (ledPin != -1 && (*(command + 5) == *(command + 7)) && (*(command + 8) == *(command + 10))) {
             analogWrite(ledPin, ledOff);
+            robotLEDTracker = false;
+//            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
+//            Serial.println("OFF");
           }
         }
         break;
