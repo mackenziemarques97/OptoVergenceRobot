@@ -59,6 +59,8 @@ handles.output = hObject;
 % of auxiliary GUI
 mainGUI = findobj('Tag','MASTERLEDfigure');
 handles.a_serialobj = getappdata(mainGUI,'a');
+handles.TrialParams_LED = getappdata(mainGUI,'TrialParams_LED');
+handles.TrialParams_robot = getappdata(mainGUI,'TrialParams_robot');
 
 % Update handles structure
 guidata(hObject, handles);
@@ -107,8 +109,9 @@ function RewardUp_Callback(hObject, eventdata, handles)
 % hObject    handle to RewardUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.currentRew = str2double(get(handles.RewardValue,'String'));
+currentRew = str2double(get(handles.RewardValue,'String'));
 newRew = currentRew + 1;
+handles.TrialParams_LED(:,10) = {newRew};
 handles.newRew = num2str(newRew);
 set(handles.RewardValue,'String',newRew)
 % Update handles structure
@@ -119,8 +122,9 @@ function RewardDown_Callback(hObject, eventdata, handles)
 % hObject    handle to RewardDown (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.currentRew = str2double(get(handles.RewardValue,'String'));
+currentRew = str2double(get(handles.RewardValue,'String'));
 newRew = currentRew - 1;
+handles.TrialParams_LED(:,10) = {newRew};
 handles.newRew = num2str(newRew);
 set(handles.RewardValue,'String',newRew)
 % Update handles structure
@@ -148,14 +152,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
+% --- Executes on button press in RewardDown.
+% function RewardDown_Callback(hObject, eventdata, handles)
+% hObject    handle to RewardDown (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% handles.currentRew = str2double(get(handles.RewardValue,'String'));
+% newRew = handles.currentRew - 1;
+% handles.TrialParams_LED(:,10) = {newRew};
+% handles.newRew = num2str(newRew);
+% set(handles.RewardValue,'String',newRew)
+% Update handles structure
+% guidata(hObject, handles);
 % --- Executes on button press in ToleranceUp.
 function ToleranceUp_Callback(hObject, eventdata, handles)
 % hObject    handle to ToleranceUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.currentTol = str2double(get(handles.FixTol,'String'));
+currentTol = str2double(get(handles.FixTol,'String'));
 newTol = currentTol + 1;
+handles.TrialParams_LED(:,9) = {newTol};
 handles.newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
 % Update handles structure
@@ -167,8 +183,9 @@ function ToleranceDown_Callback(hObject, eventdata, handles)
 % hObject    handle to ToleranceDown (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.currentTol = str2double(get(handles.FixTol,'String'));
+currentTol = str2double(get(handles.FixTol,'String'));
 newTol = currentTol - 1;
+handles.TrialParams_LED(:,9) = {newTol};
 handles.newTol = num2str(newTol);
 set(handles.FixTol,'String',newTol)
 % Update handles structure

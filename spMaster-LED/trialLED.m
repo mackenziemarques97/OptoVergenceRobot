@@ -39,7 +39,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         phaseNum = robotPhases(i);
         Trial(phaseNum).phases.xCoord_uSteps = (Trial(phaseNum).phases.xCoord/Circ)*stepsPerRev*uStepsPerStep;
         Trial(phaseNum).phases.zCoord_uSteps = (Trial(phaseNum).phases.zCoord/Circ)*stepsPerRev*uStepsPerStep;
-        %       vergAng = trialRobot(phaseNum).vergAng;
+%       vergAng = trialRobot(phaseNum).vergAng;
 %       visAng = trialRobot(phaseNum).visAng;            
 %       xCoord = trialRobot(phaseNum).xCoord;
 %       zCoord = trialRobot(phaseNum).zCoord;
@@ -52,7 +52,12 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     % save the object "a" that contains serial connection in app data
     % to be able to access it in auxiliary GUI
     mainGUI = findobj('Tag','MASTERLEDfigure');
+    auxGUI = findobj('Tag','auxgui');
+
     setappdata(mainGUI,'a',handles.a_serialobj)
+    setappdata(mainGUI,'TrialParams_LED',TrialParams_LED)
+    setappdata(mainGUI,'TrialParams_robot',TrialParams_robot)
+    
     auxiliary();
 
     h = findobj(auxiliary,'Tag','Position');
@@ -64,19 +69,21 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         function [numrew, fixTol] = checkAux(auxiliary,Trial,phase)
 
             h = findobj(auxiliary,'Tag','RewardValue');
-            numrew = guidata(h);
-            if isfield(numrew,'newRew') && ~strcmp(numrew.newRew,numrew.RewardValue.String)
-                Trial(phase).phases.numRew = str2double(numrew.newRew);
+            auxHandles = guidata(h);
+            if isfield(auxHandles,'newRew') && str2double(auxHandles.newRew)~=Trial(phase).phases.numRew
+                Trial(phase).phases.numRew = str2double(auxHandles.newRew);
+                TrialParams_LED = auxHandles.TrialParams_LED;
+                save(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot')
             end
-            set(numrew.RewardValue,'String',Trial(phase).phases.numRew)
+            set(auxHandles.RewardValue,'String',Trial(phase).phases.numRew)
             numrew = Trial(phase).phases.numRew;
 
-            h = findobj(auxiliary,'Tag','FixTol');
-            fixTol = guidata(h);
-            if isfield(fixTol,'newTol') && ~strcmp(fixTol.newTol,fixTol.FixTol.String)
-                Trial(pahse).phases.fixTol = str2double(fixTol.newTol);
+            if isfield(auxHandles,'newTol') && auxHandles.newTol~=Trial(phase).phases.fixTol
+                Trial(phase).phases.fixTol = str2double(auxHandles.newTol);
+                TrialParams_LED = auxHandles.TrialParams_LED;
+                save(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot')
             end
-            set(fixTol.FixTol,'String',Trial(phase).phases.fixTol)
+            set(auxHandles.FixTol,'String',Trial(phase).phases.fixTol)
             fixTol = Trial(phase).phases.fixTol;
 
         end
