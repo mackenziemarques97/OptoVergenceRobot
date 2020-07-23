@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 17-Jul-2020 11:39:29
+% Last Modified by GUIDE v2.5 23-Jul-2020 14:25:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -239,6 +239,12 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to locations where an LED is present?
 
+handles.selectedCell(1) = eventdata.Indices(1);
+handles.selectedCell(2) = eventdata.Indices(2);
+handles.selectedCellSource = eventdata.Source.Tag;
+% Update handles structure
+guidata(hObject, handles);
+
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
 %LED degree meet the conditions 
@@ -246,9 +252,11 @@ LED = get(handles.TrialParams_LED,'Data');
 %numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
-
 availLEDs = [0:20 25:5:30];
 for phase = 1:size(LED,1)
+    mask = cellfun(@(C) all(isnan(C)), LED);
+    LED(mask) = {[]};
+    set(handles.TrialParams_LED,'Data',LED);   
     if strcmp(LED(phase,dirIdx),'center')
         LED(phase,degIdx) = num2cell(0);
         set(handles.TrialParams_LED,'Data',LED);   
@@ -263,7 +271,6 @@ for phase = 1:size(LED,1)
 end
 
 
-
 % --- Executes when entered data in editable cell(s) in TrialParams_robot.
 function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 % hObject    handle to TrialParams_robot (see GCBO)
@@ -275,6 +282,11 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
+handles.selectedCell(1) = eventdata.Indices(1);
+handles.selectedCell(2) = eventdata.Indices(2);
+handles.selectedCellSource = eventdata.Source.Tag;
+% Update handles structure
+guidata(hObject, handles);
 % calculate overall velocity from Vx and Vz in cm/s
 % if Vx and Vz entered, then calculate overall velocity and fill cell
 % store data from robot params table
@@ -321,9 +333,9 @@ if ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
 end
 
 % % get column index of Vx from table column names
-% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
+% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (Â°/s)');
 % % get column index of Vz
-% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)');
+% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (Â°/s)');
 % % store  current row index of param table
 % % currRow = eventdata.Indices(1);
 % % if Vx or Vz entry in table is empty, then wait
@@ -898,3 +910,22 @@ function TrialParams_LED_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to TrialParams_LED (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+handles.TrialParams_LED.ColumnName = {'Phase|Number','Color','Direction','Visual Angle (°)','Duration (s)','Fixation|Duration (s)','Reward','WithNext','Fixation|Tolerance','Reward|Amount'};
+
+
+% --- Executes on button press in clearCellSelection_pushbutton.
+function clearCellSelection_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearCellSelection_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+tableData = get(handles.(handles.selectedCellSource),'Data');
+tableData(handles.selectedCell(1),handles.selectedCell(2)) = {[]};
+set(handles.(handles.selectedCellSource),'Data',tableData); 
+
+
+% --- Executes during object creation, after setting all properties.
+function clearCellSelection_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to clearCellSelection_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
