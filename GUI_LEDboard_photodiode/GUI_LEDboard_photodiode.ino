@@ -56,14 +56,15 @@ CRGB leds_Strips[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB leds_Center[NUM_Center];
 
 /*Define global variables*/
+unsigned long previousMillis = 0;
 int addressLongX, addressLongZ; //address/bytes to write dimensions to
 int dirIndex, colIndex;
 bool robotLEDTracker = false;
 String val;
-int ledOff = 255;
-int ledOn = 127;
+const int ledOff = 255;
+const int ledOn = 127;
 int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = clockwise, 0 = counterclockwise*/
-int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
+const int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2]; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
 unsigned long location[2] = {0, 0}; /*presetting location*/
@@ -572,53 +573,60 @@ void loop() {
         }
         break;
       /*saves parameters for controlling robot*/
-      case 5://sendRobotPhaseParams:color:x1:y1:time:currentPhase:startRobotPhase:lastRobotPhase:currentTrial:startTrial:lastTrial
+      case 5://sendRobotPhaseParams:color:x1:y1:moveDur:LEDdur:currentPhase:startRobotPhase:lastRobotPhase:currentTrial:startTrial:lastTrial
         {
-
+          unsigned long currentMillis = millis();
+          long interval = *(command + 5);
           long xDisp = *(command + 2) - location[0];
           long zDisp = *(command + 3) - location[1];
           double dur = *(command + 4);
 
-//          Serial.print("currentPhase: "); Serial.println(*(command + 5));
-//          Serial.print("startPhase: "); Serial.println(*(command + 6));
-//          Serial.print("lastPhase: "); Serial.println(*(command + 7));
-//          Serial.print("currentTrial: "); Serial.println(*(command + 8));
-//          Serial.print("startTrial: "); Serial.println(*(command + 9));
-//          Serial.print("lastTrial: "); Serial.println(*(command + 10));
+          //          Serial.print("currentPhase: "); Serial.println(*(command + 5));
+          //          Serial.print("startPhase: "); Serial.println(*(command + 6));
+          //          Serial.print("lastPhase: "); Serial.println(*(command + 7));
+          //          Serial.print("currentTrial: "); Serial.println(*(command + 8));
+          //          Serial.print("startTrial: "); Serial.println(*(command + 9));
+          //          Serial.print("lastTrial: "); Serial.println(*(command + 10));
 
           //double v = sqrt(pow(x1,2)+pow(z1,2))/dur;
           int ledPin = setRobotColor(*(command + 1));
           if (ledPin != -1 && !robotLEDTracker) {
             analogWrite(ledPin, ledOn);
             robotLEDTracker = true;
-//            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
-//            Serial.println("ON");
-          }
-          int baseDelay = 70;
-          int dv = baseDelay - Delay;
-          long dtx = (long) xDisp / (10 * dv / 2);
-          long dtz = (long) zDisp / (10 * dv / 2);
-
-          Serial.println("MovementStarted");
-
-
-          for (int i = 0; i < (int)dv / 2; i++) {
-            int a = baseDelay - i * 2;
-            line(dtx, dtz, a);
+            //            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
+            //            Serial.println("ON");
           }
 
-          line((long) xDisp * 0.8, (long) zDisp * 0.8, Delay);
+          if (interval != 0 && currentMillis - previousMillis >= interval) {
+          previousMillis = currentMillis;
+          }
+          else {
+            int baseDelay = 70;
+            int dv = baseDelay - Delay;
+            long dtx = (long) xDisp / (10 * dv / 2);
+            long dtz = (long) zDisp / (10 * dv / 2);
 
-          for (int i = 0; i < (int)dv / 2; i++) {
-            int a = Delay + i * 2;
-            line(dtx, dtz, a);
+            Serial.println("MovementStarted");
+
+
+            for (int i = 0; i < (int)dv / 2; i++) {
+              int a = baseDelay - i * 2;
+              line(dtx, dtz, a);
+            }
+
+            line((long) xDisp * 0.8, (long) zDisp * 0.8, Delay);
+
+            for (int i = 0; i < (int)dv / 2; i++) {
+              int a = Delay + i * 2;
+              line(dtx, dtz, a);
+            }
           }
 
-          if (ledPin != -1 && (*(command + 5) == *(command + 7)) && (*(command + 8) == *(command + 10))) {
+          if (ledPin != -1 && (*(command + 6) == *(command + 7)) && (*(command + 8) == *(command + 10))) {
             analogWrite(ledPin, ledOff);
             robotLEDTracker = false;
-//            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
-//            Serial.println("OFF");
+            //            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
+            //            Serial.println("OFF");
           }
         }
         break;

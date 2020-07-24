@@ -158,7 +158,6 @@ serialPort = 'COM4';
 a = ExperimentClass_GUI_LEDboard(serialPort); 
 % save experiment class object to handles
 handles.a_serialobj = a;
-
 % Update handles structure
 guidata(hObject, handles);
 
@@ -251,7 +250,7 @@ guidata(hObject, handles);
 LED = get(handles.TrialParams_LED,'Data');
 %numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>'));
 availLEDs = [0:20 25:5:30];
 for phase = 1:size(LED,1)
     mask = cellfun(@(C) all(isnan(C)), LED);
@@ -291,8 +290,8 @@ guidata(hObject, handles);
 % if Vx and Vz entered, then calculate overall velocity and fill cell
 % store data from robot params table
 robot = get(handles.TrialParams_robot,'Data');
-VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Visual Angle (°)');
-VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vergence Angle (°)');
+VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>');
+VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Vergence<br>Angle (°)<center><html>');
 xCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'X Coordinate (cm)');
 zCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'Z Coordinate (cm)');
 interpupDist = str2double(handles.interpupDist_editbox.String);
@@ -390,7 +389,7 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
 numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'Visual Angle (°)'));
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>'));
 availLEDs = [0:20 25:5:30];
 for phase = 1:numLEDphases
     if ~ismember(LED{phase,degIdx},availLEDs)    
@@ -910,8 +909,6 @@ function TrialParams_LED_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to TrialParams_LED (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-handles.TrialParams_LED.ColumnName = {'Phase|Number','Color','Direction','Visual Angle (°)','Duration (s)','Fixation|Duration (s)','Reward','WithNext','Fixation|Tolerance','Reward|Amount'};
-
 
 % --- Executes on button press in clearCellSelection_pushbutton.
 function clearCellSelection_pushbutton_Callback(hObject, eventdata, handles)

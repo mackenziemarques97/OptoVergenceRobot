@@ -7,7 +7,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     load(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot');
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
-    paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext','fixTol','numRew'};
+    paramNames_LED = {'phaseNum','color','direction','visAng','moveDur','LEDdur','fixDur','ifReward','withNext','fixTol','numRew'};
     paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
@@ -216,7 +216,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 success = false;
                 %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
                 %if trialCount
-                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.duration,phase,robotPhases(1),robotPhases(end),trialCount,1,totTrials)
+                a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.moveDur,Trial(phase).phases.LEDdur,phase,robotPhases(1),robotPhases(end),trialCount,1,totTrials)
                 keepFix = true;
             end
         end
