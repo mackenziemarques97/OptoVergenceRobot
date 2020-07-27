@@ -7,8 +7,8 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     load(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot');
     a = handles.a_serialobj;
     % set field names for LED and robot parameters in trial structures
-    paramNames_LED = {'phaseNum','color','direction','visAng','moveDur','LEDdur','fixDur','ifReward','withNext','fixTol','numRew'};
-    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','duration','ifReward','withNext'};
+    paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext','fixTol','numRew'};
+    paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','moveDur','LEDdur','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
     % tables for controlling LEDs and robot into structures
 %   trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);

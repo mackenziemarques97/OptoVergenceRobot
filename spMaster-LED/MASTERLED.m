@@ -22,7 +22,7 @@ function varargout = MASTERLED(varargin)
 
 % Edit the above text to modify the response to help MASTERGUI
 
-% Last Modified by GUIDE v2.5 23-Jul-2020 14:25:36
+% Last Modified by GUIDE v2.5 27-Jul-2020 12:41:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -250,7 +250,7 @@ guidata(hObject, handles);
 LED = get(handles.TrialParams_LED,'Data');
 %numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
 dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (�)<center><html>'));
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>'));
 availLEDs = [0:20 25:5:30];
 for phase = 1:size(LED,1)
     mask = cellfun(@(C) all(isnan(C)), LED);
@@ -290,8 +290,8 @@ guidata(hObject, handles);
 % if Vx and Vz entered, then calculate overall velocity and fill cell
 % store data from robot params table
 robot = get(handles.TrialParams_robot,'Data');
-VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Visual<br>Angle (�)<center><html>');
-VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Vergence<br>Angle (�)<center><html>');
+VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>');
+VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Vergence<br>Angle (°)<center><html>');
 xCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'X Coordinate (cm)');
 zCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'Z Coordinate (cm)');
 interpupDist = str2double(handles.interpupDist_editbox.String);
@@ -332,9 +332,9 @@ if ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
 end
 
 % % get column index of Vx from table column names
-% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (°/s)');
+% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (Â°/s)');
 % % get column index of Vz
-% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (°/s)');
+% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (Â°/s)');
 % % store  current row index of param table
 % % currRow = eventdata.Indices(1);
 % % if Vx or Vz entry in table is empty, then wait
@@ -389,7 +389,7 @@ function saveTrial_pushbutton_Callback(hObject, eventdata, handles)
 %LED degree meet the conditions 
 LED = get(handles.TrialParams_LED,'Data');
 numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
-degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (�)<center><html>'));
+degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>'));
 availLEDs = [0:20 25:5:30];
 for phase = 1:numLEDphases
     if ~ismember(LED{phase,degIdx},availLEDs)    
@@ -926,3 +926,31 @@ function clearCellSelection_pushbutton_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
+
+
+% --- Executes on button press in clearAllCells_pushbutton.
+function clearAllCells_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearAllCells_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%access data shown in tables
+LED = get(handles.TrialParams_LED,'Data');
+robot = get(handles.TrialParams_robot,'Data');
+%set all cells to empty
+LED(:) = {[]};
+robot(:) = {[]};
+handles.trialName_editbox.String = 'EDIT THIS TEXT';
+%show changes
+set(handles.TrialParams_LED,'Data',LED);
+set(handles.TrialParams_robot,'Data',robot);
+%reset Trial Name 
+
+
+
+
+
+% --- Executes during object creation, after setting all properties.
+function clearAllCells_pushbutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to clearAllCells_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
