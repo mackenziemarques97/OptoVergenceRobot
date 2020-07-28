@@ -294,10 +294,16 @@ VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Visual<br
 VergAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Vergence<br>Angle (°)<center><html>');
 xCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'X Coordinate (cm)');
 zCoordIdx = strcmp(handles.TrialParams_robot.ColumnName,'Z Coordinate (cm)');
+LEDdurIdx = strcmp(handles.TrialParams_robot.ColumnName, '<html><center>LED<br>Duration (s)<center><html>');
 interpupDist = str2double(handles.interpupDist_editbox.String);
 Ihalf = interpupDist/2;
 currRow = eventdata.Indices(1);
 currCol = eventdata.Indices(2);
+
+if currCol == find(LEDdurIdx) && ~isnumeric(robot{currRow,currCol})
+    robot{currRow,currCol} = str2double(robot{currRow,currCol});
+    set(handles.TrialParams_robot,'Data',robot);   
+end
 
 if currCol == find(xCoordIdx) || currCol == find(zCoordIdx)
     while isempty(robot{currRow,xCoordIdx})||isempty(robot{currRow,zCoordIdx})
@@ -320,12 +326,12 @@ elseif currCol == find(VisAngIdx) || currCol == find(VergAngIdx)
 end
 
 validCheck = true;
-if ~isempty(robot{currRow,xCoordIdx}) && (xCoord < 0 || xCoord > 134.62) 
+if currCol == find(xCoordIdx) && ~isempty(robot{currRow,xCoordIdx}) && (xCoord < 0 || xCoord > 134.62) 
     str = sprintf('Calculated X-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
     validCheck = false;
 end
-if ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
+if currCol == find(zCoordIdx) && ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
     str = sprintf('Calculated Z-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
     validCheck = false;

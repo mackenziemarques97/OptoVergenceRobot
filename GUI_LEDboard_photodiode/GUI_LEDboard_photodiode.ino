@@ -580,13 +580,6 @@ void loop() {
             long zDisp = *(command + 3) - location[1];
             double dur = *(command + 4);
 
-            //          Serial.print("currentPhase: "); Serial.println(*(command + 5));
-            //          Serial.print("startPhase: "); Serial.println(*(command + 6));
-            //          Serial.print("lastPhase: "); Serial.println(*(command + 7));
-            //          Serial.print("currentTrial: "); Serial.println(*(command + 8));
-            //          Serial.print("startTrial: "); Serial.println(*(command + 9));
-            //          Serial.print("lastTrial: "); Serial.println(*(command + 10));
-
             //double v = sqrt(pow(xDisp,2)+pow(zDisp,2))/dur;
             int ledPin = setRobotColor(*(command + 1));
           
@@ -597,6 +590,7 @@ void loop() {
               }
               analogWrite(ledPin, ledOn);
               robotLEDTracker = true;
+//              Serial.println("ON");
             }
 
             if (interval == 0) {
@@ -619,9 +613,13 @@ void loop() {
                 int a = Delay + i * 2;
                 line(dtx, dtz, a);
               }
+              break;
             }
 
             currentMillis = millis();
+//            Serial.print("Interval: "); Serial.println(interval);
+//            Serial.print("millisDifference: "); Serial.println(currentMillis - previousMillis);
+
             if (interval != 0 && currentMillis - previousMillis >= interval) {
               previousMillis = currentMillis;
               analogWrite(ledPin, ledOff);
@@ -629,12 +627,11 @@ void loop() {
               Serial.println("OFF");
               break;
             }
-            if (ledPin != -1 && robotLEDTracker && (*(command + 6) == *(command + 8)) && (*(command + 9) == *(command + 11))) {
+            if (interval == 0 && ledPin != -1 && robotLEDTracker && (*(command + 6) == *(command + 8)) && (*(command + 9) == *(command + 11))) {
               analogWrite(ledPin, ledOff);
               robotLEDTracker = false;
+//              Serial.println("OFF2");
               break;
-              //            Serial.print("tracker status: "); Serial.println(robotLEDTracker);
-              //            Serial.println("OFF");
             }
           }
         }

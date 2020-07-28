@@ -52,7 +52,6 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     % save the object "a" that contains serial connection in app data
     % to be able to access it in auxiliary GUI
     mainGUI = findobj('Tag','MASTERLEDfigure');
-    auxGUI = findobj('Tag','auxgui');
 
     setappdata(mainGUI,'a',handles.a_serialobj)
     setappdata(mainGUI,'TrialParams_LED',TrialParams_LED)
