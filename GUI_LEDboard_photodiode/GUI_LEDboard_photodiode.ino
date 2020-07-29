@@ -195,6 +195,8 @@ double* parseCommand(char strCommand[]) {
       /*the following if statement assigns numbers to string command entries*/
       if (i == 1) { /*i = 1 indicates 2nd command entry - if looping through and parsing 2nd command entry*/
         command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
+        Serial.print("LEDon: "); Serial.println(token);
+        Serial.print("LEDon: "); Serial.println(command[1]);
         i++;
       }
       else { /*for rest of command entries (which should be integers)*/
@@ -203,14 +205,26 @@ double* parseCommand(char strCommand[]) {
     }
     return command;
   }
-  if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
+  if (strcmp(token, "turnOffRobotLED") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
     command[0] = 6; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    int i = 1;
+    while (token != NULL) {
+      token = strtok(NULL, delim);
+      command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
+      Serial.print("LEDofftok: "); Serial.println(token);
+      Serial.print("LEDoffcom: "); Serial.println(command[i]);
+    }
+    return command;
+  }
+  if (strcmp(token, "returnRobot") == 0) { /*switch case 2 - showLEDs*/
+    static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
+    command[0] = 7; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
   if (strcmp(token, "findDimensions") == 0) { /*switch case 2 - showLEDs*/
     static double command[1]; /*1 numerical double command entry is required - showLEDs:*/
-    command[0] = 7; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
+    command[0] = 8; /*first number in command array indicates switch case ( 2 = "showLEDs" )*/
     return command;
   }
 
@@ -575,22 +589,31 @@ void loop() {
         break;
       /*saves parameters for controlling robot*/
       case 5://sendRobotPhaseParams:color:x1:y1:moveDur:LEDdur:currentPhase:startRobotPhase:lastRobotPhase:currentTrial:startTrial:lastTrial
-        {   long interval = *(command + 5) * 1000;
-            long xDisp = *(command + 2) - location[0];
-            long zDisp = *(command + 3) - location[1];
-            double dur = *(command + 4);
+        { long interval = *(command + 5) * 1000;
+          long xDisp = *(command + 2) - location[0];
+          long zDisp = *(command + 3) - location[1];
+          double dur = *(command + 4);
 
-            //double v = sqrt(pow(xDisp,2)+pow(zDisp,2))/dur;
-            int ledPin = setRobotColor(*(command + 1));
-          
+          //double v = sqrt(pow(xDisp,2)+pow(zDisp,2))/dur;
+          int ledPin = setRobotColor(*(command + 1));
+
           while (1) {
             if (ledPin != -1 && !robotLEDTracker) {
               if (interval != 0) {
-               previousMillis = millis();
+                previousMillis = millis();
               }
               analogWrite(ledPin, ledOn);
               robotLEDTracker = true;
-//              Serial.println("ON");
+              //              Serial.println("ON");
+            }
+
+            currentMillis = millis();
+            if (interval != 0 && currentMillis - previousMillis >= interval) {
+              previousMillis = currentMillis;
+              analogWrite(ledPin, ledOff);
+              robotLEDTracker = false;
+              Serial.println("OFF");
+              break;
             }
 
             if (interval == 0) {
@@ -600,7 +623,6 @@ void loop() {
               long dtz = (long) zDisp / (10 * dv / 2);
 
               Serial.println("MovementStarted");
-
 
               for (int i = 0; i < (int)dv / 2; i++) {
                 int a = baseDelay - i * 2;
@@ -613,30 +635,21 @@ void loop() {
                 int a = Delay + i * 2;
                 line(dtx, dtz, a);
               }
-              break;
-            }
-
-            currentMillis = millis();
-//            Serial.print("Interval: "); Serial.println(interval);
-//            Serial.print("millisDifference: "); Serial.println(currentMillis - previousMillis);
-
-            if (interval != 0 && currentMillis - previousMillis >= interval) {
-              previousMillis = currentMillis;
-              analogWrite(ledPin, ledOff);
-              robotLEDTracker = false;
-              Serial.println("OFF");
-              break;
-            }
-            if (interval == 0 && ledPin != -1 && robotLEDTracker && (*(command + 6) == *(command + 8)) && (*(command + 9) == *(command + 11))) {
-              analogWrite(ledPin, ledOff);
-              robotLEDTracker = false;
-//              Serial.println("OFF2");
+              //              Serial.println("break");
               break;
             }
           }
         }
         break;
-      case 6: //returnRobot:
+      case 6: //turnOffRobotLED:color
+        {
+          int ledPin = setRobotColor(*(command + 1));
+          analogWrite(ledPin, ledOff);
+          robotLEDTracker = false;
+          Serial.println("OFF");
+        }
+        break;
+      case 7: //returnRobot:
         {
           /* Calibrates to xMin and zMin and updates location to (0,0) */
           recalibrate(xMin); /*xErr is number of steps from initial x-coordinate location to x=0*/
@@ -647,7 +660,7 @@ void loop() {
           delay(300);
         }
         break;
-      case 7: //findDimensions:
+      case 8: //findDimensions:
         {
           /* Determines dimensions by moving from xMax to xMin, then zMax to zMin*/
           int *i = findDimensions();

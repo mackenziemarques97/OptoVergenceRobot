@@ -59,8 +59,8 @@ for trialCount = 1:totalTrials
     pause(str2double(handles.defaultITI_editbox.String));
 end
 % at the end of each experiment, end serial connection with Arduino
-a.endSerial(); 
 uiwait(msgbox('Experiment Finished'));
+a.endSerial(); 
 clear
 close all
 end

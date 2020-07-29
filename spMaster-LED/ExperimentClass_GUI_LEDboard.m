@@ -79,11 +79,18 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         function sendRobotPhaseParams(obj,color,x1,y1,moveDur,LEDdur,currentPhase,startPhase,lastPhase,currentTrial,startTrial,lastTrial)
             str1 = sprintf('sendRobotPhaseParams:%s:',color);
             str2 = sprintf('%d:%d:%d:%d:%d:%d:',[x1,y1,moveDur,LEDdur,currentPhase,startPhase,lastPhase,currentTrial,startTrial,lastTrial]);
-            sendInfo = [str1 str2]       
-            writeline(obj.connection, sendInfo); 
-            waitSignal = check(obj);
+            sendInfo = [str1 str2];       
+            writeline(obj.connection, sendInfo) 
+            waitSignal = check(obj)
         end
-        
+
+                %% sendRobotPhaseParams 
+        % sends Robot parameters from MATLAB to Arduino
+        function turnOffRobotLED(obj,color)
+            sendInfo = sprintf('turnOffRobotLED:%s:',color)       
+            writeline(obj.connection, sendInfo); 
+            waitSignal = check(obj)
+        end
         %% returnRobot
         % move robot RGB LED to origin
         function returnRobot(obj)            

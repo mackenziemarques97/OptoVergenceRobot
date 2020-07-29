@@ -216,6 +216,7 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
                 %if trialCount
                 a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.moveDur,Trial(phase).phases.LEDdur,phase,robotPhases(1),robotPhases(end),trialCount,1,totTrials)
+                if Trial(phase).phases.LEDdur == 0 && ~strcmp(Trial(phase).phases.color,'none') && phase == 
                 keepFix = true;
             end
         end
@@ -245,9 +246,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         else 
             trialByTrialData(trialCount).ifSuccess{phase} = success;  
         end
-        phase = phase + 1;       
+        phase
+        phase = phase + 1; 
     end
-    
+    trialCount
+    disp('Saving data')
     %Save off DAQ card data
     %Throw warning for overwriting
     filename = fullfile(handles.data_path,[handles.trial_prefix,'DAQ.mat']);
