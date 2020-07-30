@@ -17,7 +17,7 @@ function [VisAng, VergAng] = calcRobotPhaseAngs(x,z,Ihalf)
 % and vergence angle (new set of coordinates) requires changing origin 
 % location to the subject's cyclopean eye, which is 33.02 cm from the
 % closest robot LED location in z dimension and 67.31 cm from the xz origin
-Dx = x - 67.31;
+Dx = x - 63.31;
 Dz = z + 33.02; 
 Dc = hypot(Dx,Dz);
 VisAng = atand(Dx./Dz);

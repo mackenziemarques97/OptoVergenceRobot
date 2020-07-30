@@ -58,7 +58,7 @@ CRGB leds_Center[NUM_Center];
 /*Define global variables*/
 unsigned long previousMillis;
 unsigned long currentMillis;
-int addressLongX, addressLongZ; //address/bytes to write dimensions to
+int addressLongXDim, addressLongZDim, addressLongXLoc, addressLongZLoc; //address/bytes to write dimensions to
 int dirIndex, colIndex;
 bool robotLEDTracker = false;
 String val;
@@ -68,7 +68,7 @@ int direction = 1; /*viewing from behind motor, with shaft facing away, 1 = cloc
 const int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input to steps*/
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2]; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
-unsigned long location[2] = {0, 0}; /*presetting location*/
+unsigned long location[2] = {0,0}; /*presetting location*/
 int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
 /* Defines scaling factor for rotation
@@ -195,8 +195,6 @@ double* parseCommand(char strCommand[]) {
       /*the following if statement assigns numbers to string command entries*/
       if (i == 1) { /*i = 1 indicates 2nd command entry - if looping through and parsing 2nd command entry*/
         command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
-        Serial.print("LEDon: "); Serial.println(token);
-        Serial.print("LEDon: "); Serial.println(command[1]);
         i++;
       }
       else { /*for rest of command entries (which should be integers)*/
@@ -211,9 +209,13 @@ double* parseCommand(char strCommand[]) {
     int i = 1;
     while (token != NULL) {
       token = strtok(NULL, delim);
-      command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
-      Serial.print("LEDofftok: "); Serial.println(token);
-      Serial.print("LEDoffcom: "); Serial.println(command[i]);
+      if (i == 1) {
+        command[i] = setColorIndex(token); /*store index that corresponds to the color entered*/
+        i++;
+      }
+      else { /*for rest of command entries (which should be integers)*/
+        command[i++] = atof(token); /*save them in command array*/
+      }
     }
     return command;
   }
@@ -352,18 +354,22 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
         if (pin == xMin) {
           line(microstepsPerStep, 0, Delay); /*if xMin microswitch is pressed (if value read from pin is 0), move forward in x-direction*/
           location[0] = 0; /*update x-coordinate location to 0*/
+//          EEPROM.updateLong(addressLongXLoc, location[0]);
           delay(200);
         } else if (pin == xMax) {
           line(-microstepsPerStep, 0, Delay); /*if xMax microswitch is pressed, move back in negative x-direction*/
           location[0] = dimensions[0]; /*update x-coordinate location to max x-dimension*/
+//          EEPROM.updateLong(addressLongXLoc, location[0]);
           delay(200);
         } else if (pin == zMin) {
           line(0, microstepsPerStep, Delay); /*if zMin microswitch is pressed, move forward in z-direction*/
           location[1] = 0; /*update z-coordinate location to 0*/
+//          EEPROM.updateLong(addressLongZLoc, location[1]);
           delay(200);
         } else if (pin == zMax) {
           line(0, -microstepsPerStep, Delay); /*if zMax microswitch is pressed, move back in negative z-direction*/
           location[1] = dimensions[1]; /*update z-coordinate location to max z-dimension*/
+//          EEPROM.updateLong(addressLongZLoc, location[1]);
           delay(200);
         }
         val = digitalRead(pin); /*continue reading the state of the pin*/
@@ -382,6 +388,8 @@ unsigned long recalibrate(int pin) { /*input is microswitch pin*/
 void line(long x1, long z1, int v) { /*inputs: x-component of vector, z-component of vector, speed/pulse width*/
   location[0] += x1; /*add x1 to current x-coordinate location*/
   location[1] += z1; /*add z1 to current z-coordinate location*/
+//  EEPROM.updateLong(addressLongXLoc, location[0]);
+//  EEPROM.updateLong(addressLongZLoc, location[1]);
   long x0 = 0, z0 = 0;
   long dx = abs(x1 - x0), signx = x0 < x1 ? 1 : -1; /*change in x is absolute value of difference between (x1,z1) location and origin*/
   /*if x0 is less than x1, set signx equal to 1; if x0 is not less than x1, set signx equal to -1*/
@@ -441,10 +449,10 @@ int* findDimensions() {
 
 void writeDimensions(unsigned long dimensions[]) {
   long xDim = dimensions[0];
-  EEPROM.updateLong(addressLongX, xDim);
+  EEPROM.updateLong(addressLongXDim, xDim);
   Serial.print("xDim: "); Serial.println(xDim);
   long zDim = dimensions[1];
-  EEPROM.updateLong(addressLongZ, zDim);
+  EEPROM.updateLong(addressLongZDim, zDim);
   Serial.print("zDim: "); Serial.println(zDim);
 }
 
@@ -518,16 +526,28 @@ void setup() {
   delay(100);
 
   /* get addresses/bytes to write to in EEPROM */
-  addressLongX = EEPROM.getAddress(sizeof(long));
-  addressLongZ = EEPROM.getAddress(sizeof(long));
+  addressLongXDim = EEPROM.getAddress(sizeof(long));
+  addressLongZDim = EEPROM.getAddress(sizeof(long));
   /* read from EEPROM */
-  long EEPROMoutput = EEPROM.readLong(addressLongX);
+  long EEPROMoutput = EEPROM.readLong(addressLongXDim);
   /* store in first position of dimensions array */
   dimensions[0] = EEPROMoutput;
   /* read from EEPROM */
-  EEPROMoutput = EEPROM.readLong(addressLongZ);
+  EEPROMoutput = EEPROM.readLong(addressLongZDim);
   /* store in second position of dimensions array */
   dimensions[1] = EEPROMoutput;
+
+//  /* get addresses/bytes to write to in EEPROM */
+//  addressLongXLoc = EEPROM.getAddress(sizeof(long));
+//  addressLongZLoc = EEPROM.getAddress(sizeof(long));
+//  /* read from EEPROM */
+//  EEPROMoutput = EEPROM.readLong(addressLongXLoc);
+//  /* store in first position of dimensions array */
+//  location[0] = EEPROMoutput;
+//  /* read from EEPROM */
+//  EEPROMoutput = EEPROM.readLong(addressLongZLoc);
+//  /* store in second position of dimensions array */
+//  location[1] = EEPROMoutput;
 
   char serialInit = 'X';
   Serial.println("A");
@@ -612,7 +632,7 @@ void loop() {
               previousMillis = currentMillis;
               analogWrite(ledPin, ledOff);
               robotLEDTracker = false;
-              Serial.println("OFF");
+              Serial.println("RobotLEDOFF");
               break;
             }
 
@@ -646,7 +666,7 @@ void loop() {
           int ledPin = setRobotColor(*(command + 1));
           analogWrite(ledPin, ledOff);
           robotLEDTracker = false;
-          Serial.println("OFF");
+          Serial.println("RobotLEDOFF");
         }
         break;
       case 7: //returnRobot:
@@ -656,6 +676,8 @@ void loop() {
           recalibrate(zMin); /*zErr is number of steps from initial z-coordinate location to z=0*/
           location[0] = 0;
           location[1] = 0;
+//          EEPROM.updateLong(addressLongXLoc, location[0]);
+//          EEPROM.updateLong(addressLongZLoc, location[1]);
           Serial.println("robotReturned");
           delay(300);
         }

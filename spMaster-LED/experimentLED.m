@@ -60,6 +60,7 @@ for trialCount = 1:totalTrials
 end
 % at the end of each experiment, end serial connection with Arduino
 uiwait(msgbox('Experiment Finished'));
+a.returnRobot();
 a.endSerial(); 
 clear
 close all

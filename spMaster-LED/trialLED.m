@@ -248,11 +248,8 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         else 
             trialByTrialData(trialCount).ifSuccess{phase} = success;  
         end
-        phase
         phase = phase + 1; 
     end
-    trialCount
-    disp('Saving data')
     %Save off DAQ card data
     %Throw warning for overwriting
     filename = fullfile(handles.data_path,[handles.trial_prefix,'DAQ.mat']);
