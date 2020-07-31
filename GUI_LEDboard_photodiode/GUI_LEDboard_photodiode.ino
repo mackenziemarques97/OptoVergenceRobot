@@ -69,7 +69,7 @@ const int stepsPerRev = 200; /*steps per revolution, for converting b/w cm input
 unsigned long microstepsPerStep = 16; /*divides each step into this many microsteps (us), determined by microstepping settings on stepper driver, (16 us/step)*(200 steps/rev)corresponds to 3200 pulse/rev*/
 unsigned long dimensions[2]; /*preallocating dimensions to previously measured values, arbitrary initialization value*/
 unsigned long location[2] = {0,0}; /*presetting location*/
-int Delay = 30; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
+int Delay = 15; /*default Delay for calibration and basic movement actions, in terms of square pulse width (microseconds)*/
 float pi = 3.14159265359; /*numerical approximation used for pi*/
 /* Defines scaling factor for rotation
     radius of pulley

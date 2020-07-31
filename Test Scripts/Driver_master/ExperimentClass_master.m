@@ -265,6 +265,7 @@ classdef ExperimentClass_master < handle %define handle class
             % Convert x and y distance to angle in degrees
             angles = atan(y(1:angleTrials,1)./x(1:angleTrials,1))*180/pi;
             save('angles','angles');
+            save('delays','delays');
             
             %% Finding model of speed to delay
             % The intention is to be able to input a speed (in cm/s)
