@@ -109,10 +109,17 @@ function RewardUp_Callback(hObject, eventdata, handles)
 % hObject    handle to RewardUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%access reward value saved in handles
 currentRew = str2double(get(handles.RewardValue,'String'));
+%increase current reward value by 1
 newRew = currentRew + 1;
+%save reward value in TrialParam_LED
+%column 10 contains reward amount info per phase
 handles.TrialParams_LED(:,10) = {newRew};
+%save newRew to handles
 handles.newRew = num2str(newRew);
+%update current reward value
 set(handles.RewardValue,'String',newRew)
 % Update handles structure
 guidata(hObject, handles);

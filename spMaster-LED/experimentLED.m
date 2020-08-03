@@ -50,6 +50,7 @@ end
 trial_num_format = ['%0',num2str(floor(eps + log(totalTrials) / log(10)) + 1),'d'];
 experimentData.experimentParameters = ExperParams;
 experimentData.order = order;
+%initialize structure to save parameters
 trialByTrialData(totalTrials) = struct();
 for trialCount = 1:totalTrials
     currentTrialName = trialOrder{trialCount};
@@ -58,7 +59,8 @@ for trialCount = 1:totalTrials
     [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,experimentData,trialByTrialData,trialCount,totalTrials); % calls trial.m with the current trial parameters
     pause(str2double(handles.defaultITI_editbox.String));
 end
-% at the end of each experiment, end serial connection with Arduino
+% at the end of each experiment, return robot, and end serial connection 
+% with Arduino
 uiwait(msgbox('Experiment Finished'));
 a.returnRobot();
 a.endSerial(); 

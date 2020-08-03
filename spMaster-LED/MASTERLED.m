@@ -191,7 +191,6 @@ mydata = load(trisel);
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
-%data = mydata.TrialParams;
 LEDdata = mydata.TrialParams_LED;
 robotdata = mydata.TrialParams_robot;
 
@@ -233,37 +232,63 @@ function TrialParams_LED_CellEditCallback(hObject, eventdata, handles)
 %	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
-% I plan on writing code here to check for valid input, convert strings to 
-%   relevant numerical values, etc
+
 % % safety check: Are the degrees entered by the user valid in the sense that
 % % they correspond to locations where an LED is present?
 
+%save indices of last selected cell in LED Trial Design Table
 handles.selectedCell(1) = eventdata.Indices(1);
 handles.selectedCell(2) = eventdata.Indices(2);
+%save source of last selected cell (either TrialParams_LED or
+%TrialParams_robot)
+%in this function source will be TrialParams_LED
 handles.selectedCellSource = eventdata.Source.Tag;
 % Update handles structure
 guidata(hObject, handles);
 
 %for the number of rows that contain parameters 
 %iterate through and display error message if any of the entries for 
-%LED degree meet the conditions 
+%LED degree meet the conditions
+
+%save LED data in variable
 LED = get(handles.TrialParams_LED,'Data');
-%numLEDphases = sum(~cellfun(@isempty,LED(:,2)),1);
+%find column index for direction and visual angle/degree data
+%this index is not hard-coded in the case that structure of trial table for
+%LED data is changed
 dirIdx = strcmp(handles.TrialParams_LED.ColumnName,'Direction');
 degIdx = find(strcmp(handles.TrialParams_LED.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>'));
+%available degree entries for LEDs on LED board are
+%0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30
+%For each direction on the LED board, there are also LEDs present at 35
+%degrees from center; however, some of those LEDs are blocked by the frame
+%of the robot.
+%In the case of the west strip, that LED is used with the photodiode to
+%keep close timing of any other LEDs being activated. 
 availLEDs = [0:20 25:5:30];
+%loop through number of rows in LED data table
 for phase = 1:size(LED,1)
+    %for any cells that contain NaN
     mask = cellfun(@(C) all(isnan(C)), LED);
+    %make those cells empty
     LED(mask) = {[]};
+    %save those changes in the cell array for LED tabel data
     set(handles.TrialParams_LED,'Data',LED);   
+    %if "center" is selected as the direction for a phase
     if strcmp(LED(phase,dirIdx),'center')
+        %automatically set the visual angle/degree to 0 
         LED(phase,degIdx) = num2cell(0);
+        %load the change on the table
         set(handles.TrialParams_LED,'Data',LED);   
     end
+    %while a visual angle/degree has not been entered for the current phase
     while isempty(LED{phase,degIdx})
+        %wait
         pause;
     end
+    %if the value entered for visual angle/degree of the current phase is
+    %not one of the available LEDs
     if ~ismember(LED{phase,degIdx},availLEDs)   
+        %display an error message
         str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 0-20, 25, and 30.', phase);
         uiwait(msgbox(str,'Error','error'));
     end
@@ -281,13 +306,20 @@ function TrialParams_robot_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
+%save indices of last selected cell in LED Trial Design Table
 handles.selectedCell(1) = eventdata.Indices(1);
 handles.selectedCell(2) = eventdata.Indices(2);
+%save source of last selected cell (either TrialParams_LED or
+%TrialParams_robot)
+%in this function source will be TrialParams_robot
 handles.selectedCellSource = eventdata.Source.Tag;
 % Update handles structure
 guidata(hObject, handles);
-% calculate overall velocity from Vx and Vz in cm/s
-% if Vx and Vz entered, then calculate overall velocity and fill cell
+
+% If vergence angle and visual angle entered, then calculate 
+% xCoord and zCoord and fill corresponding cells.
+% If xCoord and zCoord entered, then calculate 
+% vergence angle and visual angle and fill corresponding cells.
 % store data from robot params table
 robot = get(handles.TrialParams_robot,'Data');
 VisAngIdx = strcmp(handles.TrialParams_robot.ColumnName,'<html><center>Visual<br>Angle (°)<center><html>');
@@ -300,47 +332,75 @@ Ihalf = interpupDist/2;
 currRow = eventdata.Indices(1);
 currCol = eventdata.Indices(2);
 
+%if the current selected cell is in LED duration column and the value
+%entered is ot numeric (i.e. is a char or a string)
 if currCol == find(LEDdurIdx) && ~isnumeric(robot{currRow,currCol})
+    %replace the non-numeric value to the double equivalent and save 
     robot{currRow,currCol} = str2double(robot{currRow,currCol});
     set(handles.TrialParams_robot,'Data',robot);   
 end
 
+%if the current selected cell is in the x coordinate or z coordinate
+%columns
 if currCol == find(xCoordIdx) || currCol == find(zCoordIdx)
+    %while no value has been entered in those cells
     while isempty(robot{currRow,xCoordIdx})||isempty(robot{currRow,zCoordIdx})
+        %wait
         pause;
     end
+    %after values have been entered, convert the cells to doubles
     xCoord = cell2mat(robot(currRow,xCoordIdx));
     zCoord = cell2mat(robot(currRow,zCoordIdx));
+    %calculate corresponding visual angle and vergence angle
     [VisAng,VergAng] = calcRobotPhaseAngs(xCoord,zCoord,Ihalf);
+    %convert numeric values to cells before saving 
     robot(currRow,VisAngIdx) = num2cell(VisAng);
     robot(currRow,VergAngIdx) = num2cell(VergAng);
+%if the current selected cell is in the visual angle or vergence angle
+%column
 elseif currCol == find(VisAngIdx) || currCol == find(VergAngIdx)
+    %while no value has been entered in those cells
     while isempty(robot{currRow,VisAngIdx})||isempty(robot{currRow,VergAngIdx})
+        %wait
         pause;
     end
+    %after values have been entered, convert the cells to doubles
     VisAng = cell2mat(robot(currRow,VisAngIdx));
     VergAng = cell2mat(robot(currRow,VergAngIdx));
+    %calculate corresponding xCoord and zCoord
     [xCoord,zCoord] = calcRobotPhaseCoords(VisAng,VergAng,Ihalf);
+    %convert numeric values to cells before saving 
     robot(currRow,xCoordIdx) = num2cell(xCoord);
     robot(currRow,zCoordIdx) = num2cell(zCoord);
 end
 
+%set logical to track validity of entries to true
 validCheck = true;
+%if current cell selected is for xCoord, if the cell is not empty, and if
+%the value falls outside the range of 0-134.62 
 if currCol == find(xCoordIdx) && ~isempty(robot{currRow,xCoordIdx}) && (xCoord < 0 || xCoord > 134.62) 
+    %display an error message
     str = sprintf('Calculated X-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
+    %set validity logical to false
     validCheck = false;
 end
+%if current cell selected is for zCoord, if the cell is not empty, and if
+%the value falls outside the range of 0-86.0425 
 if currCol == find(zCoordIdx) && ~isempty(robot{currRow,zCoordIdx}) && (zCoord < 0 || zCoord > 86.0425)
+    %display an error message
     str = sprintf('Calculated Z-coordinate out of bounds. Invalid visual/vergence angle combination.');
     uiwait(msgbox(str,'Error','error'));
+    %set validity logical to false
     validCheck = false;
 end
 
+% THE FOLLOWING CODE IS COMMENTED OUT BUT COULD BE USEFUL FOR THE FUTURE IF
+% VELOCITIES ARE ADDED TO THE ROBOT PARAMETERS TRIAL DESIGN TABLE
 % % get column index of Vx from table column names
-% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (Â°/s)');
+% % VxIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vx (�/s)');
 % % get column index of Vz
-% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (Â°/s)');
+% % VzIdx = strcmp(handles.TrialParams_robot.ColumnName,'Vz (�/s)');
 % % store  current row index of param table
 % % currRow = eventdata.Indices(1);
 % % if Vx or Vz entry in table is empty, then wait
@@ -356,7 +416,10 @@ end
 % % fill the calculated velocity robot cell array
 %%robot(currRow,find(VxIdx)-1) = num2cell(Vel);
 % display changes of data cell array on robot params table of main GUI
+
+%if logical tracking validity is true
 if validCheck
+    %manifest the saved changes on the main GUI table
     set(handles.TrialParams_robot,'Data',robot);   
 end
 
@@ -403,20 +466,23 @@ for phase = 1:numLEDphases
         uiwait(msgbox(str,'Error','error'));
     end
 end
-
+%access parameter date for LED board and vergence robot
 TrialParams_LED = get(handles.TrialParams_LED,'Data');
 TrialParams_robot = get(handles.TrialParams_robot,'Data');
+%access filename for the trial
 FileName   = get(handles.trialName_editbox,'String');
 File = strcat(FileName,".mat");
 
-% Save the trial into the "trials" folder
 % change the current folder to trials folder
 cd(handles.trialFolder);
+% Save the trial containing separate cell arrays for TrialParam_LED and TrialParam_robot
+% into the "trials" folder in indicated file
 save(File, 'TrialParams_LED', 'TrialParams_robot')
 
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
+%update the trials list 
 trials = get(handles.savedTrials_listbox,'String');
 trials = [trials; cellstr(FileName)];
 set(handles.savedTrials_listbox,'String',trials)
@@ -438,10 +504,6 @@ function start_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% if(get(handles.SetTrialNumber,'Value') == 0)
-%     set(handles.SetTrialNumber,'Value',100);
-% endexperiment_pushbutton
-
 % Update handles structure
 guidata(hObject, handles);
 
@@ -456,35 +518,17 @@ if get(handles.debugging_checkbox,'Value')
     handles.deliverRewardFunc = @deliverRewardNotification;
 end
 
-% % take parameters from the 2 trial design tables 
-% % and combine into one cell array with indication of whether each phase
-% % includes LED board or robot
-% % reorder and reformat TrialParams cell arrays
-% LED = get(handles.TrialParams_LED,'Data');
-% extLED = cell(size(LED,1),1);
-% extLED(:) = {'LED'};
-% LED = [extLED LED cell(4,2)];
-% 
-% robot = get(handles.TrialParams_robot,'Data') ;
-% extRob = cell(size(robot,1),1);
-% extRob(:) = {'robot'};
-% robot = [extRob robot];
-% 
-% TrialParams = [LED; robot];
-% TrialParams(:,2) = cellfun(@str2double, TrialParams(:,2),'UniformOutput',0);
-% TrialParams = sortrows(TrialParams,2);
-% phaseOrder = cell2mat(TrialParams(:,2));
-% TrialParams(isnan(phaseOrder),1:2) = {[]};
-% handles.TrialParams = TrialParams;
-
+%access selected order from drop-down list
 contents = cellstr(get(handles.chooseOrder_choicelist,'String'));
 order = contents{get(handles.chooseOrder_choicelist,'Value')};
 
+%access filename for selected, pre-saved experiment
 exp2run = get(handles.experimentName_editbox,'String');
 exp2run = strcat(exp2run,'.mat');
 % Update handles structure
 guidata(hObject, handles);
 
+% Run the experiment
 experimentLED(exp2run,order,handles);
 
 
@@ -500,11 +544,16 @@ function endExperiment_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to endExperiment_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%save serial object 
 a = handles.a_serialobj;
+%clear the LED board
 a.clearLEDs();
+%end the serial connection between MATLAB and Arduino
 a.endSerial();
 clear
 close all
+%return to the command window
 return 
 
 
@@ -520,6 +569,8 @@ function deliverReward_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to deliverReward_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%turn on, the turn off digital channel to deliver reinforcement
 krDeliverReward(handles.dio,1);
 
 
@@ -586,6 +637,8 @@ function savedExperiments_listbox_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%when previously saved experiment is selected from the saved experiment
+%list box, fill the experiment table with trial types
 experiments = get(hObject,'String');
 indsel = get(hObject,'Value');
 expsel = experiments{indsel};
@@ -641,6 +694,7 @@ save(File, 'ExperParams', 'trialOrder')
 % change the current folder to spMaster-LED
 cd(handles.masterFolder);
 
+%update the saved experiments list
 experiments = get(handles.savedExperiments_listbox,'String');
 experiments = [experiments; cellstr(FileName)];
 set(handles.savedExperiments_listbox,'String',experiments(:,1))
@@ -799,6 +853,8 @@ function timeout_checkbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of timeout_checkbox
+
+%if box is checked, remove grayed out editbox
 if get(hObject,'Value')
     set(handles.timeout_editbox,'enable','on');
 else
@@ -874,23 +930,6 @@ else
     uiwait(msgbox(str,'Error','error'));
 end
 
-    %check that vis angles entered and phases entered are consistent
-%     for phase = 1:spEndIdx
-%         if ~ismember(LED{phase,degIdx},availLEDs)    
-%             str = sprintf('Invalid degree entry in phase %d of current trial. Possible visual angle entries are integer values of 0-20, 25, and 30.', phase);
-%             uiwait(msgbox(str,'Error','error'));
-%         end
-%     end
-%
-
-%LED(:,1) = num2cell(1:23);
-% LED(:,degIdx) = num2cell([0:20 25 30]');
-% if ~isempty(LED(1,2))
-%     LED(:,2) = LED(1,2);
-% end
-% if ~isempty(LED(1,3))
-%     LED(:,3) = LED(1,3);
-% end
 if validCheck
     set(handles.TrialParams_LED,'Data',TrialParams_LED);
     FileName   = get(handles.trialName_editbox,'String');
@@ -921,8 +960,13 @@ function clearCellSelection_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to clearCellSelection_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%After button push, access table data from appropriate source, 
+%either TrialParams_LED or TrialParams_robot
 tableData = get(handles.(handles.selectedCellSource),'Data');
+%set last selected cell to empty
 tableData(handles.selectedCell(1),handles.selectedCell(2)) = {[]};
+%manifest changes on the main GUI
 set(handles.(handles.selectedCellSource),'Data',tableData); 
 
 
@@ -939,20 +983,18 @@ function clearAllCells_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to clearAllCells_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 %access data shown in tables
 LED = get(handles.TrialParams_LED,'Data');
 robot = get(handles.TrialParams_robot,'Data');
 %set all cells to empty
 LED(:) = {[]};
 robot(:) = {[]};
+%reset Trial Name 
 handles.trialName_editbox.String = 'EDIT THIS TEXT';
 %show changes
 set(handles.TrialParams_LED,'Data',LED);
 set(handles.TrialParams_robot,'Data',robot);
-%reset Trial Name 
-
-
-
 
 
 % --- Executes during object creation, after setting all properties.

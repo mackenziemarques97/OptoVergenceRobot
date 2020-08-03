@@ -10,16 +10,9 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     paramNames_LED = {'phaseNum','color','direction','visAng','duration','fixDur','ifReward','withNext','fixTol','numRew'};
     paramNames_robot = {'phaseNum','color','xCoord','zCoord','vergAng','visAng','moveDur','LEDdur','ifReward','withNext'};
     % use supporting function to access and sort parameters saved in master GUI
-    % tables for controlling LEDs and robot into structures
-%   trialLED = sortTrialParams(TrialParams_LED,paramNames_LED);
-%   trialRobot = sortTrialParams(TrialParams_robot,paramNames_robot);
+    % tables for controlling LEDs and robot into structure
     [Trial,totNumPhases,numLEDPhases,numRobotPhases,LEDPhases,robotPhases] = makeTrialStruct(TrialParams_LED,TrialParams_robot,paramNames_LED,paramNames_robot);
     
-    % identify total number of phases, number of LED wall phases, and
-    % number of robot phases
-%     numPhases = numel(vertcat(trialLED(:).phaseNum,trialRobot(:).phaseNum));
-%     numLEDPhases = numel(vertcat(trialLED(:).phaseNum));
-%     numRobotPhases = numel(vertcat(trialRobot(:).phaseNum));
     %LED Wall Coordinate Location Calculation for each Phase
     % loop through each LED phase and assign x and y coordinates for each
     % lit-up LED; save coords as additional fields in trialLED structure
@@ -41,8 +34,6 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         Trial(phaseNum).phases.zCoord_uSteps = (Trial(phaseNum).phases.zCoord/Circ)*stepsPerRev*uStepsPerStep;
 %       vergAng = trialRobot(phaseNum).vergAng;
 %       visAng = trialRobot(phaseNum).visAng;            
-%       xCoord = trialRobot(phaseNum).xCoord;
-%       zCoord = trialRobot(phaseNum).zCoord;
     end
     timeout = get(handles.timeout_checkbox,'Value');
     
@@ -57,56 +48,74 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
     setappdata(mainGUI,'TrialParams_LED',TrialParams_LED)
     setappdata(mainGUI,'TrialParams_robot',TrialParams_robot)
     
+    %run auxiliary GUI for tracking 2D eye movements for LED board
     auxiliary();
 
     h = findobj(auxiliary,'Tag','Position');
     auxAxes = guidata(h);
     auxAxes = auxAxes.Position;
-    % auxAxes = get(auxAxes,'Position');
-
     %% get updated values from auxiliary gui
         function [numrew, fixTol] = checkAux(auxiliary,Trial,phase)
 
             h = findobj(auxiliary,'Tag','RewardValue');
+            %access handles from auxiliary GUI
             auxHandles = guidata(h);
+            %if a new reward value has been added by aux GUI and if that
+            %value is not the same as the currently saved one
             if isfield(auxHandles,'newRew') && str2double(auxHandles.newRew)~=Trial(phase).phases.numRew
+                %update currently saved reward value
                 Trial(phase).phases.numRew = str2double(auxHandles.newRew);
+                %update value shown on main GUI table
                 TrialParams_LED = auxHandles.TrialParams_LED;
+                %update save file with changes
                 save(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot')
             end
+            %show changes on aux GUI
             set(auxHandles.RewardValue,'String',Trial(phase).phases.numRew)
+            %save value for output
             numrew = Trial(phase).phases.numRew;
-
+            %if a new fix tolerance value has been added by aux GUI and if that
+            %value is not the same as the currently saved one
             if isfield(auxHandles,'newTol') && auxHandles.newTol~=Trial(phase).phases.fixTol
+                %update currently saved reward value
                 Trial(phase).phases.fixTol = str2double(auxHandles.newTol);
+                %update value shown on main GUI table
                 TrialParams_LED = auxHandles.TrialParams_LED;
+                %update save file with changes
                 save(fullfile(handles.trialFolder,currentTrialName),'TrialParams_LED','TrialParams_robot')
             end
+            %show changes on aux GUI
             set(auxHandles.FixTol,'String',Trial(phase).phases.fixTol)
+            %save value for output
             fixTol = Trial(phase).phases.fixTol;
-
         end
     %% initialize viewing figure axes in auxiliary gui
-
-    axes(auxAxes);cla; %get axes from GUI
+    %access axes from GUI and clear them
+    axes(auxAxes);cla; 
+    %get eye position
     [eyePosX, eyePosY] = handles.getEyePosFunc();
+    %create marker on auxiliary GUI to track eye position
     hEye = rectangle('Position', [eyePosX-0.5 eyePosY-0.5 1 1],'FaceColor','green','Curvature',[1 1]); %create square for eye pos
 
         function updateViewingFigure()
             try
-                set(hEye, 'Position', [eyePosX-0.5 eyePosY-0.5 1 1]);  
+                %initialize eye position marker to the center
+                set(hEye, 'Position', [eyePosX-0.5 eyePosY-0.5 1 1]); 
+                %update position based on phase coordinates and withNext
+                %state
                 for ii = 1:viewingFigureIndex
                     set(viewingFigureRectangles(ii), 'Position', [viewingFigureCoords(ii, 1)-0.5 viewingFigureCoords(ii, 2)-0.5 1 1],'FaceColor',viewingFigureColor{ii});
                 end
+                %show changes
                 drawnow
             catch
                 disp('Unable to plot axes');
             end
         end
-
-    % start the trial --> screen
     
-    a.clearLEDs(); %initalize trial by setting all LEDs to black
+    %initalize trial by setting all LEDs to black
+    a.clearLEDs();
+    %update fileID for saving data
     fw_prev = fw;
     fw = fopen(fullfile(handles.data_main_dir,'Data.bin'),'w');
     fclose(fw_prev);
@@ -114,17 +123,21 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
 
     %% Initialize finite state structure
     phase = 1;
+    %while the current phase is less than the total number of phases
     while phase <= totNumPhases
-
+        %create index to keep track of phase where eyePos is checked
+        %this is relevant for trials with withNext phases
         eyeCheckPhaseIndex = phase;
        
-        %%CHECK IF PHASE IS LED BOARD OR ROBOT 
+        %loop through LED phases
         for i = 1:numLEDPhases
+            %if the current phase is an LED phase and phase to check eyePos
             if phase == LEDPhases(i) && phase == eyeCheckPhaseIndex
+                %check aux GUI for reward number and fixation tolerance
                 [numrew, fixTol] = checkAux(auxiliary,Trial,phase);
-                
+                %inialize success logical to false
                 success = false;
-                
+                %save trial parameters/information
                 if Trial(eyeCheckPhaseIndex).phases.withNext
                     for phaseCount = eyeCheckPhaseIndex:eyeCheckPhaseIndex+1
                         trialByTrialData(trialCount).direction{phaseCount} = Trial(phaseCount).phases.direction;
@@ -153,16 +166,16 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                     trialByTrialData(trialCount).ifSuccess{phase} = success;
                 end
                 
-                %is there more than one stimulus on screen
+                %if there is more than one stimulus on screen
                 viewingFigureIndex = 1;
                 
                 viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
                 viewingFigureCoords(viewingFigureIndex, :) = [Trial(phase).phases.xCoord, Trial(phase).phases.yCoord];
                 viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
-                
+                %send LED board parameters to Arduino
                 a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
+                %if the current phase is withNext
                 while Trial(phase).phases.withNext
-                    %withNextTracker = 1;
                     phase = phase + 1;
                     viewingFigureIndex = viewingFigureIndex + 1;
                     viewingFigureRectangles(viewingFigureIndex) = rectangle('Position', [-0.5 -0.5 1 1],'FaceColor','none','EdgeColor','none');
@@ -170,15 +183,20 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                     viewingFigureColor{viewingFigureIndex} = Trial(phase).phases.color;
                     a.sendLEDPhaseParams(convertCharsToStrings(Trial(phase).phases.direction), convertCharsToStrings(Trial(phase).phases.color), Trial(phase).phases.visAng); %WRITE FOR ARDUINO
                 end
+                %signal Arduino to turn on LEDs
                 a.turnOnLED();
                 % check for fixation
-                fix = false; % assume no fixation to start
+                % assume no fixation to start
+                fix = false; 
+                %start fixation timer
                 fixTic = tic;
                 while toc(fixTic) < Trial(eyeCheckPhaseIndex).phases.duration
                     pause(0.001)
                     [eyePosX, eyePosY] = handles.getEyePosFunc();
                     updateViewingFigure();
+                    %if eye position is within fixation tolerance window
                     if abs(eyePosX - Trial(eyeCheckPhaseIndex).phases.xCoord) < fixTol && abs(eyePosY - Trial(eyeCheckPhaseIndex).phases.yCoord) < fixTol
+                        %fixation achieved
                         fix = true;
                         break
                     end
@@ -210,11 +228,11 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
                 end
             end 
         end
+        %loop through robot phases
         for i = 1:numRobotPhases
             if phase == robotPhases(i)
+                %NEED TO USE EYE POS TO DETERMINE SUCCESS/FAIL CONDITIONS
                 success = false;
-                %expIdx = find(strcmp(currentTrialName(1:end-4),experimentData.experimentParameters));
-                %if trialCount
                 a.sendRobotPhaseParams(convertCharsToStrings(Trial(phase).phases.color),Trial(phase).phases.xCoord_uSteps,Trial(phase).phases.zCoord_uSteps,Trial(phase).phases.moveDur,Trial(phase).phases.LEDdur,phase,robotPhases(1),robotPhases(end),trialCount,1,totTrials)
                 if Trial(phase).phases.LEDdur == 0 && ~strcmp(Trial(phase).phases.color,'none') && phase == robotPhases(end) && trialCount == totTrials
                     a.turnOffRobotLED(Trial(phase).phases.color);
@@ -224,8 +242,10 @@ function [experimentData,trialByTrialData] = trialLED(currentTrialName,handles,e
         end
 
         % deliver reward only if fixation was maintained AND this phase is
-        % to deliver reward
+        % marked to deliver reward
+        %if fixation not maintained for desired amount of time
         if ~keepFix
+            %break from trial
             break            
         end
         if keepFix && Trial(eyeCheckPhaseIndex).phases.ifReward
