@@ -1,3 +1,5 @@
+%% Sample code for testing methods defined in ExperiementClass handle class
+%blink LED
 clear;close all;
 serialPort = 'COM4';
 a = ExperimentClass_GUI_LEDboard(serialPort);
@@ -11,6 +13,7 @@ end
 a.endSerial();
 
 %%
+%turn on 2 LEDs at once
 clear;close all;
 serialPort = 'COM4';
 a = ExperimentClass_GUI_LEDboard(serialPort);

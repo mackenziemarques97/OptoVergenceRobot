@@ -44,10 +44,14 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
         %% sendLEDPhaseParams 
         % sends LED parameters from MATLAB to Arduino
         function sendLEDPhaseParams(obj,dir,color,deg)
+            %construct string to send to Arduino
             str1 = sprintf('sendLEDPhaseParams:%s:%s:',[dir,color]);
             str2 = sprintf('%d:',deg);
-            sendInfo = [str1 str2];     
+            sendInfo = [str1 str2];
+            %send string
             writeline(obj.connection, sendInfo); 
+            %wait for response from Arduino (this may not seem necessary,
+            %but it is)
             waitSignal = check(obj);
         end
         
@@ -80,11 +84,11 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             str1 = sprintf('sendRobotPhaseParams:%s:',color);
             str2 = sprintf('%d:%d:%d:%d:%d:%d:',[x1,y1,moveDur,LEDdur,currentPhase,startPhase,lastPhase,currentTrial,startTrial,lastTrial]);
             sendInfo = [str1 str2];       
-            writeline(obj.connection, sendInfo) 
+            writeline(obj.connection, sendInfo); 
             waitSignal = check(obj);
         end
 
-                %% sendRobotPhaseParams 
+        %% sendRobotPhaseParams 
         % sends Robot parameters from MATLAB to Arduino
         function turnOffRobotLED(obj,color)
             str1 = sprintf('turnOffRobotLED:%s:',color);
@@ -117,7 +121,7 @@ classdef ExperimentClass_GUI_LEDboard < handle %define handle class
             delete(obj.connection); %close connection
         end
         
-%         %% waitSignal - communication function  
+%         %% OLD waitSignal - communication function  
 %         % do not suppress "waitSignal = check(obj)" line if you want what's
 %         % received to print in MATLAB's command window
 %         %

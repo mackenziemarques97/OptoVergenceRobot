@@ -1,3 +1,4 @@
+%% Test script to investigate how MATLAB's built-in rectangle() function works in trialLED.m
 eyePosX = 1
 eyePosY = 2
 figure
